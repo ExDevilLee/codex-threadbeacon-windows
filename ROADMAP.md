@@ -16,9 +16,10 @@
 - [x] Resolve renamed titles from `session_index.jsonl` with SQLite title fallback.
 - [x] Read at most the final 2 MiB of each rollout for status and Token fields.
 - [x] Derive task status with completion retention and stale-running expiry.
-- [ ] Display the derived task status in WPF.
-- [ ] Display cumulative Token usage.
-- [ ] Refresh every 2 seconds and support manual refresh.
+- [x] Merge task, title, rollout, status, and Token data into unified snapshots.
+- [x] Display the derived task status in WPF.
+- [x] Display cumulative Token usage.
+- [x] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
 - [ ] Validate behavior while Codex is continuously writing.
 

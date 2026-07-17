@@ -33,6 +33,10 @@ The local probe confirmed that the session index was healthy and that current vi
 
 The status policy keeps a completion visible for 60 seconds and changes it to idle afterward. An unresolved running turn becomes unknown after 120 seconds without a newer event. The local probe found every visible rollout available and produced aggregate status counts without printing thread identifiers, titles, paths, Token values, or message content.
 
+`ThreadStatusLoader` now merges the SQLite records, session index title overrides, rollout observations, status policy, and SQLite Token fallback into immutable task snapshots. Snapshots sort by status priority, then latest event time, then stable thread ID.
+
+The WPF POC displays the real snapshot list with status lights, renamed titles, cumulative Token totals, and status duration. It refreshes every 2 seconds on a background worker and provides a manual refresh command. A local launch verified that four real tasks rendered without layout overlap while Codex remained active.
+
 ## Compatibility Boundary
 
 This probe validates one Windows 11 machine and the currently installed Codex version. It does not establish a stable public contract. The implementation must use Windows path APIs, isolate schema assumptions, and degrade safely when sources change or disappear.
