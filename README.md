@@ -1,9 +1,5 @@
 # ThreadBeacon for Codex on Windows
 
-<p align="center">
-  <img src="Resources/AppIcon-1024.png" width="160" alt="ThreadBeacon App 图标">
-</p>
-
 简体中文 | [English](README-EN.md)
 
 ThreadBeacon 是一个用于集中查看 Codex Desktop 与 Codex CLI 主任务状态的原生 Windows 小窗口。
@@ -57,6 +53,10 @@ dotnet run --project tools/ThreadBeacon.Probe --configuration Release
 ```
 
 ## App 图标
+
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" width="160" alt="ThreadBeacon App 图标">
+</p>
 
 Windows App 与 macOS 版本共享 `B1 Graphite / Code Beacon` 图标：石墨黑圆角底板、白色代码括号和纵向红黄绿三灯。
 
