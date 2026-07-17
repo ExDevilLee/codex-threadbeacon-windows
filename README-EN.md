@@ -1,5 +1,9 @@
 # ThreadBeacon for Codex on Windows
 
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" width="160" alt="ThreadBeacon App icon">
+</p>
+
 [简体中文](README.md) | English
 
 ThreadBeacon is a native Windows status window for monitoring primary Codex Desktop and Codex CLI tasks at a glance.
@@ -50,6 +54,19 @@ dotnet build --configuration Release
 dotnet test --configuration Release
 dotnet run --project src/ThreadBeacon.App
 dotnet run --project tools/ThreadBeacon.Probe --configuration Release
+```
+
+## App Icon
+
+The Windows App shares the `B1 Graphite / Code Beacon` icon with the macOS version: a graphite rounded square, white code braces, and a vertical red-yellow-green beacon.
+
+- `Resources/AppIcon-1024.png`: the shared 1024px PNG master.
+- `Resources/AppIcon.ico`: the Windows icon containing 16, 24, 32, 48, 64, 128, and 256px frames.
+
+Regenerate the ICO in PowerShell:
+
+```powershell
+.\script\generate_app_icon.ps1
 ```
 
 ## License
