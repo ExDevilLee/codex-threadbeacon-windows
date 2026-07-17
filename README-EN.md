@@ -10,7 +10,7 @@ This repository is the independent Windows implementation of [ThreadBeacon for m
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
 
-The first production data path is now implemented: short-lived, non-pooled, read-only SQLite connections load the 8 most recent unarchived primary threads, exclude subagents, and degrade safely when the database is missing, busy, or schema-incompatible. Rename resolution, rollout status, and detailed Token parsing remain pending.
+Thread discovery and title resolution are now implemented: short-lived, non-pooled, read-only SQLite connections load the 8 most recent unarchived primary threads and exclude subagents; a shared read of `session_index.jsonl` selects the last valid renamed title for each thread and falls back to the SQLite title when rename data is missing or malformed. Each source degrades safely when unavailable or incompatible. Rollout status and detailed Token parsing remain pending.
 
 The first POC is deliberately limited to:
 

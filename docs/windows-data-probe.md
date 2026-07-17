@@ -25,6 +25,10 @@ Both SQLite databases could be opened read-only while Codex was running. All obs
 
 The repository returns stable health states for a missing, busy, incompatible, or otherwise unavailable database. A local privacy-safe probe completed successfully while Codex was running and printed only source availability, returned thread count, and health status.
 
+`SessionIndexTitleRepository` reads `session_index.jsonl` with Windows read/write/delete sharing enabled so Codex can continue appending. Malformed lines and entries with missing or blank IDs or titles are ignored. The last valid entry for a thread wins; tasks without a valid rename retain the SQLite title.
+
+The local probe confirmed that the session index was healthy and that current visible primary threads had matching rename records. It reported only the match count and did not print IDs or titles.
+
 ## Compatibility Boundary
 
 This probe validates one Windows 11 machine and the currently installed Codex version. It does not establish a stable public contract. The implementation must use Windows path APIs, isolate schema assumptions, and degrade safely when sources change or disappear.

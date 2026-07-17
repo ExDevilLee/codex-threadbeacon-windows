@@ -13,7 +13,7 @@
 - [x] Resolve Codex paths with overrides for `CODEX_HOME` and `CODEX_SQLITE_HOME`.
 - [x] Read the 8 most recent unarchived primary threads from SQLite in read-only mode.
 - [x] Exclude Subagents using thread metadata and parent-child relationships.
-- [ ] Resolve renamed titles from `session_index.jsonl` with SQLite title fallback.
+- [x] Resolve renamed titles from `session_index.jsonl` with SQLite title fallback.
 - [ ] Read at most the rollout tail required for status and Token fields.
 - [ ] Derive and display task status.
 - [ ] Display cumulative Token usage.
