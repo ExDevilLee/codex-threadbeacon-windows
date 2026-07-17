@@ -10,15 +10,15 @@
 
 ## Phase 1: Core Data POC
 
-- [ ] Resolve Codex paths with overrides for `CODEX_HOME` and `CODEX_SQLITE_HOME`.
-- [ ] Read the 8 most recent unarchived primary threads from SQLite in read-only mode.
-- [ ] Exclude Subagents using thread metadata and parent-child relationships.
+- [x] Resolve Codex paths with overrides for `CODEX_HOME` and `CODEX_SQLITE_HOME`.
+- [x] Read the 8 most recent unarchived primary threads from SQLite in read-only mode.
+- [x] Exclude Subagents using thread metadata and parent-child relationships.
 - [ ] Resolve renamed titles from `session_index.jsonl` with SQLite title fallback.
 - [ ] Read at most the rollout tail required for status and Token fields.
 - [ ] Derive and display task status.
 - [ ] Display cumulative Token usage.
 - [ ] Refresh every 2 seconds and support manual refresh.
-- [ ] Degrade safely when a data source is missing, locked, or being upgraded.
+- [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
 - [ ] Validate behavior while Codex is continuously writing.
 
 Acceptance: with several concurrent Codex tasks, run for 30 minutes and verify task count, renamed titles, status transitions, and Token values against the real sessions without blocking Codex writes.
@@ -32,4 +32,3 @@ Acceptance: with several concurrent Codex tasks, run for 30 minutes and verify t
 - HTTP 429/503 incident monitoring.
 - System tray integration.
 - Packaging, signing, and automatic updates.
-

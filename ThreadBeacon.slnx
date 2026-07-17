@@ -2,6 +2,11 @@
   <Folder Name="/src/">
     <Project Path="src/ThreadBeacon.App/ThreadBeacon.App.csproj" />
     <Project Path="src/ThreadBeacon.Core/ThreadBeacon.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
     <Project Path="tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/ThreadBeacon.Probe/ThreadBeacon.Probe.csproj" />
   </Folder>
 </Solution>

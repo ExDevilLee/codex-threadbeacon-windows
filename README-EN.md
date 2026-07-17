@@ -10,6 +10,8 @@ This repository is the independent Windows implementation of [ThreadBeacon for m
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
 
+The first production data path is now implemented: short-lived, non-pooled, read-only SQLite connections load the 8 most recent unarchived primary threads, exclude subagents, and degrade safely when the database is missing, busy, or schema-incompatible. Rename resolution, rollout status, and detailed Token parsing remain pending.
+
 The first POC is deliberately limited to:
 
 - Reading the 8 most recent unarchived primary threads and excluding subagents.
@@ -33,6 +35,7 @@ Sounds, always-on-top behavior, pin/ignore rules, subagent expansion, HTTP 429/5
 - `src/ThreadBeacon.Core`: models, read-only data access, parsers, and status rules; no WPF dependency.
 - `src/ThreadBeacon.App`: Windows UI and platform integration.
 - `tests/ThreadBeacon.Core.Tests`: core behavior and compatibility tests.
+- `tools/ThreadBeacon.Probe`: a local probe that only reports source health and thread count.
 - `docs`: Windows probe and design notes.
 
 The macOS repository is a behavioral reference only and is not a source dependency.
@@ -44,9 +47,9 @@ dotnet restore
 dotnet build --configuration Release
 dotnet test --configuration Release
 dotnet run --project src/ThreadBeacon.App
+dotnet run --project tools/ThreadBeacon.Probe --configuration Release
 ```
 
 ## License
 
 [MIT](LICENSE)
-

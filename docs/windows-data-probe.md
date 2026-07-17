@@ -19,7 +19,12 @@ The session index contains `id`, `thread_name`, and `updated_at`. Rollout sample
 
 Both SQLite databases could be opened read-only while Codex was running. All observed rollout paths were valid Windows absolute paths.
 
+## Implemented POC Slice
+
+`SQLiteThreadRepository` now opens `state_5.sqlite` with a short-lived, non-pooled, read-only connection and enforces `PRAGMA query_only`. It loads up to 8 recent unarchived primary threads, excludes Subagents using both `thread_source` and spawn edges, and counts direct child relationships.
+
+The repository returns stable health states for a missing, busy, incompatible, or otherwise unavailable database. A local privacy-safe probe completed successfully while Codex was running and printed only source availability, returned thread count, and health status.
+
 ## Compatibility Boundary
 
 This probe validates one Windows 11 machine and the currently installed Codex version. It does not establish a stable public contract. The implementation must use Windows path APIs, isolate schema assumptions, and degrade safely when sources change or disappear.
-
