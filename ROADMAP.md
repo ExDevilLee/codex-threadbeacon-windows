@@ -14,8 +14,9 @@
 - [x] Read the 8 most recent unarchived primary threads from SQLite in read-only mode.
 - [x] Exclude Subagents using thread metadata and parent-child relationships.
 - [x] Resolve renamed titles from `session_index.jsonl` with SQLite title fallback.
-- [ ] Read at most the rollout tail required for status and Token fields.
-- [ ] Derive and display task status.
+- [x] Read at most the final 2 MiB of each rollout for status and Token fields.
+- [x] Derive task status with completion retention and stale-running expiry.
+- [ ] Display the derived task status in WPF.
 - [ ] Display cumulative Token usage.
 - [ ] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.

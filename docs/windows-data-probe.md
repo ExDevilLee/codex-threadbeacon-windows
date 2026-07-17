@@ -29,6 +29,10 @@ The repository returns stable health states for a missing, busy, incompatible, o
 
 The local probe confirmed that the session index was healthy and that current visible primary threads had matching rename records. It reported only the match count and did not print IDs or titles.
 
+`RolloutTailParser` opens rollout JSONL with Windows read/write/delete sharing and reads at most the final 2 MiB. When the read starts in the middle of a line, the truncated first line is discarded. Parsing retains only event types, timestamps, and numeric Token counters; reasoning summaries, messages, and `last_agent_message` are never placed in the observation model.
+
+The status policy keeps a completion visible for 60 seconds and changes it to idle afterward. An unresolved running turn becomes unknown after 120 seconds without a newer event. The local probe found every visible rollout available and produced aggregate status counts without printing thread identifiers, titles, paths, Token values, or message content.
+
 ## Compatibility Boundary
 
 This probe validates one Windows 11 machine and the currently installed Codex version. It does not establish a stable public contract. The implementation must use Windows path APIs, isolate schema assumptions, and degrade safely when sources change or disappear.
