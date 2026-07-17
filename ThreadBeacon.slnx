@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ThreadBeacon.App/ThreadBeacon.App.csproj" />
+    <Project Path="src/ThreadBeacon.Core/ThreadBeacon.Core.csproj" />
+    <Project Path="tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj" />
+  </Folder>
+</Solution>
