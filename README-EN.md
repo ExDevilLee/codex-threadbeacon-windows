@@ -14,6 +14,8 @@ The first end-to-end POC is now implemented: short-lived, non-pooled, read-only 
 
 The WPF App is connected to real local task data. The 30-minute concurrent-task stability acceptance run remains pending.
 
+The first window enhancement is complete: the pin button in the top-right keeps ThreadBeacon above other normal windows. The selection is stored locally and restored after restart.
+
 The first POC is deliberately limited to:
 
 - Reading the 8 most recent unarchived primary threads and excluding subagents.
@@ -24,7 +26,7 @@ The first POC is deliberately limited to:
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 
-Sounds, always-on-top behavior, pin/ignore rules, subagent expansion, HTTP 429/503 incidents, and the system tray are intentionally deferred.
+Sounds, task pin/ignore rules, subagent expansion, HTTP 429/503 incidents, and the system tray remain deferred.
 
 ## Technology
 
@@ -37,6 +39,7 @@ Sounds, always-on-top behavior, pin/ignore rules, subagent expansion, HTTP 429/5
 - `src/ThreadBeacon.Core`: models, read-only data access, parsers, and status rules; no WPF dependency.
 - `src/ThreadBeacon.App`: Windows UI and platform integration.
 - `tests/ThreadBeacon.Core.Tests`: core behavior and compatibility tests.
+- `tests/ThreadBeacon.App.Tests`: local settings and window interaction state tests.
 - `tools/ThreadBeacon.Probe`: a local probe that only reports source health and thread count.
 - `docs`: Windows probe and design notes.
 

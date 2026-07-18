@@ -25,10 +25,14 @@
 
 Acceptance: with several concurrent Codex tasks, run for 30 minutes and verify task count, renamed titles, status transitions, and Token values against the real sessions without blocking Codex writes.
 
+## Phase 2: Window Controls
+
+- [x] Keep the ThreadBeacon window above normal windows with a header pin button.
+- [x] Persist the always-on-top selection and restore it after restart.
+
 ## Deferred
 
 - Completion and incident sounds.
-- Always-on-top window behavior.
 - Thread pin and ignore rules.
 - Subagent expansion.
 - HTTP 429/503 incident monitoring.
