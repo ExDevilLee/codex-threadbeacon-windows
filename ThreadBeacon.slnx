@@ -4,6 +4,7 @@
     <Project Path="src/ThreadBeacon.Core/ThreadBeacon.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj" />
     <Project Path="tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
