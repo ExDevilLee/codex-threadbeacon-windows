@@ -17,15 +17,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string statusText = "准备监听";
     private string updatedText = string.Empty;
 
-    public MainWindowViewModel(ThreadStatusLoader loader)
+    public MainWindowViewModel(ThreadStatusLoader loader, WindowPinState windowPin)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
+        WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
         refreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsRefreshing);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<ThreadRowViewModel> Threads { get; } = [];
+
+    public WindowPinState WindowPin { get; }
 
     public AsyncRelayCommand RefreshCommand => refreshCommand;
 

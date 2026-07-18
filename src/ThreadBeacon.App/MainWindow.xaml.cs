@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
+using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.ViewModels;
 using ThreadBeacon.Core.Services;
 
@@ -19,7 +20,8 @@ public partial class MainWindow : Window
             new SQLiteThreadRepository(paths.StateDatabase),
             new SessionIndexTitleRepository(paths.SessionIndex),
             new RolloutTailParser());
-        viewModel = new MainWindowViewModel(loader);
+        var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
+        viewModel = new MainWindowViewModel(loader, windowPin);
         DataContext = viewModel;
 
         refreshTimer = new DispatcherTimer(DispatcherPriority.Background)
