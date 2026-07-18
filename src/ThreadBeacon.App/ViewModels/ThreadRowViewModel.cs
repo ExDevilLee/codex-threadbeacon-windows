@@ -1,10 +1,12 @@
-using System.Globalization;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using ThreadBeacon.App.Formatting;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
 
-public sealed class ThreadRowViewModel
+public sealed class ThreadRowViewModel : INotifyPropertyChanged
 {
     private static readonly Brush ErrorBrush = CreateBrush(0xE5, 0x48, 0x4D);
     private static readonly Brush WarningBrush = CreateBrush(0xF5, 0xA5, 0x24);
@@ -13,30 +15,93 @@ public sealed class ThreadRowViewModel
     private static readonly Brush IdleBrush = CreateBrush(0x8E, 0x8E, 0x93);
     private static readonly Brush UnknownBrush = CreateBrush(0xA0, 0xA0, 0xA6);
 
+    private string title = string.Empty;
+    private ThreadStatus status;
+    private string statusLabel = string.Empty;
+    private Brush statusBrush = UnknownBrush;
+    private string tokenText = "—";
+    private TokenDetailViewModel? tokenDetails;
+    private string durationText = string.Empty;
+
     public ThreadRowViewModel(ThreadSnapshot snapshot, DateTimeOffset now)
     {
+        ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
+        Update(snapshot, now);
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public string Id { get; }
+
+    public string Title
+    {
+        get => title;
+        private set => SetField(ref title, value);
+    }
+
+    public ThreadStatus Status
+    {
+        get => status;
+        private set => SetField(ref status, value);
+    }
+
+    public string StatusLabel
+    {
+        get => statusLabel;
+        private set => SetField(ref statusLabel, value);
+    }
+
+    public Brush StatusBrush
+    {
+        get => statusBrush;
+        private set => SetField(ref statusBrush, value);
+    }
+
+    public string TokenText
+    {
+        get => tokenText;
+        private set => SetField(ref tokenText, value);
+    }
+
+    public TokenDetailViewModel? TokenDetails
+    {
+        get => tokenDetails;
+        private set
+        {
+            if (SetField(ref tokenDetails, value))
+            {
+                OnPropertyChanged(nameof(HasTokenDetails));
+            }
+        }
+    }
+
+    public bool HasTokenDetails => TokenDetails is not null;
+
+    public string DurationText
+    {
+        get => durationText;
+        private set => SetField(ref durationText, value);
+    }
+
+    public void Update(ThreadSnapshot snapshot, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (!StringComparer.Ordinal.Equals(Id, snapshot.Id))
+        {
+            throw new ArgumentException("A task row cannot change its thread ID.", nameof(snapshot));
+        }
+
         Title = snapshot.Title;
         Status = snapshot.Status;
         StatusLabel = GetStatusLabel(snapshot.Status);
         StatusBrush = GetStatusBrush(snapshot.Status);
-        TokenText = FormatTokens(snapshot.TokenUsage?.TotalTokens);
+        TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
+        TokenDetails = snapshot.TokenUsage is null
+            ? null
+            : new TokenDetailViewModel(snapshot.TokenUsage);
         DurationText = FormatDuration(now - snapshot.StatusChangedAt);
     }
-
-    public string Id { get; }
-
-    public string Title { get; }
-
-    public ThreadStatus Status { get; }
-
-    public string StatusLabel { get; }
-
-    public Brush StatusBrush { get; }
-
-    public string TokenText { get; }
-
-    public string DurationText { get; }
 
     private static string GetStatusLabel(ThreadStatus status) => status switch
     {
@@ -60,22 +125,6 @@ public sealed class ThreadRowViewModel
         _ => UnknownBrush,
     };
 
-    private static string FormatTokens(long? tokens)
-    {
-        if (tokens is null or < 0)
-        {
-            return "—";
-        }
-
-        return tokens.Value switch
-        {
-            < 1_000 => tokens.Value.ToString(CultureInfo.InvariantCulture),
-            < 1_000_000 => $"{tokens.Value / 1_000d:0.#}K",
-            < 1_000_000_000 => $"{tokens.Value / 1_000_000d:0.#}M",
-            _ => $"{tokens.Value / 1_000_000_000d:0.#}B",
-        };
-    }
-
     private static string FormatDuration(TimeSpan elapsed)
     {
         elapsed = elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
@@ -87,6 +136,21 @@ public sealed class ThreadRowViewModel
             _ => $"{Math.Floor(elapsed.TotalDays)}天",
         };
     }
+
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
     private static Brush CreateBrush(byte red, byte green, byte blue)
     {

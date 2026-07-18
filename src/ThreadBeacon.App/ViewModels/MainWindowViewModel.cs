@@ -11,6 +11,7 @@ namespace ThreadBeacon.App.ViewModels;
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly ThreadStatusLoader loader;
+    private readonly ThreadRowCollection threadRows = new();
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly AsyncRelayCommand refreshCommand;
     private bool isRefreshing;
@@ -26,7 +27,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<ThreadRowViewModel> Threads { get; } = [];
+    public ObservableCollection<ThreadRowViewModel> Threads => threadRows.Items;
 
     public WindowPinState WindowPin { get; }
 
@@ -92,11 +93,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void ReplaceThreads(ThreadSnapshotLoadResult result)
     {
-        Threads.Clear();
-        foreach (ThreadSnapshot snapshot in result.Threads)
-        {
-            Threads.Add(new ThreadRowViewModel(snapshot, result.RefreshedAt));
-        }
+        threadRows.Reconcile(result.Threads, result.RefreshedAt);
 
         OnPropertyChanged(nameof(EmptyVisibility));
         OnPropertyChanged(nameof(ListVisibility));
