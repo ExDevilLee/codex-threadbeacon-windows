@@ -9,6 +9,7 @@
         MinHeight="340"
         Background="{StaticResource WindowBackgroundBrush}"
         TextOptions.TextFormattingMode="Display"
+        Topmost="{Binding WindowPin.IsPinned}"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -41,18 +42,55 @@
                            Text="Codex 任务状态" />
             </StackPanel>
 
-            <Button Grid.Column="3"
-                    Width="32"
-                    Height="32"
-                    Padding="0"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
-                    Command="{Binding RefreshCommand}"
-                    ToolTip="刷新">
-                <TextBlock FontFamily="Segoe Fluent Icons"
-                           FontSize="15"
-                           Text="&#xE72C;" />
-            </Button>
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button Width="32"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        Padding="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Command="{Binding WindowPin.ToggleCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="ToolTip" Value="钉在最前面" />
+                            <Setter Property="AutomationProperties.Name" Value="钉在最前面" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
+                                    <Setter Property="ToolTip" Value="取消钉住" />
+                                    <Setter Property="AutomationProperties.Name" Value="取消钉住" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <TextBlock FontFamily="Segoe Fluent Icons" FontSize="15">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="&#xE718;" />
+                                <Setter Property="Foreground"
+                                        Value="{StaticResource SecondaryTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
+                                        <Setter Property="Text" Value="&#xE841;" />
+                                        <Setter Property="Foreground" Value="#0067C0" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Button>
+
+                <Button Width="32"
+                        Height="32"
+                        Padding="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Command="{Binding RefreshCommand}"
+                        ToolTip="刷新">
+                    <TextBlock FontFamily="Segoe Fluent Icons"
+                               FontSize="15"
+                               Text="&#xE72C;" />
+                </Button>
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Row="2" Margin="14,0,14,7">
