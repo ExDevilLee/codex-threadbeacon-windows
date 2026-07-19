@@ -400,6 +400,40 @@ public sealed class MainWindowViewModelTests
         Assert.Empty(preferenceStore.LastSaved!.FavoriteThreadIds);
     }
 
+    [Fact]
+    public async Task RefreshAsync_DoesNotReinsertArchivedTaskUnfavoritedDuringLoad()
+    {
+        ThreadRecord active = Record("active");
+        ThreadRecord archived = new("archived", "Archived", "archived", Now, 50, 0, true);
+        var repository = new BlockingFavoriteThreadRepository([active], [archived]);
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            favoriteThreadIds: ["archived"]));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["active"] = ThreadStatus.Running,
+                ["archived"] = ThreadStatus.Idle,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            preferenceStore: preferenceStore,
+            timeProvider: new FixedTimeProvider(Now));
+
+        Task refresh = viewModel.RefreshAsync();
+        Assert.True(repository.FavoriteLoadStarted.Wait(TimeSpan.FromSeconds(5)));
+        viewModel.ToggleFavorite("archived");
+        repository.ContinueFavoriteLoad.Set();
+        await refresh;
+
+        Assert.Equal("active", Assert.Single(viewModel.Threads).Id);
+        Assert.Empty(preferenceStore.LastSaved!.FavoriteThreadIds);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,
@@ -541,6 +575,31 @@ public sealed class MainWindowViewModelTests
             new(
                 ThreadRepositoryStatus.Healthy,
                 favorites.Where(record => threadIds.Contains(record.Id)).ToArray());
+    }
+
+    private sealed class BlockingFavoriteThreadRepository(
+        IReadOnlyList<ThreadRecord> recent,
+        IReadOnlyList<ThreadRecord> favorites) : IThreadRepository
+    {
+        public ManualResetEventSlim FavoriteLoadStarted { get; } = new(false);
+
+        public ManualResetEventSlim ContinueFavoriteLoad { get; } = new(false);
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, recent);
+
+        public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds)
+        {
+            FavoriteLoadStarted.Set();
+            if (!ContinueFavoriteLoad.Wait(TimeSpan.FromSeconds(5)))
+            {
+                throw new TimeoutException("Test did not release the favorite load.");
+            }
+
+            return new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                favorites.Where(record => threadIds.Contains(record.Id)).ToArray());
+        }
     }
 
     private sealed class ExpandableThreadRepository : IThreadRepository

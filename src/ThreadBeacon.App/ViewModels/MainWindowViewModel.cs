@@ -294,7 +294,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private ThreadSnapshotLoadResult ApplyCandidates(ThreadSnapshotLoadResult result)
     {
-        candidateSnapshots = result.Threads;
+        candidateSnapshots = result.Threads
+            .Where(snapshot => !snapshot.IsArchived
+                || preferences.FavoriteThreadIds.Contains(snapshot.Id))
+            .ToArray();
         lastThreadSourceStatus = result.ThreadSourceStatus;
         lastTitleSourceStatus = result.TitleSourceStatus;
         ThreadListPreferences before = preferences.Clone();
