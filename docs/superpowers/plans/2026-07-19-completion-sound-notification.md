@@ -45,7 +45,7 @@
 - Create: `src/ThreadBeacon.Core/Notifications/CompletionNotificationTracker.cs`
 - Test: `tests/ThreadBeacon.Core.Tests/Notifications/CompletionNotificationTrackerTests.cs`
 
-- [ ] **Step 1: Write failing tracker tests**
+- [x] **Step 1: Write failing tracker tests**
 
 Create snapshots with and without `CompletionEventAt`, then assert:
 
@@ -64,7 +64,7 @@ null, two new completions in one batch return one event while recording both IDs
 snapshots without completion evidence do nothing, supplied history suppresses old
 events, and 257 observations retain exactly the newest 256 IDs.
 
-- [ ] **Step 2: Run the tracker tests and confirm failure**
+- [x] **Step 2: Run the tracker tests and confirm failure**
 
 Run:
 
@@ -74,7 +74,7 @@ dotnet test tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj --filte
 
 Expected: compilation fails because the notification types do not exist.
 
-- [ ] **Step 3: Implement the pure tracker**
+- [x] **Step 3: Implement the pure tracker**
 
 Use these public contracts:
 
@@ -101,7 +101,7 @@ Generate IDs with `completion.ToUnixTimeMilliseconds()`. Record every unseen
 candidate in input order, trim from the oldest end after every batch, and return the
 first unseen candidate only when policy is `Notify`.
 
-- [ ] **Step 4: Run Core tests**
+- [x] **Step 4: Run Core tests**
 
 Run:
 
@@ -111,7 +111,7 @@ dotnet test tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj
 
 Expected: all Core tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/ThreadBeacon.Core/Notifications tests/ThreadBeacon.Core.Tests/Notifications
