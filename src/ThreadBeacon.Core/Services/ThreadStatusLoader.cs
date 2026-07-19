@@ -49,23 +49,33 @@ public sealed class ThreadStatusLoader
         ThreadLoadResult includedResult = request.IncludedThreadIds.Count == 0
             ? new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [])
             : threadRepository.LoadByIds(request.IncludedThreadIds);
+        IReadOnlySet<string> favoriteThreadIds = request.FavoriteThreadIds
+            ?? new HashSet<string>(StringComparer.Ordinal);
+        ThreadLoadResult favoriteResult = favoriteThreadIds.Count == 0
+            ? new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [])
+            : threadRepository.LoadByIdsIncludingArchived(favoriteThreadIds);
         var recordsById = new Dictionary<string, ThreadRecord>(StringComparer.Ordinal);
-        foreach (ThreadRecord record in recentResult.Threads.Concat(includedResult.Threads))
+        foreach (ThreadRecord record in recentResult.Threads
+            .Concat(includedResult.Threads)
+            .Concat(favoriteResult.Threads))
         {
             recordsById[record.Id] = record;
         }
 
-        ThreadRepositoryStatus threadStatus = recentResult.Status is ThreadRepositoryStatus.Healthy
-            ? includedResult.Status
-            : recentResult.Status;
+        ThreadRepositoryStatus threadStatus = FirstUnhealthyStatus(
+            recentResult.Status,
+            includedResult.Status,
+            favoriteResult.Status);
         TitleLoadResult titleResult = titleRepository.LoadLatestTitles();
         IReadOnlyList<ThreadRecord> records = ThreadTitleResolver.Resolve(
             recordsById.Values.ToArray(),
             titleResult.Titles);
-        var visibleIds = new HashSet<string>(records.Select(record => record.Id), StringComparer.Ordinal);
-        IReadOnlyDictionary<string, ServiceIncident> incidents = LoadIncidents(visibleIds);
+        var activeVisibleIds = new HashSet<string>(
+            records.Where(record => !record.IsArchived).Select(record => record.Id),
+            StringComparer.Ordinal);
+        IReadOnlyDictionary<string, ServiceIncident> incidents = LoadIncidents(activeVisibleIds);
         var requestedParentIds = new HashSet<string>(StringComparer.Ordinal);
-        requestedParentIds.UnionWith(request.ExpandedThreadIds.Where(visibleIds.Contains));
+        requestedParentIds.UnionWith(request.ExpandedThreadIds.Where(activeVisibleIds.Contains));
 
         SubagentLoadResult subagentResult = requestedParentIds.Count == 0
             ? new SubagentLoadResult(
@@ -112,7 +122,9 @@ public sealed class ThreadStatusLoader
             now,
             completedRetention,
             runningFreshness);
-        incident = ClearResolvedIncident(incident, rollout.Observation);
+        incident = record.IsArchived
+            ? null
+            : ClearResolvedIncident(incident, rollout.Observation);
         ThreadStatus status = incident?.Phase switch
         {
             ServiceIncidentPhase.Retrying => ThreadStatus.Warning,
@@ -123,9 +135,18 @@ public sealed class ThreadStatusLoader
         DateTimeOffset? latestEventAt = Later(
             rollout.Observation.LatestEventAt,
             incident?.OccurredAt);
+        DateTimeOffset? latestTaskStartedAt = rollout.Observation.LatestTaskStartedAt;
         DateTimeOffset? completionEventAt = incident is null
             ? rollout.Observation.CompletionEventAt
             : null;
+        if (record.IsArchived)
+        {
+            status = ThreadStatus.Idle;
+            statusChangedAt = record.UpdatedAt;
+            latestEventAt = record.UpdatedAt;
+            latestTaskStartedAt = null;
+            completionEventAt = null;
+        }
         TokenUsageSnapshot? tokenUsage = rollout.Observation.TokenUsage
             ?? (record.TokensUsed > 0
                 ? new TokenUsageSnapshot(record.TokensUsed, null, null, null)
@@ -145,14 +166,15 @@ public sealed class ThreadStatusLoader
             statusChangedAt,
             record.UpdatedAt,
             latestEventAt,
-            rollout.Observation.LatestTaskStartedAt,
+            latestTaskStartedAt,
             completionEventAt,
             tokenUsage,
             record.SubagentCount,
             rollout.Status,
             subagents,
             subagentSourceStatus,
-            incident);
+            incident,
+            record.IsArchived);
     }
 
     private IReadOnlyDictionary<string, ServiceIncident> LoadIncidents(
@@ -192,6 +214,10 @@ public sealed class ThreadStatusLoader
 
     private static DateTimeOffset? Later(DateTimeOffset? left, DateTimeOffset? right) =>
         left is null ? right : right is null ? left : left > right ? left : right;
+
+    private static ThreadRepositoryStatus FirstUnhealthyStatus(
+        params ThreadRepositoryStatus[] statuses) =>
+        statuses.FirstOrDefault(status => status is not ThreadRepositoryStatus.Healthy);
 
     private SubagentSnapshot CreateSubagentSnapshot(
         SubagentRecord record,

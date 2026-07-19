@@ -300,6 +300,62 @@ public sealed class ThreadStatusLoaderTests
         Assert.Null(snapshot.ServiceIncident);
     }
 
+    [Fact]
+    public void Load_ArchivedFavoriteRetainsContentButClearsLifecycleAndIncidentState()
+    {
+        ThreadRecord active = Record("active", "Active");
+        ThreadRecord archived = new(
+            "archived",
+            "Archived database title",
+            "archived",
+            Now.AddMinutes(-5),
+            900,
+            0,
+            IsArchived: true);
+        var repository = new FavoriteThreadRepository([active], [archived]);
+        var incidents = new TrackingLogEventRepository(new Dictionary<string, ServiceIncident>
+        {
+            ["active"] = Incident("active-turn", ServiceIncidentPhase.Retrying, Now.AddSeconds(-3), 429),
+            ["archived"] = Incident("archived-turn", ServiceIncidentPhase.Failed, Now.AddSeconds(-2), 503),
+        });
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string> { ["archived"] = "Renamed archived task" })),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["active"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+                ["archived"] = HealthyObservation(
+                    ThreadStatus.Running,
+                    Now.AddSeconds(-1),
+                    Now.AddSeconds(-1),
+                    new TokenUsageSnapshot(1_234, null, null, Now.AddSeconds(-1)),
+                    completionEventAt: Now.AddSeconds(-1),
+                    latestTaskStartedAt: Now.AddSeconds(-2)),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: incidents);
+
+        ThreadSnapshotLoadResult result = loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(StringComparer.Ordinal),
+            new HashSet<string>(StringComparer.Ordinal),
+            new HashSet<string>(StringComparer.Ordinal) { "archived" }));
+
+        Assert.Equal(["archived"], repository.RequestedFavoriteIds);
+        Assert.Equal(["active"], incidents.RequestedThreadIds);
+        ThreadSnapshot snapshot = Assert.Single(result.Threads, item => item.Id == "archived");
+        Assert.True(snapshot.IsArchived);
+        Assert.Equal("Renamed archived task", snapshot.Title);
+        Assert.Equal(ThreadStatus.Idle, snapshot.Status);
+        Assert.Equal(archived.UpdatedAt, snapshot.StatusChangedAt);
+        Assert.Null(snapshot.LatestTaskStartedAt);
+        Assert.Null(snapshot.CompletionEventAt);
+        Assert.Null(snapshot.ServiceIncident);
+        Assert.Equal(1_234, snapshot.TokenUsage?.TotalTokens);
+    }
+
     private static ThreadStatusLoader CreateLoader(
         IReadOnlyList<ThreadRecord> records,
         IReadOnlyDictionary<string, string> titles,
@@ -393,6 +449,22 @@ public sealed class ThreadStatusLoaderTests
         {
             RequestedIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
             return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, included);
+        }
+    }
+
+    private sealed class FavoriteThreadRepository(
+        IReadOnlyList<ThreadRecord> recent,
+        IReadOnlyList<ThreadRecord> favorites) : IThreadRepository
+    {
+        public IReadOnlySet<string>? RequestedFavoriteIds { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, recent);
+
+        public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds)
+        {
+            RequestedFavoriteIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, favorites);
         }
     }
 

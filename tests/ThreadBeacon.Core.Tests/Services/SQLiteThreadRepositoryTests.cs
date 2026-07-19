@@ -118,6 +118,27 @@ public sealed class SQLiteThreadRepositoryTests
         Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
         Assert.Equal("new-thread", record.Id);
         Assert.Equal(3, record.SubagentCount);
+        Assert.False(record.IsArchived);
+    }
+
+    [Fact]
+    public void LoadByIdsIncludingArchived_ReturnsRequestedArchivedPrimaryThread()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+        var repository = new SQLiteThreadRepository(database.Path);
+
+        ThreadLoadResult result = repository.LoadByIdsIncludingArchived(
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                "archived-thread",
+                "subagent-thread",
+                "archived-thread' OR 1=1 --",
+            });
+
+        ThreadRecord record = Assert.Single(result.Threads);
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Equal("archived-thread", record.Id);
+        Assert.True(record.IsArchived);
     }
 
     [Fact]

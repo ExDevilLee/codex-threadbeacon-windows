@@ -48,8 +48,8 @@ Assert.Equal(["favorite"], result.VisibleSnapshots.Select(x => x.Id));
 - Modify: `tests/ThreadBeacon.Core.Tests/Services/ThreadStatusLoaderTests.cs`
 - Modify: `tests/ThreadBeacon.Core.Tests/Notifications/CompletionNotificationTrackerTests.cs`
 
-- [ ] Add failing repository tests showing ordinary `LoadByIds` excludes archived rows while `LoadByIdsIncludingArchived` returns only requested primary rows with the correct archive flag and parameterized hostile IDs.
-- [ ] Add failing loader tests proving recent/included/favorite records merge without duplicates, archived favorites retain rename/Token data, use neutral idle state, clear task-start/completion/incident fields, and are excluded from incident-log queries.
+- [x] Add failing repository tests showing ordinary `LoadByIds` excludes archived rows while `LoadByIdsIncludingArchived` returns only requested primary rows with the correct archive flag and parameterized hostile IDs.
+- [x] Add failing loader tests proving recent/included/favorite records merge without duplicates, archived favorites retain rename/Token data, use neutral idle state, clear task-start/completion/incident fields, and are excluded from incident-log queries.
 
 ```csharp
 ThreadSnapshot archived = Assert.Single(loader.Load(new ThreadLoadRequest(
@@ -63,11 +63,11 @@ Assert.Null(archived.CompletionEventAt);
 Assert.Null(archived.ServiceIncident);
 ```
 
-- [ ] Add a failing notification test proving archived snapshots never produce completion or warning candidates even if a fixture contains lifecycle fields.
-- [ ] Run focused tests; expect missing APIs/archive members.
-- [ ] Add `IsArchived = false` compatibility defaults, `FavoriteThreadIds` in the request, archived-capable parameterized SQL, archive-column reading in every main-thread query, and the three-source Loader merge. Query incidents only for active IDs and sanitize archived lifecycle output.
-- [ ] Re-run focused tests and the full solution tests; require zero failures.
-- [ ] Commit `feat(favorites): load archived favorite tasks`.
+- [x] Add a failing notification test proving archived snapshots never produce completion or warning candidates even if a fixture contains lifecycle fields.
+- [x] Run focused tests; expect missing APIs/archive members.
+- [x] Add `IsArchived = false` compatibility defaults, `FavoriteThreadIds` in the request, archived-capable parameterized SQL, archive-column reading in every main-thread query, and the three-source Loader merge. Query incidents only for active IDs and sanitize archived lifecycle output.
+- [x] Re-run focused tests and the full solution tests; require zero failures.
+- [x] Commit `feat(favorites): load archived favorite tasks`.
 
 ### Task 3: ViewModel commands and WPF star presentation
 

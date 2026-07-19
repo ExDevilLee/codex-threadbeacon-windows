@@ -68,7 +68,15 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         }
     }
 
-    public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
+    public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds) =>
+        LoadByIds(threadIds, includeArchived: false);
+
+    public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds) =>
+        LoadByIds(threadIds, includeArchived: true);
+
+    private ThreadLoadResult LoadByIds(
+        IReadOnlySet<string> threadIds,
+        bool includeArchived)
     {
         ArgumentNullException.ThrowIfNull(threadIds);
         string[] requestedIds = threadIds
@@ -104,16 +112,18 @@ public sealed class SQLiteThreadRepository : IThreadRepository
             string subagentCount = hasSpawnEdges
                 ? "(SELECT COUNT(*) FROM thread_spawn_edges AS child_edge WHERE child_edge.parent_thread_id = t.id)"
                 : "0";
+            string archiveFilter = includeArchived ? string.Empty : "AND t.archived = 0";
             command.CommandText = $"""
                 SELECT t.id,
                        t.title,
                        t.rollout_path,
                        COALESCE(t.updated_at_ms, t.updated_at * 1000),
                        COALESCE(t.tokens_used, 0),
-                       {subagentCount}
+                       {subagentCount},
+                       t.archived
                 FROM threads AS t
                 WHERE t.id IN ({string.Join(", ", parameterNames)})
-                  AND t.archived = 0
+                  {archiveFilter}
                   AND COALESCE(t.thread_source, '') <> 'subagent'
                   {relationshipFilter}
                 ORDER BY t.recency_at_ms DESC, t.id DESC;
@@ -318,7 +328,8 @@ public sealed class SQLiteThreadRepository : IThreadRepository
             reader.GetString(2),
             DateTimeOffset.FromUnixTimeMilliseconds(updatedAtMilliseconds),
             reader.GetInt64(4),
-            subagentCount);
+            subagentCount,
+            reader.GetInt64(6) != 0);
     }
 
     private static ThreadLoadResult Result(ThreadRepositoryStatus status) =>
@@ -340,7 +351,8 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                t.rollout_path,
                COALESCE(t.updated_at_ms, t.updated_at * 1000),
                COALESCE(t.tokens_used, 0),
-               COALESCE(children.child_count, 0)
+               COALESCE(children.child_count, 0),
+               t.archived
         FROM threads AS t
         LEFT JOIN (
             SELECT parent_thread_id, COUNT(*) AS child_count
@@ -364,7 +376,8 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                rollout_path,
                COALESCE(updated_at_ms, updated_at * 1000),
                COALESCE(tokens_used, 0),
-               0
+               0,
+               archived
         FROM threads
         WHERE archived = 0
           AND COALESCE(thread_source, '') <> 'subagent'

@@ -64,6 +64,11 @@ public sealed class CompletionNotificationTracker
 
     private static CompletionNotificationEvent? CreateCandidate(ThreadSnapshot snapshot)
     {
+        if (snapshot.IsArchived)
+        {
+            return null;
+        }
+
         if (snapshot.ServiceIncident is ServiceIncident incident)
         {
             return new CompletionNotificationEvent(

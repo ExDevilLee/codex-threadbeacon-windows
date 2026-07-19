@@ -173,6 +173,40 @@ public sealed class CompletionNotificationTrackerTests
             tracker.SeenEventIds);
     }
 
+    [Fact]
+    public void Observe_IgnoresArchivedSnapshots()
+    {
+        var tracker = new CompletionNotificationTracker();
+        DateTimeOffset occurredAt = AtSeconds(30);
+        ThreadSnapshot archived = new(
+            "archived",
+            "archived",
+            ThreadStatus.Error,
+            occurredAt,
+            occurredAt,
+            occurredAt,
+            null,
+            occurredAt,
+            null,
+            0,
+            RolloutSourceStatus.Healthy,
+            serviceIncident: new ServiceIncident(
+                "archived-turn",
+                ServiceIncidentPhase.Failed,
+                503,
+                5,
+                5,
+                occurredAt),
+            isArchived: true);
+
+        CompletionNotificationEvent? result = tracker.Observe(
+            [archived],
+            RefreshNotificationPolicy.Notify);
+
+        Assert.Null(result);
+        Assert.Empty(tracker.SeenEventIds);
+    }
+
     private static DateTimeOffset AtSeconds(long seconds) =>
         DateTimeOffset.FromUnixTimeSeconds(seconds);
 

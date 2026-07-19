@@ -6,4 +6,5 @@ public sealed record ThreadRecord(
     string RolloutPath,
     DateTimeOffset UpdatedAt,
     long TokensUsed,
-    int SubagentCount);
+    int SubagentCount,
+    bool IsArchived = false);

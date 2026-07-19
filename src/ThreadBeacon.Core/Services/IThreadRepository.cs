@@ -12,6 +12,12 @@ public interface IThreadRepository
         return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, []);
     }
 
+    ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds)
+    {
+        ArgumentNullException.ThrowIfNull(threadIds);
+        return LoadByIds(threadIds);
+    }
+
     SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
     {
         ArgumentNullException.ThrowIfNull(parentIds);
