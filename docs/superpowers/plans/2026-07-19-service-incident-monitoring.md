@@ -104,4 +104,4 @@
 - [x] Run `dotnet test ThreadBeacon.slnx --configuration Release`, `dotnet build ThreadBeacon.slnx --configuration Release --no-restore`, and `dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive`; require zero failures, warnings, and known vulnerabilities.
 - [x] Run the Release app against the real Codex database and verify normal refresh, manual refresh, Token detail persistence, Subagent expansion, and Codex write activity remain responsive.
 - [x] Run repository status, tracked-file secret/private-key scans, absolute user-path scans, network/write API scans, and staged diff review. Do not push if any sensitive material or unexpected data path is present.
-- [ ] Commit any verification-only plan updates, push `main`, verify `main == origin/main`, and leave the Release app running for user evaluation.
+- [x] Commit any verification-only plan updates, push `main`, verify `main == origin/main`, and leave the Release app running for user evaluation.
