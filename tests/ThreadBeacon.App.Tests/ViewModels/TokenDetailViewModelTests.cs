@@ -1,4 +1,5 @@
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -33,5 +34,18 @@ public sealed class TokenDetailViewModelTests
 
         Assert.Equal("900", details.Rows[0].Value);
         Assert.All(details.Rows.Skip(1), row => Assert.Equal("—", row.Value));
+    }
+
+    [Fact]
+    public void Constructor_UsesEnglishLabelsAndNoteWhenRequested()
+    {
+        var details = new TokenDetailViewModel(
+            new TokenUsageSnapshot(900, null, null, null),
+            AppLanguage.English);
+
+        Assert.Equal(
+            ["Session total", "Input", "Cached input", "Uncached input", "Output", "Reasoning", "Current turn", "Cache ratio", "Updated"],
+            details.Rows.Select(row => row.Label));
+        Assert.Equal("Cached input is included in input; Reasoning is included in output.", details.Note);
     }
 }

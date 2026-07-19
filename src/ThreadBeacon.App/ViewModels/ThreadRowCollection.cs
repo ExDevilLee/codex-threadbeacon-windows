@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -9,17 +10,20 @@ public sealed class ThreadRowCollection
     private readonly Action<string> togglePin;
     private readonly Action<string> ignore;
     private readonly Action<string> toggleFavorite;
+    private readonly Func<AppLanguage> languageProvider;
 
     public ThreadRowCollection(
         Func<string, Task>? toggleSubagents = null,
         Action<string>? togglePin = null,
         Action<string>? ignore = null,
-        Action<string>? toggleFavorite = null)
+        Action<string>? toggleFavorite = null,
+        Func<AppLanguage>? languageProvider = null)
     {
         this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
         this.togglePin = togglePin ?? (_ => { });
         this.ignore = ignore ?? (_ => { });
         this.toggleFavorite = toggleFavorite ?? (_ => { });
+        this.languageProvider = languageProvider ?? (() => AppLanguage.SimplifiedChinese);
     }
 
     public ObservableCollection<ThreadRowViewModel> Items { get; } = [];
@@ -45,7 +49,8 @@ public sealed class ThreadRowCollection
                     toggleSubagents,
                     togglePin,
                     ignore,
-                    toggleFavorite);
+                    toggleFavorite,
+                    languageProvider());
                 newRow.SetSubagentExpanded(
                     expandedThreadIds?.Contains(snapshot.Id) is true,
                     isLoading: false);
@@ -56,7 +61,7 @@ public sealed class ThreadRowCollection
             }
 
             ThreadRowViewModel row = Items[existingIndex];
-            row.Update(snapshot, now);
+            row.Update(snapshot, now, languageProvider());
             row.SetSubagentExpanded(
                 expandedThreadIds?.Contains(snapshot.Id) is true,
                 isLoading: false);

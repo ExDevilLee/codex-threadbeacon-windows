@@ -1,4 +1,5 @@
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -39,5 +40,30 @@ public sealed class SubagentRowViewModelTests
         Assert.Equal("2 分钟前", row.ActivityText);
         Assert.Equal("reviewer", row.Details.Rows.Single(item => item.Label == "角色").Value);
         Assert.Equal("+500", row.Details.Rows.Single(item => item.Label == "当前 turn").Value);
+    }
+
+    [Fact]
+    public void Constructor_UsesEnglishCompactAndDetailLabels()
+    {
+        var snapshot = new SubagentSnapshot(
+            "child",
+            "Review task",
+            ThreadStatus.Running,
+            Now.AddMinutes(-5),
+            Now.AddMinutes(-3),
+            Now.AddMinutes(-2),
+            null,
+            "worker",
+            "reviewer",
+            "gpt-test",
+            "high",
+            RolloutSourceStatus.Healthy);
+
+        var row = new SubagentRowViewModel(snapshot, Now, AppLanguage.English);
+
+        Assert.Equal("Running", row.StatusLabel);
+        Assert.Equal("2 min ago", row.ActivityText);
+        Assert.Equal("reviewer", row.Details.Rows.Single(item => item.Label == "Role").Value);
+        Assert.Contains(row.Details.Rows, item => item.Label == "Latest activity");
     }
 }

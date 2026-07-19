@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -15,15 +16,16 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
         0,
         0,
         null);
+    private AppLanguage language = AppLanguage.SimplifiedChinese;
 
     public DataSourceHealthViewModel()
     {
         Sources =
         [
-            new DataSourceHealthRowViewModel("任务数据库"),
-            new DataSourceHealthRowViewModel("Rename 索引"),
-            new DataSourceHealthRowViewModel("Rollout"),
-            new DataSourceHealthRowViewModel("服务日志"),
+            new DataSourceHealthRowViewModel(0),
+            new DataSourceHealthRowViewModel(1),
+            new DataSourceHealthRowViewModel(2),
+            new DataSourceHealthRowViewModel(3),
         ];
         Report = InitialReport;
         Update(InitialReport);
@@ -37,9 +39,11 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
 
     public OverallDataSourceHealth OverallStatus => Report.OverallStatus;
 
-    public string Summary => Report.Summary;
+    public string Summary => AppLanguageText.HealthSummary(language, OverallStatus);
 
-    public string AccessibilityLabel => $"数据源健康：{Summary}";
+    public string AccessibilityLabel => language is AppLanguage.SimplifiedChinese
+        ? $"数据源健康：{Summary}"
+        : $"Data source health: {Summary}";
 
     public string OverallGlyph => OverallStatus switch
     {
@@ -71,22 +75,31 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
 
     public string LastSuccessfulRefreshText =>
         Report.LastSuccessfulRefreshAt is DateTimeOffset refreshedAt
-            ? $"最后成功刷新：{refreshedAt.ToLocalTime():HH:mm:ss}"
-            : "尚无成功刷新记录";
+            ? language is AppLanguage.SimplifiedChinese
+                ? $"最后成功刷新：{refreshedAt.ToLocalTime():HH:mm:ss}"
+                : $"Last successful refresh: {refreshedAt.ToLocalTime():HH:mm:ss}"
+            : language is AppLanguage.SimplifiedChinese
+                ? "尚无成功刷新记录"
+                : "No successful refresh yet";
 
     public string RolloutCountsText =>
         Report.RolloutSuccessCount + Report.RolloutFailureCount > 0
-            ? $"成功 {Report.RolloutSuccessCount} | 失败 {Report.RolloutFailureCount}"
+            ? language is AppLanguage.SimplifiedChinese
+                ? $"成功 {Report.RolloutSuccessCount} | 失败 {Report.RolloutFailureCount}"
+                : $"Success {Report.RolloutSuccessCount} | Failures {Report.RolloutFailureCount}"
             : string.Empty;
 
-    public void Update(DataSourceHealthReport report)
+    public void Update(
+        DataSourceHealthReport report,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(report);
         Report = report;
-        Sources[0].Update(report.TaskDatabase);
-        Sources[1].Update(report.RenameIndex);
-        Sources[2].Update(report.Rollout, RolloutCountsText);
-        Sources[3].Update(report.ServiceLogs);
+        this.language = language;
+        Sources[0].Update(report.TaskDatabase, language: language);
+        Sources[1].Update(report.RenameIndex, language: language);
+        Sources[2].Update(report.Rollout, RolloutCountsText, language);
+        Sources[3].Update(report.ServiceLogs, language: language);
         OnPropertyChanged(nameof(Report));
         OnPropertyChanged(nameof(OverallStatus));
         OnPropertyChanged(nameof(Summary));
@@ -121,24 +134,25 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
 
 public sealed class DataSourceHealthRowViewModel : INotifyPropertyChanged
 {
+    private readonly int sourceIndex;
     private DataSourceHealthStatus status = DataSourceHealthStatus.NotUsed;
     private string supplementalText = string.Empty;
+    private AppLanguage language = AppLanguage.SimplifiedChinese;
 
-    public DataSourceHealthRowViewModel(string title)
+    public DataSourceHealthRowViewModel(int sourceIndex)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        Title = title;
+        this.sourceIndex = sourceIndex;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public string Title { get; }
+    public string Title => AppLanguageText.HealthSourceTitle(language, sourceIndex);
 
     public DataSourceHealthLevel Level => status.Level;
 
-    public string StatusText => status.DisplayText;
+    public string StatusText => AppLanguageText.HealthStatus(language, status.Level);
 
-    public string DetailText => status.DetailText ?? string.Empty;
+    public string DetailText => AppLanguageText.HealthDetail(language, status.DetailText);
 
     public bool HasDetail => !string.IsNullOrEmpty(DetailText);
 
@@ -150,10 +164,15 @@ public sealed class DataSourceHealthRowViewModel : INotifyPropertyChanged
 
     public Brush Brush => DataSourceHealthViewModel.HealthBrush(Level);
 
-    public void Update(DataSourceHealthStatus value, string? supplemental = null)
+    public void Update(
+        DataSourceHealthStatus value,
+        string? supplemental = null,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         status = value ?? throw new ArgumentNullException(nameof(value));
         supplementalText = supplemental ?? string.Empty;
+        this.language = language;
+        OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(Level));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(DetailText));

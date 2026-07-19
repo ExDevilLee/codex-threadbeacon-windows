@@ -1,4 +1,5 @@
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -136,6 +137,33 @@ public sealed class ThreadRowViewModelTests
     }
 
     [Fact]
+    public void Constructor_UsesEnglishPresentationWhenRequested()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 3),
+            Now,
+            language: AppLanguage.English);
+
+        Assert.Equal("Running", viewModel.StatusLabel);
+        Assert.Equal("Pin task", viewModel.PinCommandLabel);
+        Assert.Equal("Favorite task", viewModel.FavoriteCommandLabel);
+        Assert.Equal("3 Subagents", viewModel.SubagentAccessibilityLabel);
+        Assert.Equal("1 min", viewModel.DurationText);
+    }
+
+    [Theory]
+    [InlineData(ThreadStatus.NeedsAction, "Action")]
+    [InlineData(ThreadStatus.JustCompleted, "Done")]
+    public void EnglishStatusLabels_RemainCompact(ThreadStatus status, string expected)
+    {
+        ThreadSnapshot snapshot = Snapshot(subagentCount: 0, status: status);
+
+        var viewModel = new ThreadRowViewModel(snapshot, Now, language: AppLanguage.English);
+
+        Assert.Equal(expected, viewModel.StatusLabel);
+    }
+
+    [Fact]
     public void TaskPreferenceCommands_ExposePinStateAndForwardTaskId()
     {
         string? pinnedId = null;
@@ -189,11 +217,12 @@ public sealed class ThreadRowViewModelTests
         int subagentCount,
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
         ServiceIncident? serviceIncident = null,
-        bool isArchived = false) =>
+        bool isArchived = false,
+        ThreadStatus status = ThreadStatus.Running) =>
         new(
             "thread-1",
             "Task",
-            ThreadStatus.Running,
+            status,
             Now.AddMinutes(-1),
             Now,
             Now,

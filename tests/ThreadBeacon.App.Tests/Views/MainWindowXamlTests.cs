@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace ThreadBeacon.App.Tests.Views;
 
@@ -121,5 +122,15 @@ public sealed class MainWindowXamlTests
         Assert.Contains("OnSettingsButtonClick", markup, StringComparison.Ordinal);
         Assert.DoesNotContain("SoundButton", markup, StringComparison.Ordinal);
         Assert.DoesNotContain("SoundSettingsPopup", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LocalizedSurface_HasNoHardCodedChineseText()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.DoesNotMatch(new Regex("[\\u4e00-\\u9fff]"), markup);
+        Assert.Contains("{DynamicResource IgnoreTask}", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource RestoreAll}", markup, StringComparison.Ordinal);
     }
 }

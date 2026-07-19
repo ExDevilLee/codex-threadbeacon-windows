@@ -107,6 +107,8 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    public AppLanguage EffectiveLanguage => languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese;
+
     public int RefreshIntervalSeconds
     {
         get => settings.RefreshIntervalSeconds;

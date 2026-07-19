@@ -150,8 +150,8 @@
                         Background="{StaticResource SurfaceBrush}"
                         BorderBrush="{StaticResource ControlBorderBrush}"
                         Click="OnIgnoredTasksButtonClick"
-                        ToolTip="管理已忽略任务"
-                        AutomationProperties.Name="管理已忽略任务"
+                        ToolTip="{DynamicResource ManageIgnored}"
+                        AutomationProperties.Name="{DynamicResource ManageIgnored}"
                         Visibility="{Binding HasIgnoredThreads, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
                                FontSize="15"
@@ -184,12 +184,12 @@
                         Command="{Binding Monitoring.ToggleCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="ToolTip" Value="暂停监听" />
-                            <Setter Property="AutomationProperties.Name" Value="暂停监听" />
+                            <Setter Property="ToolTip" Value="{DynamicResource PauseMonitoring}" />
+                            <Setter Property="AutomationProperties.Name" Value="{DynamicResource PauseMonitoring}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Monitoring.IsPaused}" Value="True">
-                                    <Setter Property="ToolTip" Value="恢复监听" />
-                                    <Setter Property="AutomationProperties.Name" Value="恢复监听" />
+                                    <Setter Property="ToolTip" Value="{DynamicResource ResumeMonitoring}" />
+                                    <Setter Property="AutomationProperties.Name" Value="{DynamicResource ResumeMonitoring}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -283,7 +283,7 @@
                                         <MenuItem Header="{Binding PinCommandLabel}"
                                                   Command="{Binding TogglePinCommand}" />
                                         <Separator />
-                                        <MenuItem Header="忽略此任务"
+                                        <MenuItem Header="{DynamicResource IgnoreTask}"
                                                   Command="{Binding IgnoreCommand}" />
                                     </ContextMenu>
                                 </Border.ContextMenu>
@@ -317,7 +317,7 @@
                                                            FontSize="10"
                                                            Foreground="{StaticResource SecondaryTextBrush}"
                                                            Text="&#xE718;"
-                                                            ToolTip="已置顶"
+                                                            ToolTip="{DynamicResource PinnedTask}"
                                                             Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 <TextBlock Margin="0,0,5,0"
                                                            VerticalAlignment="Center"
@@ -325,7 +325,7 @@
                                                            FontSize="10"
                                                            Foreground="#C98B00"
                                                            Text="&#xE735;"
-                                                           ToolTip="已收藏"
+                                                           ToolTip="{DynamicResource FavoritedTask}"
                                                            Visibility="{Binding IsFavorite, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 <TextBlock Margin="0,0,5,0"
                                                            VerticalAlignment="Center"
@@ -333,7 +333,7 @@
                                                            FontSize="10"
                                                            Foreground="{StaticResource SecondaryTextBrush}"
                                                            Text="&#xF03F;"
-                                                           ToolTip="已归档"
+                                                           ToolTip="{DynamicResource ArchivedTask}"
                                                            Visibility="{Binding IsArchived, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 <TextBlock FontSize="13"
                                                            Text="{Binding Title}"
@@ -592,7 +592,7 @@
                     <TextBlock Margin="0,0,0,10"
                                FontSize="14"
                                FontWeight="SemiBold"
-                               Text="已忽略任务" />
+                               Text="{DynamicResource IgnoredTasks}" />
                     <ItemsControl ItemsSource="{Binding IgnoredThreads}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -612,8 +612,8 @@
                                             Background="Transparent"
                                             BorderBrush="Transparent"
                                             Command="{Binding RestoreCommand}"
-                                            ToolTip="恢复任务"
-                                            AutomationProperties.Name="恢复任务">
+                                            ToolTip="{DynamicResource RestoreTask}"
+                                            AutomationProperties.Name="{DynamicResource RestoreTask}">
                                         <TextBlock FontFamily="Segoe Fluent Icons"
                                                    FontSize="14"
                                                    Text="&#xE777;" />
@@ -629,7 +629,7 @@
                             Background="Transparent"
                             BorderBrush="Transparent"
                             Command="{Binding RestoreAllIgnoredCommand}"
-                            Content="全部恢复"
+                            Content="{DynamicResource RestoreAll}"
                             Visibility="{Binding ShowRestoreAllIgnored, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </Border>

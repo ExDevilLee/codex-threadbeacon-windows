@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using ThreadBeacon.App.Formatting;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -24,11 +25,14 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
     private string activityTooltip = string.Empty;
     private SubagentDetailViewModel details = null!;
 
-    public SubagentRowViewModel(SubagentSnapshot snapshot, DateTimeOffset now)
+    public SubagentRowViewModel(
+        SubagentSnapshot snapshot,
+        DateTimeOffset now,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
-        Update(snapshot, now);
+        Update(snapshot, now, language);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -91,7 +95,10 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
         private set => SetField(ref details, value);
     }
 
-    public void Update(SubagentSnapshot snapshot, DateTimeOffset now)
+    public void Update(
+        SubagentSnapshot snapshot,
+        DateTimeOffset now,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         if (!StringComparer.Ordinal.Equals(Id, snapshot.Id))
@@ -99,15 +106,17 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
             throw new ArgumentException("A Subagent row cannot change its thread ID.", nameof(snapshot));
         }
 
-        Title = string.IsNullOrWhiteSpace(snapshot.Title) ? "未命名 Subagent" : snapshot.Title;
+        Title = string.IsNullOrWhiteSpace(snapshot.Title)
+            ? language is AppLanguage.SimplifiedChinese ? "未命名 Subagent" : "Unnamed Subagent"
+            : snapshot.Title;
         Alias = SubagentAliasFormatter.Format(snapshot.AgentNickname, Title);
-        StatusLabel = SubagentDetailViewModel.StatusLabel(snapshot.Status);
+        StatusLabel = SubagentDetailViewModel.StatusLabel(snapshot.Status, language);
         StatusBrush = StatusBrushFor(snapshot.Status);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         DateTimeOffset activityAt = snapshot.LatestEventAt ?? snapshot.UpdatedAt;
-        ActivityText = RelativeActivityFormatter.Format(activityAt, now);
+        ActivityText = RelativeActivityFormatter.Format(activityAt, now, language);
         ActivityTooltip = activityAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
-        Details = new SubagentDetailViewModel(snapshot);
+        Details = new SubagentDetailViewModel(snapshot, language);
     }
 
     private static Brush StatusBrushFor(ThreadStatus status) => status switch

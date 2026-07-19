@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using ThreadBeacon.App.Commands;
 using ThreadBeacon.App.Formatting;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -34,6 +35,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private bool isPinned;
     private bool isFavorite;
     private bool isArchived;
+    private AppLanguage language;
 
     public ThreadRowViewModel(
         ThreadSnapshot snapshot,
@@ -41,10 +43,12 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         Func<string, Task>? toggleSubagents = null,
         Action<string>? togglePin = null,
         Action<string>? ignore = null,
-        Action<string>? toggleFavorite = null)
+        Action<string>? toggleFavorite = null,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
+        this.language = language;
         this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
         ToggleSubagentsCommand = new AsyncRelayCommand(() => this.toggleSubagents(Id));
         TogglePinCommand = new RelayCommand(() => togglePin?.Invoke(Id));
@@ -79,7 +83,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         }
     }
 
-    public string PinCommandLabel => IsPinned ? "取消置顶" : "置顶任务";
+    public string PinCommandLabel => AppLanguageText.PinCommand(language, IsPinned);
 
     public bool IsFavorite
     {
@@ -93,7 +97,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         }
     }
 
-    public string FavoriteCommandLabel => IsFavorite ? "取消收藏" : "收藏任务";
+    public string FavoriteCommandLabel => AppLanguageText.FavoriteCommand(language, IsFavorite);
 
     public bool IsArchived
     {
@@ -182,7 +186,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         : string.Empty;
 
     public string SubagentAccessibilityLabel => HasSubagents
-        ? $"{SubagentCountText} 个 Subagent"
+        ? AppLanguageText.SubagentCount(language, SubagentCount)
         : string.Empty;
 
     public bool IsSubagentExpanded
@@ -212,7 +216,9 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     }
 
     public string SubagentToggleAccessibilityLabel => HasSubagents
-        ? $"{(IsSubagentExpanded ? "收起" : "展开")} {SubagentAccessibilityLabel}"
+        ? language is AppLanguage.SimplifiedChinese
+            ? $"{(IsSubagentExpanded ? "收起" : "展开")} {SubagentAccessibilityLabel}"
+            : $"{(IsSubagentExpanded ? "Collapse" : "Expand")} {SubagentAccessibilityLabel}"
         : string.Empty;
 
     public bool HasSubagentRows => Subagents.Count > 0;
@@ -222,10 +228,10 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     public bool ShowSubagentPlaceholder => IsSubagentExpanded && !HasSubagentRows;
 
     public string SubagentPlaceholderText => IsSubagentLoading
-        ? "正在读取 Subagent"
+        ? language is AppLanguage.SimplifiedChinese ? "正在读取 Subagent" : "Loading Subagents"
         : subagentSourceStatus is not ThreadRepositoryStatus.Healthy
-            ? "Subagent 读取失败"
-            : "暂无可读取的 Subagent";
+            ? language is AppLanguage.SimplifiedChinese ? "Subagent 读取失败" : "Could not load Subagents"
+            : language is AppLanguage.SimplifiedChinese ? "暂无可读取的 Subagent" : "No Subagents available";
 
     public string DurationText
     {
@@ -233,7 +239,10 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         private set => SetField(ref durationText, value);
     }
 
-    public void Update(ThreadSnapshot snapshot, DateTimeOffset now)
+    public void Update(
+        ThreadSnapshot snapshot,
+        DateTimeOffset now,
+        AppLanguage? languageOverride = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         if (!StringComparer.Ordinal.Equals(Id, snapshot.Id))
@@ -241,20 +250,35 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             throw new ArgumentException("A task row cannot change its thread ID.", nameof(snapshot));
         }
 
+        AppLanguage nextLanguage = languageOverride ?? language;
+        bool languageChanged = language != nextLanguage;
+        language = nextLanguage;
+        if (languageChanged)
+        {
+            OnPropertyChanged(nameof(PinCommandLabel));
+            OnPropertyChanged(nameof(FavoriteCommandLabel));
+            OnPropertyChanged(nameof(SubagentAccessibilityLabel));
+            OnPropertyChanged(nameof(SubagentToggleAccessibilityLabel));
+            OnPropertyChanged(nameof(SubagentPlaceholderText));
+        }
         Title = snapshot.Title;
         Status = snapshot.Status;
         IsArchived = snapshot.IsArchived;
-        StatusLabel = IsArchived ? "已归档" : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident);
+        StatusLabel = IsArchived
+            ? language is AppLanguage.SimplifiedChinese ? "已归档" : "Archived"
+            : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident, language);
         StatusBrush = IsArchived ? IdleBrush : GetStatusBrush(snapshot.Status);
-        IncidentDetailText = IsArchived ? string.Empty : GetIncidentDetail(snapshot.ServiceIncident);
+        IncidentDetailText = IsArchived
+            ? string.Empty
+            : GetIncidentDetail(snapshot.ServiceIncident, language);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         TokenDetails = snapshot.TokenUsage is null
             ? null
-            : new TokenDetailViewModel(snapshot.TokenUsage);
+            : new TokenDetailViewModel(snapshot.TokenUsage, language);
         SubagentCount = snapshot.SubagentCount;
         SetSubagentSourceStatus(snapshot.SubagentSourceStatus);
         ReconcileSubagents(snapshot.Subagents, now);
-        DurationText = FormatDuration(now - snapshot.StatusChangedAt);
+        DurationText = AppLanguageText.Duration(language, now - snapshot.StatusChangedAt);
     }
 
     public void SetSubagentExpanded(bool isExpanded, bool isLoading)
@@ -286,12 +310,12 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             int existingIndex = FindSubagentIndex(snapshot.Id, targetIndex);
             if (existingIndex < 0)
             {
-                Subagents.Insert(targetIndex, new SubagentRowViewModel(snapshot, now));
+                Subagents.Insert(targetIndex, new SubagentRowViewModel(snapshot, now, language));
                 continue;
             }
 
             SubagentRowViewModel row = Subagents[existingIndex];
-            row.Update(snapshot, now);
+            row.Update(snapshot, now, language);
             if (existingIndex != targetIndex)
             {
                 Subagents.Move(existingIndex, targetIndex);
@@ -337,26 +361,15 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
     private static string GetStatusLabel(
         ThreadStatus status,
-        ServiceIncident? incident) => incident?.Phase switch
+        ServiceIncident? incident,
+        AppLanguage language) => incident?.Phase switch
     {
-        ServiceIncidentPhase.Retrying => "服务异常",
-        ServiceIncidentPhase.Failed => "服务失败",
-        _ => GetDefaultStatusLabel(status),
+        ServiceIncidentPhase.Retrying => language is AppLanguage.SimplifiedChinese ? "服务异常" : "Service issue",
+        ServiceIncidentPhase.Failed => language is AppLanguage.SimplifiedChinese ? "服务失败" : "Service failed",
+        _ => AppLanguageText.Status(language, status),
     };
 
-    private static string GetDefaultStatusLabel(ThreadStatus status) => status switch
-    {
-        ThreadStatus.Error => "错误",
-        ThreadStatus.NeedsAction => "待处理",
-        ThreadStatus.Warning => "重试中",
-        ThreadStatus.Running => "运行中",
-        ThreadStatus.JustCompleted => "刚完成",
-        ThreadStatus.Idle => "空闲",
-        ThreadStatus.Unknown => "未知",
-        _ => "未知",
-    };
-
-    private static string GetIncidentDetail(ServiceIncident? incident)
+    private static string GetIncidentDetail(ServiceIncident? incident, AppLanguage language)
     {
         if (incident is null)
         {
@@ -373,7 +386,8 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             && incident.RetryAttempt is int attempt
             && incident.RetryLimit is int limit)
         {
-            parts.Add($"重试 {attempt.ToString(CultureInfo.InvariantCulture)}/{limit.ToString(CultureInfo.InvariantCulture)}");
+            string retry = language is AppLanguage.SimplifiedChinese ? "重试" : "Retry";
+            parts.Add($"{retry} {attempt.ToString(CultureInfo.InvariantCulture)}/{limit.ToString(CultureInfo.InvariantCulture)}");
         }
 
         return string.Join(" · ", parts);
@@ -388,18 +402,6 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         ThreadStatus.Idle => IdleBrush,
         _ => UnknownBrush,
     };
-
-    private static string FormatDuration(TimeSpan elapsed)
-    {
-        elapsed = elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
-        return elapsed.TotalSeconds switch
-        {
-            < 60 => $"{Math.Floor(elapsed.TotalSeconds)}秒",
-            < 3_600 => $"{Math.Floor(elapsed.TotalMinutes)}分",
-            < 86_400 => $"{Math.Floor(elapsed.TotalHours)}时",
-            _ => $"{Math.Floor(elapsed.TotalDays)}天",
-        };
-    }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

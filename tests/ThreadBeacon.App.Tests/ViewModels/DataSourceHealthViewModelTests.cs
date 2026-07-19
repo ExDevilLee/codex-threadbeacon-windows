@@ -1,4 +1,5 @@
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -90,5 +91,46 @@ public sealed class DataSourceHealthViewModelTests
 
         Assert.Equal("\uEA39", viewModel.HealthButtonBaseGlyph);
         Assert.Equal(string.Empty, viewModel.HealthButtonOverlayGlyph);
+    }
+
+    [Fact]
+    public void Update_UsesEnglishPresentationWhenRequested()
+    {
+        var viewModel = new DataSourceHealthViewModel();
+
+        viewModel.Update(new DataSourceHealthReport(
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Healthy,
+            4,
+            0,
+            null),
+            AppLanguage.English);
+
+        Assert.Equal("Data sources healthy", viewModel.Summary);
+        Assert.Equal("Data source health: Data sources healthy", viewModel.AccessibilityLabel);
+        Assert.Equal(["Task database", "Rename index", "Rollout", "Service logs"],
+            viewModel.Sources.Select(source => source.Title));
+        Assert.Equal("Healthy", viewModel.Sources[0].StatusText);
+        Assert.Equal("Success 4 | Failures 0", viewModel.RolloutCountsText);
+    }
+
+    [Fact]
+    public void Update_TranslatesKnownEnglishHealthDetail()
+    {
+        var viewModel = new DataSourceHealthViewModel();
+
+        viewModel.Update(new DataSourceHealthReport(
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Unavailable("未找到 Rename 索引"),
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Healthy,
+            1,
+            0,
+            null),
+            AppLanguage.English);
+
+        Assert.Equal("Rename index not found", viewModel.Sources[1].DetailText);
     }
 }

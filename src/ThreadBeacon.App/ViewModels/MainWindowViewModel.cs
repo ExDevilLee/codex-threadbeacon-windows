@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using ThreadBeacon.App.Commands;
 using ThreadBeacon.App.Formatting;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.Core.Models;
@@ -30,7 +31,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private SessionIndexStatus lastTitleSourceStatus = SessionIndexStatus.Healthy;
     private ThreadCountLabel threadCountLabel = ThreadCountFormatter.Format([]);
     private bool isRefreshing;
-    private string sourceStatusText = "准备监听";
+    private string sourceStatusText = string.Empty;
     private string updatedText = string.Empty;
     private bool hasSourceError;
 
@@ -55,12 +56,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         this.preferenceStore = preferenceStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.displaySettings = displaySettings ?? new DisplaySettingsViewModel();
+        sourceStatusText = this.displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+            ? "准备监听"
+            : "Ready to monitor";
         preferences = preferenceStore?.Load() ?? new ThreadListPreferences();
         threadRows = new ThreadRowCollection(
             ToggleSubagentsAsync,
             TogglePin,
             IgnoreThread,
-            ToggleFavorite);
+            ToggleFavorite,
+            () => this.displaySettings.EffectiveLanguage);
         refreshCommand = new AsyncRelayCommand(
             () => RefreshAsync(RefreshNotificationPolicy.Baseline),
             () => !IsRefreshing);
@@ -93,14 +98,24 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public bool ShowsFavoritesOnly => preferences.ShowsFavoritesOnly;
 
     public string FavoritesFilterTooltip => ShowsFavoritesOnly
-        ? "显示全部任务"
-        : "仅显示收藏";
+        ? displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+            ? "显示全部任务"
+            : "Show all tasks"
+        : displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+            ? "仅显示收藏"
+            : "Show favorites only";
 
     public string EmptyStateIcon => ShowsFavoritesOnly ? "\uE734" : string.Empty;
 
-    public string EmptyStateTitle => ShowsFavoritesOnly ? "暂无收藏任务" : "暂无任务数据";
+    public string EmptyStateTitle => displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+        ? ShowsFavoritesOnly ? "暂无收藏任务" : "暂无任务数据"
+        : ShowsFavoritesOnly ? "No favorite tasks" : "No task data";
 
-    public string EmptyStateSubtitle => ShowsFavoritesOnly ? string.Empty : "等待 Codex 任务";
+    public string EmptyStateSubtitle => ShowsFavoritesOnly
+        ? string.Empty
+        : displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+            ? "等待 Codex 任务"
+            : "Waiting for Codex tasks";
 
     public string ThreadCountText => threadCountLabel.DisplayText;
 
@@ -129,9 +144,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
             if (Monitoring.IsPaused)
             {
-                return string.IsNullOrEmpty(updatedText)
-                    ? "监听已暂停 · 尚未更新"
-                    : "监听已暂停 · 上次更新";
+                return displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+                    ? string.IsNullOrEmpty(updatedText)
+                        ? "监听已暂停 · 尚未更新"
+                        : "监听已暂停 · 上次更新"
+                    : string.IsNullOrEmpty(updatedText)
+                        ? "Monitoring paused · Not updated yet"
+                        : "Monitoring paused · Last updated";
             }
 
             return sourceStatusText;
@@ -180,8 +199,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                     favoriteIds)));
             if (result.Health.OverallStatus is OverallDataSourceHealth.Unavailable)
             {
-                DataSourceHealth.Update(PreserveLastSuccessfulRefresh(result.Health));
-                sourceStatusText = GetStatusText(result);
+                DataSourceHealth.Update(
+                    PreserveLastSuccessfulRefresh(result.Health),
+                    displaySettings.EffectiveLanguage);
+                sourceStatusText = GetStatusText(result, displaySettings.EffectiveLanguage);
                 hasSourceError = true;
                 OnPropertyChanged(nameof(StatusText));
                 return;
@@ -190,9 +211,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             ThreadSnapshotLoadResult visibleResult = ApplyCandidates(result);
             DataSourceHealthReport successfulHealth =
                 visibleResult.Health.WithLastSuccessfulRefresh(visibleResult.RefreshedAt);
-            DataSourceHealth.Update(successfulHealth);
+            DataSourceHealth.Update(successfulHealth, displaySettings.EffectiveLanguage);
             completionObserver?.Observe(visibleResult.Threads, policy);
-            sourceStatusText = GetStatusText(visibleResult);
+            sourceStatusText = GetStatusText(visibleResult, displaySettings.EffectiveLanguage);
             hasSourceError = false;
             updatedText = visibleResult.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
             OnPropertyChanged(nameof(StatusText));
@@ -206,9 +227,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 row.MarkSubagentLoadFailed();
             }
 
-            sourceStatusText = "刷新失败";
+            sourceStatusText = displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
+                ? "刷新失败"
+                : "Refresh failed";
             hasSourceError = true;
-            DataSourceHealth.Update(CreateUnexpectedFailureHealth());
+            DataSourceHealth.Update(
+                CreateUnexpectedFailureHealth(),
+                displaySettings.EffectiveLanguage);
             OnPropertyChanged(nameof(StatusText));
         }
         finally
@@ -356,7 +381,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             preferences.FavoriteThreadIds);
         ReconcileIgnored();
         SetThreadCountLabel(ThreadCountFormatter.Format(
-            list.VisibleSnapshots.Select(thread => thread.Status)));
+            list.VisibleSnapshots.Select(thread => thread.Status),
+            displaySettings.EffectiveLanguage));
 
         OnPropertyChanged(nameof(EmptyVisibility));
         OnPropertyChanged(nameof(ListVisibility));
@@ -389,7 +415,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             lastTitleSourceStatus,
             list.VisibleSnapshots,
             now,
-            DataSourceHealth.Report));
+            DataSourceHealth.Report),
+            displaySettings.EffectiveLanguage);
         OnPropertyChanged(nameof(StatusText));
     }
 
@@ -416,21 +443,33 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ThreadCountAccessibilityLabel));
     }
 
-    private static string GetStatusText(ThreadSnapshotLoadResult result)
+    private static string GetStatusText(
+        ThreadSnapshotLoadResult result,
+        AppLanguage language)
     {
         if (result.Health.OverallStatus is OverallDataSourceHealth.Unavailable)
         {
-            return result.ThreadSourceStatus switch
+            return language is AppLanguage.SimplifiedChinese
+                ? result.ThreadSourceStatus switch
+                {
+                    ThreadRepositoryStatus.Missing => "未找到 Codex 状态数据库",
+                    ThreadRepositoryStatus.Busy => "Codex 数据库繁忙",
+                    ThreadRepositoryStatus.Incompatible => "Codex 数据格式暂不兼容",
+                    _ => "Codex 数据暂不可用",
+                }
+                : result.ThreadSourceStatus switch
             {
-                ThreadRepositoryStatus.Missing => "未找到 Codex 状态数据库",
-                ThreadRepositoryStatus.Busy => "Codex 数据库繁忙",
-                ThreadRepositoryStatus.Incompatible => "Codex 数据格式暂不兼容",
-                _ => "Codex 数据暂不可用",
+                ThreadRepositoryStatus.Missing => "Codex state database not found",
+                ThreadRepositoryStatus.Busy => "Codex database is busy",
+                ThreadRepositoryStatus.Incompatible => "Codex data format is not supported",
+                _ => "Codex data unavailable",
             };
         }
 
-        string summary = $"监听中 · {result.Threads.Count} 个任务";
-        return result.IsHealthy ? summary : $"{summary} · 部分数据降级";
+        return AppLanguageText.MonitoringSummary(
+            language,
+            result.Threads.Count,
+            !result.IsHealthy);
     }
 
     private DataSourceHealthReport PreserveLastSuccessfulRefresh(

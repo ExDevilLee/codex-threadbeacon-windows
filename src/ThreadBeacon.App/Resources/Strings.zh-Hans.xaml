@@ -31,4 +31,11 @@
     <sys:String x:Key="TokenDetails">Token 详情</sys:String>
     <sys:String x:Key="ViewTokenDetails">查看 Token 详情</sys:String>
     <sys:String x:Key="SubagentDetails">Subagent 详情</sys:String>
+    <sys:String x:Key="IgnoreTask">忽略此任务</sys:String>
+    <sys:String x:Key="PinnedTask">已置顶</sys:String>
+    <sys:String x:Key="FavoritedTask">已收藏</sys:String>
+    <sys:String x:Key="ArchivedTask">已归档</sys:String>
+    <sys:String x:Key="IgnoredTasks">已忽略任务</sys:String>
+    <sys:String x:Key="RestoreTask">恢复任务</sys:String>
+    <sys:String x:Key="RestoreAll">全部恢复</sys:String>
 </ResourceDictionary>

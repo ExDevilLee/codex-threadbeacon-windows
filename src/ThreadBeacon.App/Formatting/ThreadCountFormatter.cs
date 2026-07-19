@@ -1,4 +1,5 @@
 using ThreadBeacon.Core.Models;
+using ThreadBeacon.App.Localization;
 
 namespace ThreadBeacon.App.Formatting;
 
@@ -8,7 +9,9 @@ public sealed record ThreadCountLabel(
 
 public static class ThreadCountFormatter
 {
-    public static ThreadCountLabel Format(IEnumerable<ThreadStatus> statuses)
+    public static ThreadCountLabel Format(
+        IEnumerable<ThreadStatus> statuses,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(statuses);
 
@@ -25,6 +28,6 @@ public static class ThreadCountFormatter
 
         return new ThreadCountLabel(
             $"{runningCount}/{visibleCount}",
-            $"{runningCount} 个任务正在运行，共显示 {visibleCount} 个任务");
+            AppLanguageText.ThreadCountAccessibility(language, runningCount, visibleCount));
     }
 }

@@ -1,4 +1,5 @@
 using ThreadBeacon.App.Formatting;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -7,26 +8,29 @@ public sealed record TokenDetailRow(string Label, string Value);
 
 public sealed class TokenDetailViewModel
 {
-    public TokenDetailViewModel(TokenUsageSnapshot snapshot)
+    public TokenDetailViewModel(
+        TokenUsageSnapshot snapshot,
+        AppLanguage language = AppLanguage.SimplifiedChinese)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
         TokenUsage? cumulative = snapshot.Cumulative;
         Rows =
         [
-            new("会话总量", TokenUsageFormatter.FormatCount(snapshot.TotalTokens)),
-            new("输入", TokenUsageFormatter.FormatCount(cumulative?.InputTokens)),
-            new("缓存输入", TokenUsageFormatter.FormatCount(cumulative?.CachedInputTokens)),
-            new("非缓存输入", TokenUsageFormatter.FormatCount(cumulative?.UncachedInputTokens)),
-            new("输出", TokenUsageFormatter.FormatCount(cumulative?.OutputTokens)),
-            new("Reasoning", TokenUsageFormatter.FormatCount(cumulative?.ReasoningOutputTokens)),
-            new("当前 turn", TokenUsageFormatter.FormatCurrentTurn(snapshot.CurrentTurn?.TotalTokens)),
-            new("缓存率", TokenUsageFormatter.FormatPercent(cumulative?.CacheRatio)),
-            new("更新时间", TokenUsageFormatter.FormatTime(snapshot.UpdatedAt)),
+            new(AppLanguageText.TokenLabel(language, 0), TokenUsageFormatter.FormatCount(snapshot.TotalTokens)),
+            new(AppLanguageText.TokenLabel(language, 1), TokenUsageFormatter.FormatCount(cumulative?.InputTokens)),
+            new(AppLanguageText.TokenLabel(language, 2), TokenUsageFormatter.FormatCount(cumulative?.CachedInputTokens)),
+            new(AppLanguageText.TokenLabel(language, 3), TokenUsageFormatter.FormatCount(cumulative?.UncachedInputTokens)),
+            new(AppLanguageText.TokenLabel(language, 4), TokenUsageFormatter.FormatCount(cumulative?.OutputTokens)),
+            new(AppLanguageText.TokenLabel(language, 5), TokenUsageFormatter.FormatCount(cumulative?.ReasoningOutputTokens)),
+            new(AppLanguageText.TokenLabel(language, 6), TokenUsageFormatter.FormatCurrentTurn(snapshot.CurrentTurn?.TotalTokens)),
+            new(AppLanguageText.TokenLabel(language, 7), TokenUsageFormatter.FormatPercent(cumulative?.CacheRatio)),
+            new(AppLanguageText.TokenLabel(language, 8), TokenUsageFormatter.FormatTime(snapshot.UpdatedAt)),
         ];
+        Note = AppLanguageText.TokenNote(language);
     }
 
     public IReadOnlyList<TokenDetailRow> Rows { get; }
 
-    public string Note => "缓存输入已包含在输入中；Reasoning 已包含在输出中。";
+    public string Note { get; }
 }

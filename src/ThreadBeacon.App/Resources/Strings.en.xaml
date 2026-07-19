@@ -31,4 +31,11 @@
     <sys:String x:Key="TokenDetails">Token details</sys:String>
     <sys:String x:Key="ViewTokenDetails">View token details</sys:String>
     <sys:String x:Key="SubagentDetails">Subagent details</sys:String>
+    <sys:String x:Key="IgnoreTask">Ignore this task</sys:String>
+    <sys:String x:Key="PinnedTask">Pinned</sys:String>
+    <sys:String x:Key="FavoritedTask">Favorited</sys:String>
+    <sys:String x:Key="ArchivedTask">Archived</sys:String>
+    <sys:String x:Key="IgnoredTasks">Ignored tasks</sys:String>
+    <sys:String x:Key="RestoreTask">Restore task</sys:String>
+    <sys:String x:Key="RestoreAll">Restore all</sys:String>
 </ResourceDictionary>
