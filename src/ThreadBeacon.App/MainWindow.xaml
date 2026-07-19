@@ -8,7 +8,7 @@
         Height="500"
         MinWidth="480"
         MinHeight="340"
-        Background="{StaticResource WindowBackgroundBrush}"
+        Background="{DynamicResource WindowBackgroundBrush}"
         TextOptions.TextFormattingMode="Display"
         Topmost="{Binding WindowPin.IsPinned}"
         WindowStartupLocation="CenterScreen">
@@ -43,12 +43,12 @@
                 <TextBlock FontSize="20" FontWeight="SemiBold" Text="ThreadBeacon" />
                 <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                     <TextBlock FontSize="12"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{DynamicResource CodexTaskStatus}" />
                     <TextBlock Margin="6,0,0,0"
                                FontFamily="Cascadia Mono, Consolas"
                                FontSize="11"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{Binding ThreadCountText}"
                                ToolTip="{Binding ThreadCountAccessibilityLabel}"
                                AutomationProperties.Name="{Binding ThreadCountAccessibilityLabel}" />
@@ -61,8 +61,8 @@
                         Height="32"
                         Margin="0,0,8,0"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Command="{Binding ToggleFavoritesOnlyCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -81,7 +81,7 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="&#xE734;" />
                                 <Setter Property="Foreground"
-                                        Value="{StaticResource SecondaryTextBrush}" />
+                                        Value="{DynamicResource SecondaryTextBrush}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding ShowsFavoritesOnly}" Value="True">
                                         <Setter Property="Text" Value="&#xE735;" />
@@ -97,8 +97,8 @@
                         Height="32"
                         Margin="0,0,8,0"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Command="{Binding WindowPin.ToggleCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -130,7 +130,7 @@
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground"
-                                            Value="{StaticResource SecondaryTextBrush}" />
+                                            Value="{DynamicResource SecondaryTextBrush}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
                                             <Setter Property="Foreground" Value="#0067C0" />
@@ -147,15 +147,15 @@
                         Height="32"
                         Margin="0,0,8,0"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Click="OnIgnoredTasksButtonClick"
                         ToolTip="{DynamicResource ManageIgnored}"
                         AutomationProperties.Name="{DynamicResource ManageIgnored}"
                         Visibility="{Binding HasIgnoredThreads, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
                                FontSize="15"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="&#xED1A;" />
                 </Button>
 
@@ -164,14 +164,14 @@
                         Height="32"
                         Margin="0,0,8,0"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Click="OnSettingsButtonClick"
                         ToolTip="{DynamicResource Settings}"
                         AutomationProperties.Name="{DynamicResource Settings}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
                                FontSize="15"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="&#xE713;" />
                 </Button>
 
@@ -179,8 +179,8 @@
                         Height="32"
                         Margin="0,0,8,0"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Command="{Binding Monitoring.ToggleCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -199,7 +199,7 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="&#xE769;" />
                                 <Setter Property="Foreground"
-                                        Value="{StaticResource SecondaryTextBrush}" />
+                                        Value="{DynamicResource SecondaryTextBrush}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Monitoring.IsPaused}" Value="True">
                                         <Setter Property="Text" Value="&#xE768;" />
@@ -214,8 +214,8 @@
                 <Button Width="32"
                         Height="32"
                         Padding="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Command="{Binding RefreshCommand}"
                         ToolTip="{DynamicResource Refresh}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
@@ -235,29 +235,29 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="1"
                        FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{DynamicResource Status}" />
             <TextBlock Grid.Column="2"
                        FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{DynamicResource Task}" />
             <TextBlock Grid.Column="3"
                        HorizontalAlignment="Right"
                        FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{DynamicResource TotalToken}" />
             <TextBlock Grid.Column="4"
                        HorizontalAlignment="Right"
                        FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{DynamicResource Duration}" />
         </Grid>
 
         <Grid Grid.Row="3">
             <ListBox ItemsSource="{Binding Threads}"
                      Visibility="{Binding ListVisibility}"
-                     Background="{StaticResource SurfaceBrush}"
-                     BorderBrush="{StaticResource ControlBorderBrush}"
+                     Background="{DynamicResource SurfaceBrush}"
+                     BorderBrush="{DynamicResource ControlBorderBrush}"
                      BorderThickness="1"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -315,7 +315,7 @@
                                                            VerticalAlignment="Center"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="10"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xE718;"
                                                             ToolTip="{DynamicResource PinnedTask}"
                                                             Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -331,7 +331,7 @@
                                                            VerticalAlignment="Center"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="10"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xF03F;"
                                                            ToolTip="{DynamicResource ArchivedTask}"
                                                            Visibility="{Binding IsArchived, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -342,7 +342,7 @@
                                             </StackPanel>
                                             <TextBlock Margin="0,2,0,0"
                                                        FontSize="10"
-                                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Foreground="{DynamicResource SecondaryTextBrush}"
                                                        Text="{Binding IncidentDetailText}"
                                                        TextTrimming="CharacterEllipsis"
                                                        Visibility="{Binding HasIncidentDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -363,7 +363,7 @@
                                                 <TextBlock VerticalAlignment="Center"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="9"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xE70E;">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
@@ -388,13 +388,13 @@
                                                            VerticalAlignment="Center"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="11"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xE8AC;" />
                                                 <TextBlock Margin="3,0,0,0"
                                                            VerticalAlignment="Center"
                                                            FontFamily="Cascadia Mono, Consolas"
                                                            FontSize="11"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="{Binding SubagentCountText}" />
                                             </StackPanel>
                                         </Button>
@@ -415,7 +415,7 @@
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
                                                FontSize="11"
-                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
                                                Text="{Binding DurationText}" />
                                 </Grid>
                             </Border>
@@ -439,7 +439,7 @@
                                                 <TextBlock VerticalAlignment="Top"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="10"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xE72A;" />
                                                 <Ellipse Grid.Column="1"
                                                          Width="6"
@@ -458,7 +458,7 @@
                                                         <TextBlock MaxWidth="86"
                                                                    FontSize="11"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                                    Text="{Binding Alias}"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    ToolTip="{Binding Alias}"
@@ -466,7 +466,7 @@
                                                         <TextBlock Grid.Column="1"
                                                                    Margin="4,0"
                                                                    FontSize="11"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                                    Text="|"
                                                                    Visibility="{Binding HasAlias, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                         <TextBlock Grid.Column="2"
@@ -483,10 +483,10 @@
                                                                    Text="{Binding StatusLabel}" />
                                                         <TextBlock Margin="5,0"
                                                                    FontSize="10"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                                    Text="·" />
                                                         <TextBlock FontSize="10"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                                    Text="{Binding ActivityText}"
                                                                    ToolTip="{Binding ActivityTooltip}" />
                                                     </StackPanel>
@@ -498,7 +498,7 @@
                                                     <TextBlock VerticalAlignment="Center"
                                                                FontFamily="Cascadia Mono, Consolas"
                                                                FontSize="10"
-                                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                                               Foreground="{DynamicResource SecondaryTextBrush}"
                                                                Text="{Binding TokenText}" />
                                                     <controls:SubagentInfoControl Margin="4,0,0,0"
                                                                                   Details="{Binding Details}" />
@@ -518,11 +518,11 @@
                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                                     <TextBlock FontFamily="Segoe Fluent Icons"
                                                FontSize="11"
-                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
                                                Text="&#xE895;" />
                                     <TextBlock Margin="7,0,0,0"
                                                FontSize="11"
-                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
                                                Text="{Binding SubagentPlaceholderText}" />
                                 </StackPanel>
                             </Border>
@@ -533,8 +533,8 @@
 
             <Border Padding="24"
                     Visibility="{Binding EmptyVisibility}"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -551,7 +551,7 @@
                     <TextBlock Margin="0,6,0,0"
                                HorizontalAlignment="Center"
                                FontSize="12"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{Binding EmptyStateSubtitle}" />
                 </StackPanel>
             </Border>
@@ -564,14 +564,14 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding StatusText}" />
             <controls:DataSourceHealthControl Grid.Column="1"
                                               Margin="8,-3,8,-3"
                                               Details="{Binding DataSourceHealth}" />
             <TextBlock Grid.Column="2"
                        FontSize="11"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding UpdatedText}" />
         </Grid>
 
@@ -584,8 +584,8 @@
                VerticalOffset="6">
             <Border Width="280"
                     Padding="14"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6">
                 <StackPanel>

@@ -49,8 +49,8 @@
             <Border x:Name="PopupContent"
                     Width="320"
                     Padding="14"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6">
                 <Border.Resources>
@@ -82,18 +82,18 @@
                         <TextBlock Grid.Column="3"
                                    VerticalAlignment="Center"
                                    FontSize="11"
-                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                    Text="{Binding Summary}" />
                     </Grid>
 
                     <TextBlock Margin="0,7,0,0"
                                FontSize="11"
-                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{Binding LastSuccessfulRefreshText}" />
 
                     <Border Height="1"
                             Margin="0,10,0,10"
-                            Background="{StaticResource ControlBorderBrush}" />
+                            Background="{DynamicResource ControlBorderBrush}" />
 
                     <ItemsControl ItemsSource="{Binding Sources}">
                         <ItemsControl.ItemTemplate>
@@ -123,14 +123,14 @@
                                         </Grid>
                                         <TextBlock Margin="0,2,0,0"
                                                    FontSize="10"
-                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                    Text="{Binding DetailText}"
                                                    TextWrapping="Wrap"
                                                    Visibility="{Binding HasDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <TextBlock Margin="0,2,0,0"
                                                    FontFamily="Cascadia Mono, Consolas"
                                                    FontSize="10"
-                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
                                                    Text="{Binding SupplementalText}"
                                                    Visibility="{Binding HasSupplementalText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     </StackPanel>

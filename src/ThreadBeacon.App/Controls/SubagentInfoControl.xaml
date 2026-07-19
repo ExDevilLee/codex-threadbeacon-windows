@@ -23,7 +23,7 @@
                 MouseLeave="OnTriggerMouseLeave">
             <TextBlock FontFamily="Segoe Fluent Icons"
                        FontSize="12"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="&#xE946;" />
         </Button>
 
@@ -38,8 +38,8 @@
             <Border x:Name="PopupContent"
                     Width="310"
                     Padding="12"
-                    Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6"
                     MouseEnter="OnPopupMouseEnter"
@@ -72,7 +72,7 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock FontSize="12"
-                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
                                                Text="{Binding Label}" />
                                     <TextBlock Grid.Column="2"
                                                HorizontalAlignment="Right"

@@ -3,15 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              >
     <Application.Resources>
-        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F5F5F7" />
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#1D1D1F" />
-        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#66666B" />
-        <SolidColorBrush x:Key="ControlBorderBrush" Color="#D8D8DC" />
-
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         </Style>
     </Application.Resources>
 </Application>
