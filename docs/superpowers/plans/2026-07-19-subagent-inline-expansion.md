@@ -36,16 +36,16 @@
 
 ### Task 2: Child Snapshot Loading
 
-- [ ] Add failing loader tests proving only expanded visible parent IDs are requested.
-- [ ] Add failing tests for child rename overrides, rollout-derived status, SQLite
+- [x] Add failing loader tests proving only expanded visible parent IDs are requested.
+- [x] Add failing tests for child rename overrides, rollout-derived status, SQLite
   Token fallback, metadata retention, and status/activity sorting.
-- [ ] Run focused tests and confirm the expanded-parent overload and child snapshots
+- [x] Run focused tests and confirm the expanded-parent overload and child snapshots
   are absent.
-- [ ] Add `SubagentSnapshot`, `ThreadSnapshot.Subagents`, and an expanded-parent
+- [x] Add `SubagentSnapshot`, `ThreadSnapshot.Subagents`, and an expanded-parent
   parameter to `ThreadStatusLoader.Load`.
-- [ ] Reuse primary display-state and Token rules for children while isolating child
+- [x] Reuse primary display-state and Token rules for children while isolating child
   parse failures.
-- [ ] Run focused and full Core tests, then commit `feat(subagent): build child snapshots`.
+- [x] Run focused and full Core tests, then commit `feat(subagent): build child snapshots`.
 
 ### Task 3: Expansion State And Stable Rows
 

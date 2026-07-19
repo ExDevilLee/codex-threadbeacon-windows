@@ -98,6 +98,82 @@ public sealed class ThreadStatusLoaderTests
         Assert.False(result.IsHealthy);
     }
 
+    [Fact]
+    public void Load_OnlyLoadsSubagentsForExpandedVisibleParents()
+    {
+        ThreadRecord parent = new("parent", "Parent", "parent", Now, 0, 2);
+        SubagentRecord[] children =
+        [
+            new("idle-child", "parent", "Idle child", "idle-child", Now.AddMinutes(-3), 20, null, "explorer", null, null),
+            new("running-child", "parent", "Running child", "running-child", Now.AddMinutes(-2), 10, "worker", "reviewer", "gpt-test", "high"),
+        ];
+        var repository = new TrackingThreadRepository(
+            new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [parent]),
+            new SubagentLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal)
+                {
+                    ["parent"] = children,
+                }));
+        var titles = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["idle-child"] = "Renamed idle child",
+        };
+        var observations = new Dictionary<string, RolloutLoadResult>(StringComparer.Ordinal)
+        {
+            ["parent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            ["running-child"] = HealthyObservation(ThreadStatus.Running, Now.AddSeconds(-10), Now.AddSeconds(-5)),
+            ["idle-child"] = HealthyObservation(ThreadStatus.JustCompleted, Now.AddMinutes(-2), Now.AddMinutes(-2)),
+        };
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(SessionIndexStatus.Healthy, titles)),
+            new StubRolloutParser(observations),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(
+            expandedThreadIds: new HashSet<string>(StringComparer.Ordinal)
+            {
+                "parent",
+                "not-visible",
+            });
+
+        Assert.Equal(["parent"], repository.RequestedParentIds);
+        ThreadSnapshot snapshot = Assert.Single(result.Threads);
+        Assert.Equal(["running-child", "idle-child"], snapshot.Subagents.Select(child => child.Id));
+        Assert.Equal("Renamed idle child", snapshot.Subagents[1].Title);
+        Assert.Equal(ThreadStatus.Idle, snapshot.Subagents[1].Status);
+        Assert.Equal(20, snapshot.Subagents[1].TokenUsage?.TotalTokens);
+        Assert.Equal("reviewer", snapshot.Subagents[0].AgentRole);
+        Assert.Equal("gpt-test", snapshot.Subagents[0].Model);
+        Assert.Equal("high", snapshot.Subagents[0].ReasoningEffort);
+    }
+
+    [Fact]
+    public void Load_SkipsSubagentSourceWhenNothingIsExpanded()
+    {
+        var repository = new TrackingThreadRepository(
+            new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [Record("parent", "Parent")]),
+            new SubagentLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal)));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["parent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load();
+
+        Assert.Null(repository.RequestedParentIds);
+        Assert.Empty(Assert.Single(result.Threads).Subagents);
+    }
+
     private static ThreadStatusLoader CreateLoader(
         IReadOnlyList<ThreadRecord> records,
         IReadOnlyDictionary<string, string> titles,
@@ -126,6 +202,21 @@ public sealed class ThreadStatusLoaderTests
     private sealed class StubThreadRepository(ThreadLoadResult result) : IThreadRepository
     {
         public ThreadLoadResult LoadRecent(int limit = 8) => result;
+    }
+
+    private sealed class TrackingThreadRepository(
+        ThreadLoadResult threadResult,
+        SubagentLoadResult subagentResult) : IThreadRepository
+    {
+        public IReadOnlySet<string>? RequestedParentIds { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) => threadResult;
+
+        public SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
+        {
+            RequestedParentIds = new HashSet<string>(parentIds, StringComparer.Ordinal);
+            return subagentResult;
+        }
     }
 
     private sealed class StubTitleRepository(TitleLoadResult result) : ISessionIndexTitleRepository
