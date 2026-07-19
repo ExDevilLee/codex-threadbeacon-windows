@@ -310,7 +310,7 @@ public sealed class ThreadStatusLoaderTests
             "archived",
             Now.AddMinutes(-5),
             900,
-            0,
+            3,
             IsArchived: true);
         var repository = new FavoriteThreadRepository([active], [archived]);
         var incidents = new TrackingLogEventRepository(new Dictionary<string, ServiceIncident>
@@ -354,6 +354,8 @@ public sealed class ThreadStatusLoaderTests
         Assert.Null(snapshot.CompletionEventAt);
         Assert.Null(snapshot.ServiceIncident);
         Assert.Equal(1_234, snapshot.TokenUsage?.TotalTokens);
+        Assert.Equal(0, snapshot.SubagentCount);
+        Assert.Empty(snapshot.Subagents);
     }
 
     private static ThreadStatusLoader CreateLoader(

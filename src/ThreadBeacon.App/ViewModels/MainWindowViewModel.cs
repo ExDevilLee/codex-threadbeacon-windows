@@ -233,9 +233,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public void ToggleFavorite(string threadId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
-        if (!preferences.FavoriteThreadIds.Remove(threadId))
+        bool removed = preferences.FavoriteThreadIds.Remove(threadId);
+        if (!removed)
         {
             preferences.FavoriteThreadIds.Add(threadId);
+        }
+        else if (candidateSnapshots.Any(snapshot =>
+            snapshot.IsArchived && StringComparer.Ordinal.Equals(snapshot.Id, threadId)))
+        {
+            candidateSnapshots = candidateSnapshots
+                .Where(snapshot => !StringComparer.Ordinal.Equals(snapshot.Id, threadId))
+                .ToArray();
         }
 
         SaveAndReapplyPreferences();

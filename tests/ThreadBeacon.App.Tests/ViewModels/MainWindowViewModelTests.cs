@@ -368,6 +368,38 @@ public sealed class MainWindowViewModelTests
         Assert.Null(observed.ServiceIncident);
     }
 
+    [Fact]
+    public async Task ToggleFavorite_UnfavoritingArchivedTaskRemovesItImmediatelyInAllMode()
+    {
+        ThreadRecord active = Record("active");
+        ThreadRecord archived = new("archived", "Archived", "archived", Now, 50, 0, true);
+        var repository = new FavoriteOnlyThreadRepository([active], [archived]);
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            favoriteThreadIds: ["archived"]));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["active"] = ThreadStatus.Running,
+                ["archived"] = ThreadStatus.Idle,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            preferenceStore: preferenceStore,
+            timeProvider: new FixedTimeProvider(Now));
+        await viewModel.RefreshAsync();
+        Assert.Equal(["active", "archived"], viewModel.Threads.Select(row => row.Id));
+
+        viewModel.ToggleFavorite("archived");
+
+        Assert.Equal("active", Assert.Single(viewModel.Threads).Id);
+        Assert.Empty(preferenceStore.LastSaved!.FavoriteThreadIds);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,

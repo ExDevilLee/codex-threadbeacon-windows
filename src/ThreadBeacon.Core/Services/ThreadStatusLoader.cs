@@ -169,7 +169,7 @@ public sealed class ThreadStatusLoader
             latestTaskStartedAt,
             completionEventAt,
             tokenUsage,
-            record.SubagentCount,
+            record.IsArchived ? 0 : record.SubagentCount,
             rollout.Status,
             subagents,
             subagentSourceStatus,
