@@ -15,14 +15,25 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly AsyncRelayCommand refreshCommand;
     private bool isRefreshing;
-    private string statusText = "准备监听";
+    private string sourceStatusText = "准备监听";
     private string updatedText = string.Empty;
+    private bool hasSourceError;
 
     public MainWindowViewModel(ThreadStatusLoader loader, WindowPinState windowPin)
+        : this(loader, windowPin, new MonitoringState())
+    {
+    }
+
+    public MainWindowViewModel(
+        ThreadStatusLoader loader,
+        WindowPinState windowPin,
+        MonitoringState monitoring)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
+        Monitoring = monitoring ?? throw new ArgumentNullException(nameof(monitoring));
         refreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsRefreshing);
+        Monitoring.PropertyChanged += OnMonitoringPropertyChanged;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -30,6 +41,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public ObservableCollection<ThreadRowViewModel> Threads => threadRows.Items;
 
     public WindowPinState WindowPin { get; }
+
+    public MonitoringState Monitoring { get; }
 
     public AsyncRelayCommand RefreshCommand => refreshCommand;
 
@@ -47,8 +60,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public string StatusText
     {
-        get => statusText;
-        private set => SetField(ref statusText, value);
+        get
+        {
+            if (hasSourceError)
+            {
+                return sourceStatusText;
+            }
+
+            if (Monitoring.IsPaused)
+            {
+                return string.IsNullOrEmpty(updatedText)
+                    ? "监听已暂停 · 尚未更新"
+                    : "监听已暂停 · 上次更新";
+            }
+
+            return sourceStatusText;
+        }
     }
 
     public string UpdatedText
@@ -77,12 +104,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             ThreadSnapshotLoadResult result = await Task.Run(() => loader.Load());
             ReplaceThreads(result);
-            StatusText = GetStatusText(result);
-            UpdatedText = result.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
+            sourceStatusText = GetStatusText(result);
+            hasSourceError = result.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy;
+            updatedText = result.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(UpdatedText));
         }
         catch
         {
-            StatusText = "刷新失败";
+            sourceStatusText = "刷新失败";
+            hasSourceError = true;
+            OnPropertyChanged(nameof(StatusText));
         }
         finally
         {
@@ -130,4 +162,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private void OnMonitoringPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(MonitoringState.IsPaused))
+        {
+            OnPropertyChanged(nameof(StatusText));
+        }
+    }
 }
