@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.App.Windowing;
 using ThreadBeacon.Core.Notifications;
 using ThreadBeacon.Core.Services;
 
@@ -16,7 +18,9 @@ public partial class MainWindow : Window
     private readonly WavSoundPlaybackService soundPlayer;
     private readonly MonitoringSettingsCoordinator monitoringSettingsCoordinator;
     private readonly SettingsWindowViewModel settingsViewModel;
+    private readonly WindowPlacementCoordinator windowPlacementCoordinator;
     private SettingsWindow? settingsWindow;
+    private bool isPlacementTrackingActive;
 
     public MainWindow()
     {
@@ -40,6 +44,9 @@ public partial class MainWindow : Window
             soundSettings,
             soundPlayer);
         settingsViewModel = new SettingsWindowViewModel(displaySettings, soundSettings);
+        windowPlacementCoordinator = new WindowPlacementCoordinator(
+            JsonWindowPlacementStore.CreateDefault(),
+            new NativeWindowPlacementPlatform());
         viewModel = new MainWindowViewModel(
             loader,
             windowPin,
@@ -60,8 +67,34 @@ public partial class MainWindow : Window
             interval => refreshTimer.Interval = interval,
             () => viewModel.RefreshAsync(RefreshNotificationPolicy.Baseline));
         refreshTimer.Tick += OnRefreshTimerTick;
+        SourceInitialized += OnSourceInitialized;
+        LocationChanged += OnMainWindowBoundsChanged;
+        SizeChanged += OnMainWindowBoundsChanged;
+        Closing += OnClosing;
         Loaded += OnLoaded;
         Closed += OnClosed;
+    }
+
+    private void OnSourceInitialized(object? sender, EventArgs e)
+    {
+        windowPlacementCoordinator.Restore(new WindowInteropHelper(this).Handle);
+        isPlacementTrackingActive = true;
+    }
+
+    private void OnMainWindowBoundsChanged(object? sender, EventArgs e)
+    {
+        if (isPlacementTrackingActive && WindowState is WindowState.Normal)
+        {
+            windowPlacementCoordinator.Capture(new WindowInteropHelper(this).Handle);
+        }
+    }
+
+    private void OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (isPlacementTrackingActive && WindowState is WindowState.Normal)
+        {
+            windowPlacementCoordinator.Capture(new WindowInteropHelper(this).Handle);
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -107,6 +140,10 @@ public partial class MainWindow : Window
         viewModel.Monitoring.PropertyChanged -= OnMonitoringPropertyChanged;
         viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         monitoringSettingsCoordinator.Dispose();
+        SourceInitialized -= OnSourceInitialized;
+        LocationChanged -= OnMainWindowBoundsChanged;
+        SizeChanged -= OnMainWindowBoundsChanged;
+        Closing -= OnClosing;
         soundPlayer.Dispose();
     }
 

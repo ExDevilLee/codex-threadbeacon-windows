@@ -29,6 +29,9 @@
     <None Include="..\..\src\ThreadBeacon.App\SettingsWindow.xaml"
           Link="Fixtures\SettingsWindow.xaml"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\ThreadBeacon.App\MainWindow.xaml.cs"
+          Link="Fixtures\MainWindow.xaml.cs.txt"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
