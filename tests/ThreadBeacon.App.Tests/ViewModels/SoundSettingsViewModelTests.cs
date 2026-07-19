@@ -7,7 +7,7 @@ namespace ThreadBeacon.App.Tests.ViewModels;
 public sealed class SoundSettingsViewModelTests
 {
     [Fact]
-    public void Constructor_RestoresSettingsAndExposesThreeSounds()
+    public void Constructor_RestoresSettingsAndExposesSixSounds()
     {
         var store = new MemorySoundSettingsStore(new SoundNotificationSettings
         {
@@ -26,7 +26,14 @@ public sealed class SoundSettingsViewModelTests
         Assert.False(viewModel.IsWarningEnabled);
         Assert.Equal(CompletionSound.Chime, viewModel.SelectedWarningSound);
         Assert.Equal(
-            [CompletionSound.Beacon, CompletionSound.Chime, CompletionSound.Pulse],
+            [
+                CompletionSound.Beacon,
+                CompletionSound.Chime,
+                CompletionSound.Pulse,
+                CompletionSound.Alert,
+                CompletionSound.Resolve,
+                CompletionSound.Knock,
+            ],
             viewModel.AvailableSounds.Select(option => option.Value));
     }
 
@@ -38,16 +45,16 @@ public sealed class SoundSettingsViewModelTests
 
         viewModel.IsEnabled = false;
         viewModel.IsCompletionEnabled = false;
-        viewModel.SelectedCompletionSound = CompletionSound.Chime;
+        viewModel.SelectedCompletionSound = CompletionSound.Beacon;
         viewModel.IsWarningEnabled = false;
-        viewModel.SelectedWarningSound = CompletionSound.Pulse;
+        viewModel.SelectedWarningSound = CompletionSound.Resolve;
 
         Assert.Equal(5, store.SaveCount);
         Assert.False(store.Current.IsEnabled);
         Assert.False(store.Current.IsCompletionEnabled);
-        Assert.Equal(CompletionSound.Chime, store.Current.SelectedCompletionSound);
+        Assert.Equal(CompletionSound.Beacon, store.Current.SelectedCompletionSound);
         Assert.False(store.Current.IsWarningEnabled);
-        Assert.Equal(CompletionSound.Pulse, store.Current.SelectedWarningSound);
+        Assert.Equal(CompletionSound.Resolve, store.Current.SelectedWarningSound);
     }
 
     [Fact]

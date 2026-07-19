@@ -15,6 +15,9 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
         new(CompletionSound.Beacon, "Beacon"),
         new(CompletionSound.Chime, "Chime"),
         new(CompletionSound.Pulse, "Pulse"),
+        new(CompletionSound.Alert, "Alert"),
+        new(CompletionSound.Resolve, "Resolve"),
+        new(CompletionSound.Knock, "Knock"),
     ];
 
     private readonly ISoundNotificationSettingsStore settingsStore;

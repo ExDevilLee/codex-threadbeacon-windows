@@ -35,7 +35,7 @@ public sealed class CompletionNotificationCoordinatorTests
         coordinator.Observe([snapshot], RefreshNotificationPolicy.Notify);
         coordinator.Observe([snapshot], RefreshNotificationPolicy.Notify);
 
-        Assert.Equal([CompletionSound.Beacon], player.Played);
+        Assert.Equal([CompletionSound.Chime], player.Played);
         Assert.Equal(1, store.SaveCount);
     }
 
