@@ -92,6 +92,47 @@ public sealed class DisplaySettingsViewModelTests
     }
 
     [Fact]
+    public void ThemeOptions_UseActiveLanguageAndPersistSelection()
+    {
+        var language = new AppLanguageState(AppLanguage.English, "en-US");
+        var store = new MemoryDisplaySettingsStore(new DisplaySettings(), saveResult: true);
+        var detector = new TestThemeDetector(AppTheme.Light);
+        var theme = new AppThemeState(
+            AppTheme.System,
+            detector,
+            value => store.Save(new DisplaySettings(theme: value)));
+        var viewModel = new DisplaySettingsViewModel(store, language, theme);
+
+        Assert.Equal(
+            [AppTheme.System, AppTheme.Light, AppTheme.Dark],
+            viewModel.ThemeOptions.Select(option => option.Value));
+        Assert.Equal(["Follow system / System", "Light", "Dark"],
+            viewModel.ThemeOptions.Select(option => option.DisplayName));
+
+        viewModel.Theme = AppTheme.Dark;
+
+        Assert.Equal(AppTheme.Dark, theme.Preference);
+        Assert.Equal(AppTheme.Dark, store.Current.Theme);
+    }
+
+    private sealed class TestThemeDetector(AppTheme initial) : IAppThemeDetector
+    {
+        public event EventHandler? Changed
+        {
+            add { }
+            remove { }
+        }
+
+        public AppTheme CurrentTheme { get; private set; } = initial;
+
+        public AppTheme ReadCurrentTheme() => CurrentTheme;
+
+        public void Dispose()
+        {
+        }
+    }
+
+    [Fact]
     public void Setter_WhenSaveFails_KeepsCurrentProcessValue()
     {
         var store = new MemoryDisplaySettingsStore(new DisplaySettings(), saveResult: false);

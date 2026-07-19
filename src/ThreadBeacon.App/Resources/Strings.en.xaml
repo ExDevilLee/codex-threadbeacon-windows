@@ -9,6 +9,7 @@
     <sys:String x:Key="MaximumTaskCount">Visible task count</sys:String>
     <sys:String x:Key="MaximumTaskCountDescription">Maximum number of tasks shown in the main window.</sys:String>
     <sys:String x:Key="Language">Interface language</sys:String>
+    <sys:String x:Key="Theme">Theme</sys:String>
     <sys:String x:Key="EnableSounds">Enable sounds</sys:String>
     <sys:String x:Key="TaskCompletion">Task completion</sys:String>
     <sys:String x:Key="ServiceIncident">429/503 service incident</sys:String>

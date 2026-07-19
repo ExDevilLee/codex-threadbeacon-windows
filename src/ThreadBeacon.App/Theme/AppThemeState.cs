@@ -1,5 +1,7 @@
 namespace ThreadBeacon.App.Theme;
 
+using System.Windows;
+
 public sealed class AppThemeState : IDisposable
 {
     private readonly IAppThemeDetector detector;
@@ -36,6 +38,27 @@ public sealed class AppThemeState : IDisposable
         preference = value;
         persist?.Invoke(value);
         RefreshEffectiveTheme();
+    }
+
+    public void ApplyResources(Application application)
+    {
+        ArgumentNullException.ThrowIfNull(application);
+        string themeName = EffectiveTheme is AppTheme.Dark ? "Dark" : "Light";
+        var dictionary = new ResourceDictionary
+        {
+            Source = new Uri(
+                $"pack://application:,,,/ThreadBeacon.App;component/Resources/Theme.{themeName}.xaml",
+                UriKind.Absolute),
+        };
+        ResourceDictionary? previous = application.Resources.MergedDictionaries
+            .FirstOrDefault(candidate => candidate.Source?.OriginalString.Contains(
+                "/Resources/Theme.", StringComparison.Ordinal) is true);
+        if (previous is not null)
+        {
+            application.Resources.MergedDictionaries.Remove(previous);
+        }
+
+        application.Resources.MergedDictionaries.Insert(0, dictionary);
     }
 
     public void Dispose()

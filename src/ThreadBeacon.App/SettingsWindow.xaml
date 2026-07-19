@@ -25,6 +25,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="16" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <StackPanel>
@@ -60,7 +62,22 @@
                               SelectedValuePath="Value"
                               SelectedValue="{Binding Display.Language, Mode=TwoWay}" />
 
-                    <StackPanel Grid.Row="4">
+                    <TextBlock Grid.Row="4"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource Theme}" />
+                    <ComboBox Grid.Row="4"
+                              Grid.Column="1"
+                              Height="30"
+                              VerticalAlignment="Center"
+                              VerticalContentAlignment="Center"
+                              ItemsSource="{Binding Display.ThemeOptions}"
+                              DisplayMemberPath="DisplayName"
+                              SelectedValuePath="Value"
+                              SelectedValue="{Binding Display.Theme, Mode=TwoWay}" />
+
+                    <StackPanel Grid.Row="6">
                         <TextBlock FontSize="14"
                                    FontWeight="SemiBold"
                                    Text="{DynamicResource MaximumTaskCount}" />
@@ -69,7 +86,7 @@
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    Text="{DynamicResource MaximumTaskCountDescription}" />
                     </StackPanel>
-                    <ComboBox Grid.Row="4"
+                    <ComboBox Grid.Row="6"
                               Grid.Column="1"
                               Height="30"
                               VerticalAlignment="Center"

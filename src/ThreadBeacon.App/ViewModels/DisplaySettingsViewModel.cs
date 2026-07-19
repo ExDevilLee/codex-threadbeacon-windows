@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Localization;
+using ThreadBeacon.App.Theme;
 
 namespace ThreadBeacon.App.ViewModels;
 
@@ -37,21 +38,25 @@ public sealed class DisplaySettingOption : INotifyPropertyChanged
     internal void SetDisplayName(string value) => DisplayName = value;
 }
 public sealed record LanguageSettingOption(AppLanguage Value, string DisplayName);
+public sealed record ThemeSettingOption(AppTheme Value, string DisplayName);
 
 public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
 {
     private readonly IDisplaySettingsStore? settingsStore;
     private readonly AppLanguageState? languageState;
+    private readonly AppThemeState? themeState;
     private readonly IReadOnlyList<DisplaySettingOption> refreshOptions;
     private readonly IReadOnlyList<DisplaySettingOption> taskCountOptions;
     private DisplaySettings settings;
 
     public DisplaySettingsViewModel(
         IDisplaySettingsStore? settingsStore = null,
-        AppLanguageState? languageState = null)
+        AppLanguageState? languageState = null,
+        AppThemeState? themeState = null)
     {
         this.settingsStore = settingsStore;
         this.languageState = languageState;
+        this.themeState = themeState;
         settings = settingsStore?.Load() ?? new DisplaySettings();
         refreshOptions = DisplaySettings.SupportedRefreshIntervalSeconds
             .Select(value => new DisplaySettingOption(value, string.Empty))
@@ -77,6 +82,13 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         new(AppLanguage.System, AppLanguageText.LanguageName(AppLanguage.System)),
         new(AppLanguage.SimplifiedChinese, AppLanguageText.LanguageName(AppLanguage.SimplifiedChinese)),
         new(AppLanguage.English, AppLanguageText.LanguageName(AppLanguage.English)),
+    ];
+
+    public IReadOnlyList<ThemeSettingOption> ThemeOptions =>
+    [
+        new(AppTheme.System, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.System)),
+        new(AppTheme.Light, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.Light)),
+        new(AppTheme.Dark, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.Dark)),
     ];
 
     public AppLanguage Language
@@ -109,6 +121,37 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
     }
 
     public AppLanguage EffectiveLanguage => languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese;
+
+    public AppTheme Theme
+    {
+        get => themeState?.Preference ?? settings.Theme;
+        set
+        {
+            if (Theme == value)
+            {
+                return;
+            }
+
+            if (themeState is not null)
+            {
+                themeState.SetPreference(value);
+            }
+            else
+            {
+                settings = new DisplaySettings(
+                    settings.RefreshIntervalSeconds,
+                    settings.MaximumTaskCount,
+                    settings.Version,
+                    settings.Language,
+                    value);
+                settingsStore?.Save(settings);
+            }
+
+            OnPropertyChanged();
+        }
+    }
+
+    public AppTheme EffectiveTheme => themeState?.EffectiveTheme ?? settings.Theme;
 
     public int RefreshIntervalSeconds
     {
@@ -164,6 +207,7 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
     {
         UpdateLocalizedOptionNames();
         OnPropertyChanged(nameof(Language));
+        OnPropertyChanged(nameof(ThemeOptions));
     }
 
     private void UpdateLocalizedOptionNames()

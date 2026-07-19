@@ -1,6 +1,7 @@
 namespace ThreadBeacon.App.Localization;
 
 using ThreadBeacon.Core.Models;
+using ThreadBeacon.App.Theme;
 
 public static class AppLanguageText
 {
@@ -22,6 +23,21 @@ public static class AppLanguageText
         AppLanguage.English => "English",
         _ => "跟随系统 / System",
     };
+
+    public static string ThemeName(AppLanguage language, AppTheme theme) =>
+        language is AppLanguage.SimplifiedChinese
+            ? theme switch
+            {
+                AppTheme.Light => "浅色",
+                AppTheme.Dark => "深色",
+                _ => "跟随系统",
+            }
+            : theme switch
+            {
+                AppTheme.Light => "Light",
+                AppTheme.Dark => "Dark",
+                _ => "Follow system / System",
+            };
 
     public static string Status(AppLanguage language, ThreadStatus status) => language switch
     {

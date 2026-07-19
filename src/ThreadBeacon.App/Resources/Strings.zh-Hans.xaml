@@ -9,6 +9,7 @@
     <sys:String x:Key="MaximumTaskCount">显示任务数量</sys:String>
     <sys:String x:Key="MaximumTaskCountDescription">设置主窗口最多显示的任务数。</sys:String>
     <sys:String x:Key="Language">界面语言</sys:String>
+    <sys:String x:Key="Theme">主题</sys:String>
     <sys:String x:Key="EnableSounds">启用提示音</sys:String>
     <sys:String x:Key="TaskCompletion">任务完成</sys:String>
     <sys:String x:Key="ServiceIncident">429/503 服务异常</sys:String>

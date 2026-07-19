@@ -50,7 +50,7 @@ public sealed class SettingsWindowXamlTests
             .Where(element => element.Name.LocalName == "ComboBox")
             .ToArray();
 
-        Assert.Equal(5, comboBoxes.Length);
+        Assert.Equal(6, comboBoxes.Length);
         Assert.All(comboBoxes, comboBox =>
             Assert.Equal("Center", (string?)comboBox.Attribute("VerticalContentAlignment")));
     }
@@ -79,7 +79,7 @@ public sealed class SettingsWindowXamlTests
             generalGrid.Elements(),
             element => element.Name.LocalName == "Grid.RowDefinitions");
 
-        Assert.Equal(5, rowDefinitions.Elements().Count());
+        Assert.Equal(7, rowDefinitions.Elements().Count());
         XElement languageCombo = Assert.Single(
             generalGrid.Descendants(),
             element => element.Name.LocalName == "ComboBox"
@@ -87,11 +87,18 @@ public sealed class SettingsWindowXamlTests
                     == "{Binding Display.Language, Mode=TwoWay}");
         Assert.Equal("2", (string?)languageCombo.Attribute("Grid.Row"));
 
+        XElement themeCombo = Assert.Single(
+            generalGrid.Descendants(),
+            element => element.Name.LocalName == "ComboBox"
+                && (string?)element.Attribute("SelectedValue")
+                    == "{Binding Display.Theme, Mode=TwoWay}");
+        Assert.Equal("4", (string?)themeCombo.Attribute("Grid.Row"));
+
         XElement maximumCountCombo = Assert.Single(
             generalGrid.Descendants(),
             element => element.Name.LocalName == "ComboBox"
                 && (string?)element.Attribute("SelectedValue")
                     == "{Binding Display.MaximumTaskCount, Mode=TwoWay}");
-        Assert.Equal("4", (string?)maximumCountCombo.Attribute("Grid.Row"));
+        Assert.Equal("6", (string?)maximumCountCombo.Attribute("Grid.Row"));
     }
 }
