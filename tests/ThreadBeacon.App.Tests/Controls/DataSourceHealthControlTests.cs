@@ -24,8 +24,6 @@ public sealed class DataSourceHealthControlTests
                 application.Resources["SurfaceBrush"] = Brushes.White;
                 application.Resources["ControlBorderBrush"] = Brushes.LightGray;
                 application.Resources["PrimaryTextBrush"] = Brushes.Black;
-                application.Resources["BooleanToVisibilityConverter"] =
-                    new BooleanToVisibilityConverter();
 
                 var details = new DataSourceHealthViewModel();
                 var control = new DataSourceHealthControl { Details = details };

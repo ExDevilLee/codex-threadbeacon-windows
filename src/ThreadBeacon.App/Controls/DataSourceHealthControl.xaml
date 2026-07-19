@@ -41,6 +41,9 @@
                     BorderBrush="{StaticResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6">
+                <Border.Resources>
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                </Border.Resources>
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="14"
                                       Direction="270"
