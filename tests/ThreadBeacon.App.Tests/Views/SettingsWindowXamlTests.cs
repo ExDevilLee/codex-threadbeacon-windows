@@ -32,6 +32,16 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
+    public void Window_UsesThemeAwareInheritedForeground()
+    {
+        XElement window = LoadDocument().Root!;
+
+        Assert.Equal(
+            "{DynamicResource PrimaryTextBrush}",
+            (string?)window.Attribute("Foreground"));
+    }
+
+    [Fact]
     public void SoundTab_UsesCategoryAndSoundEnablementBindings()
     {
         string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);

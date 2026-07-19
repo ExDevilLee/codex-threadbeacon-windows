@@ -8,6 +8,7 @@
         MinWidth="400"
         MinHeight="340"
         Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="20,14,20,20">
