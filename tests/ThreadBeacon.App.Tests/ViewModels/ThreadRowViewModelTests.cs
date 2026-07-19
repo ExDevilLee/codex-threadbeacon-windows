@@ -85,9 +85,60 @@ public sealed class ThreadRowViewModelTests
         Assert.Equal("暂无可读取的 Subagent", viewModel.SubagentPlaceholderText);
     }
 
+    [Fact]
+    public void Constructor_RetryIncidentShowsServiceDetail()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(
+                subagentCount: 0,
+                serviceIncident: new ServiceIncident(
+                    "turn-retry",
+                    ServiceIncidentPhase.Retrying,
+                    429,
+                    2,
+                    5,
+                    Now.AddSeconds(-10))),
+            Now);
+
+        Assert.Equal("服务异常", viewModel.StatusLabel);
+        Assert.Equal("HTTP 429 · 重试 2/5", viewModel.IncidentDetailText);
+        Assert.True(viewModel.HasIncidentDetail);
+    }
+
+    [Fact]
+    public void Constructor_FailedIncidentOmitsUnavailableDetail()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(
+                subagentCount: 0,
+                serviceIncident: new ServiceIncident(
+                    "turn-failed",
+                    ServiceIncidentPhase.Failed,
+                    null,
+                    null,
+                    null,
+                    Now.AddSeconds(-10))),
+            Now);
+
+        Assert.Equal("服务失败", viewModel.StatusLabel);
+        Assert.Equal(string.Empty, viewModel.IncidentDetailText);
+        Assert.False(viewModel.HasIncidentDetail);
+    }
+
+    [Fact]
+    public void Constructor_NormalTaskHasNoIncidentPresentation()
+    {
+        var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 0), Now);
+
+        Assert.Equal("运行中", viewModel.StatusLabel);
+        Assert.Equal(string.Empty, viewModel.IncidentDetailText);
+        Assert.False(viewModel.HasIncidentDetail);
+    }
+
     private static ThreadSnapshot Snapshot(
         int subagentCount,
-        ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy) =>
+        ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
+        ServiceIncident? serviceIncident = null) =>
         new(
             "thread-1",
             "Task",
@@ -100,5 +151,6 @@ public sealed class ThreadRowViewModelTests
             null,
             subagentCount,
             RolloutSourceStatus.Healthy,
-            subagentSourceStatus: subagentSourceStatus);
+            subagentSourceStatus: subagentSourceStatus,
+            serviceIncident: serviceIncident);
 }

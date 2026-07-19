@@ -22,6 +22,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private ThreadStatus status;
     private string statusLabel = string.Empty;
     private Brush statusBrush = UnknownBrush;
+    private string incidentDetailText = string.Empty;
     private string tokenText = "—";
     private TokenDetailViewModel? tokenDetails;
     private int subagentCount;
@@ -74,6 +75,20 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         get => statusBrush;
         private set => SetField(ref statusBrush, value);
     }
+
+    public string IncidentDetailText
+    {
+        get => incidentDetailText;
+        private set
+        {
+            if (SetField(ref incidentDetailText, value))
+            {
+                OnPropertyChanged(nameof(HasIncidentDetail));
+            }
+        }
+    }
+
+    public bool HasIncidentDetail => !string.IsNullOrEmpty(IncidentDetailText);
 
     public string TokenText
     {
@@ -179,8 +194,9 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
         Title = snapshot.Title;
         Status = snapshot.Status;
-        StatusLabel = GetStatusLabel(snapshot.Status);
+        StatusLabel = GetStatusLabel(snapshot.Status, snapshot.ServiceIncident);
         StatusBrush = GetStatusBrush(snapshot.Status);
+        IncidentDetailText = GetIncidentDetail(snapshot.ServiceIncident);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         TokenDetails = snapshot.TokenUsage is null
             ? null
@@ -265,7 +281,16 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         return -1;
     }
 
-    private static string GetStatusLabel(ThreadStatus status) => status switch
+    private static string GetStatusLabel(
+        ThreadStatus status,
+        ServiceIncident? incident) => incident?.Phase switch
+    {
+        ServiceIncidentPhase.Retrying => "服务异常",
+        ServiceIncidentPhase.Failed => "服务失败",
+        _ => GetDefaultStatusLabel(status),
+    };
+
+    private static string GetDefaultStatusLabel(ThreadStatus status) => status switch
     {
         ThreadStatus.Error => "错误",
         ThreadStatus.NeedsAction => "待处理",
@@ -276,6 +301,29 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         ThreadStatus.Unknown => "未知",
         _ => "未知",
     };
+
+    private static string GetIncidentDetail(ServiceIncident? incident)
+    {
+        if (incident is null)
+        {
+            return string.Empty;
+        }
+
+        var parts = new List<string>(2);
+        if (incident.HttpStatusCode is int statusCode)
+        {
+            parts.Add($"HTTP {statusCode.ToString(CultureInfo.InvariantCulture)}");
+        }
+
+        if (incident.Phase is ServiceIncidentPhase.Retrying
+            && incident.RetryAttempt is int attempt
+            && incident.RetryLimit is int limit)
+        {
+            parts.Add($"重试 {attempt.ToString(CultureInfo.InvariantCulture)}/{limit.ToString(CultureInfo.InvariantCulture)}");
+        }
+
+        return string.Join(" · ", parts);
+    }
 
     private static Brush GetStatusBrush(ThreadStatus status) => status switch
     {

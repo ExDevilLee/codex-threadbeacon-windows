@@ -231,11 +231,18 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock VerticalAlignment="Center"
-                                                   FontSize="13"
-                                                   Text="{Binding Title}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   ToolTip="{Binding Title}" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock FontSize="13"
+                                                       Text="{Binding Title}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding Title}" />
+                                            <TextBlock Margin="0,2,0,0"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Text="{Binding IncidentDetailText}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Visibility="{Binding HasIncidentDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </StackPanel>
                                         <Button Grid.Column="1"
                                                 Height="22"
                                                 Margin="6,0,0,0"
