@@ -24,6 +24,8 @@ The speaker button configures task-completion sounds and provides the same Beaco
 
 A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. The feature does not read or display child titles, status, Token usage, paths, or conversation bodies.
 
+The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. Only primary snapshots with the derived `Running` status contribute to the numerator, and the denominator matches the primary snapshots currently displayed. Pausing preserves the last successful count; manual refresh or monitoring resume recalculates it.
+
 The first POC is deliberately limited to:
 
 - Reading the 8 most recent unarchived primary threads and excluding subagents.
@@ -32,6 +34,7 @@ The first POC is deliberately limited to:
 - Displaying cumulative Token usage with a numeric-only detail popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
 - Showing a non-zero historical direct-Subagent count after each primary task title.
+- Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.

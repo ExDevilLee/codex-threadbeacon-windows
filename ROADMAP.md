@@ -21,6 +21,7 @@
 - [x] Display cumulative Token usage.
 - [x] Show a macOS-aligned Token detail popover with hover and click-to-pin behavior.
 - [x] Show a neutral direct-Subagent count beside the primary task title when non-zero.
+- [x] Show running primary tasks over currently visible tasks in the window header.
 - [x] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
 - [x] Validate read-only behavior for 30 minutes while Codex is continuously writing.
