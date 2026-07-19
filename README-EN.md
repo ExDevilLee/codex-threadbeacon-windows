@@ -14,6 +14,8 @@ The first end-to-end POC is now implemented: short-lived, non-pooled, read-only 
 
 The WPF App is connected to real local task data. A Win11 read-only concurrent-task soak ran for more than 30 minutes: 900 samples completed with no probe failures, source degradations, or App crashes, and Codex writes remained available. See the [Windows 30-minute soak record](docs/validation/2026-07-18-windows-30-minute-soak.md).
 
+An always-visible data-source health entry now sits at the bottom-right of the window. Its popover reports the task database, Rename index, rollout, and service-log sources, aggregate rollout read successes/failures, and the last successful refresh time. Optional-source failures keep the main list running in a degraded state; a task-database failure retains the previous successful list. Diagnostics keep only fixed status categories, counts, and timestamps in memory and never display paths, task IDs, titles, or raw errors.
+
 The first window enhancement is complete: the pin button in the top-right keeps ThreadBeacon above other normal windows. The selection is stored locally and restored after restart.
 
 Right-click a primary task to pin or ignore it. Status priority always outranks task pinning, while pinned tasks lead within the same status; a normal ignore rule clears automatically when the task starts a newer turn. When ignored tasks exist, a header button restores one task or all tasks. These local rules store only task IDs, ignore timestamps, and the rule type, never titles, and do not modify Codex data. Task pinning is independent of window always-on-top.
@@ -44,6 +46,7 @@ The first POC is deliberately limited to:
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.
 - Favoriting independently, filtering to favorites, and watching archived favorites.
+- Showing four local data-source states, aggregate rollout read counts, and the last successful refresh time.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.

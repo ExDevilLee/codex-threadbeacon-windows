@@ -74,6 +74,15 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Show archived favorites with a neutral state while retaining available rename and Token data.
 - [x] Exclude archived favorites from service-incident queries and completion/incident notifications.
 
+## Phase 7: Data Source Health Diagnostics
+
+- [x] Build task-database, Rename-index, rollout, and service-log health from the same refresh that produces task snapshots.
+- [x] Distinguish healthy, degraded, unavailable, and unused sources without retaining raw errors or local paths.
+- [x] Show aggregate rollout success/failure counts and the last successful refresh time.
+- [x] Keep the previous visible task list when the core task database is unavailable.
+- [x] Keep the health popover open while the two-second refresh updates its contents in place.
+- [x] Expose an always-visible, accessible footer entry aligned with the macOS behavior.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
