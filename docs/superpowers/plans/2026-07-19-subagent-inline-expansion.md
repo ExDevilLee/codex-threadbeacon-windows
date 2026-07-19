@@ -23,16 +23,16 @@
 
 ### Task 1: Repository Child Records
 
-- [ ] Add failing repository tests proving a request for one parent returns only its
+- [x] Add failing repository tests proving a request for one parent returns only its
   direct children in recency order with optional agent metadata.
-- [ ] Add failing tests for empty parent input and a missing `thread_spawn_edges`
+- [x] Add failing tests for empty parent input and a missing `thread_spawn_edges`
   table returning an empty healthy result.
-- [ ] Run the focused tests and confirm they fail because the child API is absent.
-- [ ] Add `SubagentRecord`, a status-bearing load result, and
+- [x] Run the focused tests and confirm they fail because the child API is absent.
+- [x] Add `SubagentRecord`, a status-bearing load result, and
   `LoadDirectSubagents(IReadOnlySet<string>)` to the repository boundary.
-- [ ] Implement one parameterized read-only query and reuse the existing SQLite
+- [x] Implement one parameterized read-only query and reuse the existing SQLite
   compatibility/error mapping.
-- [ ] Run focused and full Core tests, then commit `feat(subagent): load direct children`.
+- [x] Run focused and full Core tests, then commit `feat(subagent): load direct children`.
 
 ### Task 2: Child Snapshot Loading
 

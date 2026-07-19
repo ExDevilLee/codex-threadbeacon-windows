@@ -5,4 +5,12 @@ namespace ThreadBeacon.Core.Services;
 public interface IThreadRepository
 {
     ThreadLoadResult LoadRecent(int limit = 8);
+
+    SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
+    {
+        ArgumentNullException.ThrowIfNull(parentIds);
+        return new SubagentLoadResult(
+            ThreadRepositoryStatus.Healthy,
+            new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal));
+    }
 }

@@ -99,6 +99,56 @@ public sealed class SQLiteThreadRepositoryTests
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.LoadRecent(limit));
     }
 
+    [Fact]
+    public void LoadDirectSubagents_ReturnsOnlyRequestedParentsInRecencyOrder()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+        var repository = new SQLiteThreadRepository(database.Path);
+
+        SubagentLoadResult result = repository.LoadDirectSubagents(
+            new HashSet<string>(StringComparer.Ordinal) { "new-thread" });
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        IReadOnlyList<SubagentRecord> records = result.SubagentsByParent["new-thread"];
+        Assert.Collection(
+            records,
+            record =>
+            {
+                Assert.Equal("archived-child", record.Id);
+                Assert.Equal("new-thread", record.ParentId);
+                Assert.Equal("reviewer", record.AgentNickname);
+                Assert.Equal("explorer", record.AgentRole);
+                Assert.Equal("gpt-test", record.Model);
+                Assert.Equal("high", record.ReasoningEffort);
+            },
+            record => Assert.Equal("legacy-child", record.Id),
+            record => Assert.Equal("subagent-thread", record.Id));
+    }
+
+    [Fact]
+    public void LoadDirectSubagents_ReturnsEmptyForEmptyParentSet()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+
+        SubagentLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDirectSubagents(new HashSet<string>(StringComparer.Ordinal));
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Empty(result.SubagentsByParent);
+    }
+
+    [Fact]
+    public void LoadDirectSubagents_FallsBackWhenSpawnEdgesTableIsMissing()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create(includeSpawnEdges: false);
+
+        SubagentLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDirectSubagents(new HashSet<string>(StringComparer.Ordinal) { "new-thread" });
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Empty(result.SubagentsByParent);
+    }
+
     private sealed class TemporaryThreadDatabase : IDisposable
     {
         private TemporaryThreadDatabase(string path)
@@ -160,15 +210,19 @@ public sealed class SQLiteThreadRepositoryTests
                 recency_at_ms INTEGER NOT NULL,
                 archived INTEGER NOT NULL DEFAULT 0,
                 thread_source TEXT,
-                tokens_used INTEGER NOT NULL DEFAULT 0
+                tokens_used INTEGER NOT NULL DEFAULT 0,
+                agent_nickname TEXT,
+                agent_role TEXT,
+                model TEXT,
+                reasoning_effort TEXT
             );
             INSERT INTO threads VALUES
-                ('older-thread', 'Older', 'D:\rollouts\older.jsonl', 100, 100000, 100000, 0, 'user', 1),
-                ('new-thread', 'New', 'D:\rollouts\new.jsonl', 200, 200000, 300000, 0, 'user', 70808875),
-                ('subagent-thread', 'Child', 'D:\rollouts\child.jsonl', 300, 300000, 500000, 0, 'subagent', 2),
-                ('legacy-child', 'Legacy Child', 'D:\rollouts\legacy.jsonl', 310, 310000, 510000, 0, NULL, 4),
-                ('archived-child', 'Archived Child', 'D:\rollouts\archived-child.jsonl', 320, 320000, 520000, 1, NULL, 5),
-                ('archived-thread', 'Archived', 'D:\rollouts\archived.jsonl', 400, 400000, 400000, 1, 'user', 3);
+                ('older-thread', 'Older', 'D:\rollouts\older.jsonl', 100, 100000, 100000, 0, 'user', 1, NULL, NULL, NULL, NULL),
+                ('new-thread', 'New', 'D:\rollouts\new.jsonl', 200, 200000, 300000, 0, 'user', 70808875, NULL, NULL, NULL, NULL),
+                ('subagent-thread', 'Child', 'D:\rollouts\child.jsonl', 300, 300000, 500000, 0, 'subagent', 2, 'worker', 'reviewer', 'gpt-test', 'medium'),
+                ('legacy-child', 'Legacy Child', 'D:\rollouts\legacy.jsonl', 310, 310000, 510000, 0, NULL, 4, NULL, NULL, NULL, NULL),
+                ('archived-child', 'Archived Child', 'D:\rollouts\archived-child.jsonl', 320, 320000, 520000, 1, NULL, 5, 'reviewer', 'explorer', 'gpt-test', 'high'),
+                ('archived-thread', 'Archived', 'D:\rollouts\archived.jsonl', 400, 400000, 400000, 1, 'user', 3, NULL, NULL, NULL, NULL);
             """;
 
         private const string SpawnEdgesSql = """
