@@ -10,6 +10,7 @@ public sealed class ThreadStatusLoader
     private readonly TimeProvider timeProvider;
     private readonly TimeSpan completedRetention;
     private readonly TimeSpan runningFreshness;
+    private readonly ILogEventRepository? logEventRepository;
 
     public ThreadStatusLoader(
         IThreadRepository threadRepository,
@@ -17,7 +18,8 @@ public sealed class ThreadStatusLoader
         IRolloutTailParser rolloutParser,
         TimeProvider? timeProvider = null,
         TimeSpan? completedRetention = null,
-        TimeSpan? runningFreshness = null)
+        TimeSpan? runningFreshness = null,
+        ILogEventRepository? logEventRepository = null)
     {
         this.threadRepository = threadRepository ?? throw new ArgumentNullException(nameof(threadRepository));
         this.titleRepository = titleRepository ?? throw new ArgumentNullException(nameof(titleRepository));
@@ -25,6 +27,7 @@ public sealed class ThreadStatusLoader
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.completedRetention = completedRetention ?? TimeSpan.FromSeconds(60);
         this.runningFreshness = runningFreshness ?? TimeSpan.FromSeconds(120);
+        this.logEventRepository = logEventRepository;
     }
 
     public ThreadSnapshotLoadResult Load(
@@ -38,6 +41,7 @@ public sealed class ThreadStatusLoader
             threadResult.Threads,
             titleResult.Titles);
         var visibleIds = new HashSet<string>(records.Select(record => record.Id), StringComparer.Ordinal);
+        IReadOnlyDictionary<string, ServiceIncident> incidents = LoadIncidents(visibleIds);
         var requestedParentIds = new HashSet<string>(StringComparer.Ordinal);
         if (expandedThreadIds is not null)
         {
@@ -55,6 +59,7 @@ public sealed class ThreadStatusLoader
                 record,
                 now,
                 titleResult.Titles,
+                incidents.GetValueOrDefault(record.Id),
                 requestedParentIds.Contains(record.Id)
                     ? subagentResult.SubagentsByParent.GetValueOrDefault(record.Id)
                     : null,
@@ -77,6 +82,7 @@ public sealed class ThreadStatusLoader
         ThreadRecord record,
         DateTimeOffset now,
         IReadOnlyDictionary<string, string> titleOverrides,
+        ServiceIncident? incident,
         IReadOnlyList<SubagentRecord>? subagentRecords,
         ThreadRepositoryStatus subagentSourceStatus)
     {
@@ -87,6 +93,20 @@ public sealed class ThreadStatusLoader
             now,
             completedRetention,
             runningFreshness);
+        incident = ClearResolvedIncident(incident, rollout.Observation);
+        ThreadStatus status = incident?.Phase switch
+        {
+            ServiceIncidentPhase.Retrying => ThreadStatus.Warning,
+            ServiceIncidentPhase.Failed => ThreadStatus.Error,
+            _ => displayState.Status,
+        };
+        DateTimeOffset statusChangedAt = incident?.OccurredAt ?? displayState.ChangedAt;
+        DateTimeOffset? latestEventAt = Later(
+            rollout.Observation.LatestEventAt,
+            incident?.OccurredAt);
+        DateTimeOffset? completionEventAt = incident is null
+            ? rollout.Observation.CompletionEventAt
+            : null;
         TokenUsageSnapshot? tokenUsage = rollout.Observation.TokenUsage
             ?? (record.TokensUsed > 0
                 ? new TokenUsageSnapshot(record.TokensUsed, null, null, null)
@@ -102,18 +122,57 @@ public sealed class ThreadStatusLoader
         return new ThreadSnapshot(
             record.Id,
             record.Title,
-            displayState.Status,
-            displayState.ChangedAt,
+            status,
+            statusChangedAt,
             record.UpdatedAt,
-            rollout.Observation.LatestEventAt,
+            latestEventAt,
             rollout.Observation.LatestTaskStartedAt,
-            rollout.Observation.CompletionEventAt,
+            completionEventAt,
             tokenUsage,
             record.SubagentCount,
             rollout.Status,
             subagents,
-            subagentSourceStatus);
+            subagentSourceStatus,
+            incident);
     }
+
+    private IReadOnlyDictionary<string, ServiceIncident> LoadIncidents(
+        IReadOnlySet<string> visibleIds)
+    {
+        if (logEventRepository is null || visibleIds.Count == 0)
+        {
+            return new Dictionary<string, ServiceIncident>(StringComparer.Ordinal);
+        }
+
+        try
+        {
+            return logEventRepository.LoadLatestIncidents(visibleIds);
+        }
+        catch (Exception)
+        {
+            return new Dictionary<string, ServiceIncident>(StringComparer.Ordinal);
+        }
+    }
+
+    private static ServiceIncident? ClearResolvedIncident(
+        ServiceIncident? incident,
+        RolloutObservation observation)
+    {
+        if (incident is null
+            || observation.LatestTaskStartedAt is DateTimeOffset startedAt
+                && startedAt > incident.OccurredAt
+            || incident.Phase is ServiceIncidentPhase.Retrying
+                && observation.CompletionEventAt is DateTimeOffset completedAt
+                && completedAt > incident.OccurredAt)
+        {
+            return null;
+        }
+
+        return incident;
+    }
+
+    private static DateTimeOffset? Later(DateTimeOffset? left, DateTimeOffset? right) =>
+        left is null ? right : right is null ? left : left > right ? left : right;
 
     private SubagentSnapshot CreateSubagentSnapshot(
         SubagentRecord record,

@@ -174,6 +174,103 @@ public sealed class ThreadStatusLoaderTests
         Assert.Empty(Assert.Single(result.Threads).Subagents);
     }
 
+    [Fact]
+    public void Load_QueriesVisibleThreadsAndOverlaysRetryIncident()
+    {
+        ThreadRecord[] records = [Record("visible", "Visible")];
+        var incidents = new TrackingLogEventRepository(new Dictionary<string, ServiceIncident>
+        {
+            ["visible"] = Incident(
+                "turn-retry",
+                ServiceIncidentPhase.Retrying,
+                Now.AddSeconds(-4),
+                429,
+                2,
+                5),
+        });
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records)),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["visible"] = HealthyObservation(
+                    ThreadStatus.JustCompleted,
+                    Now.AddSeconds(-5),
+                    Now.AddSeconds(-5),
+                    completionEventAt: Now.AddSeconds(-5)),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: incidents);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(["visible"], incidents.RequestedThreadIds);
+        Assert.Equal(ThreadStatus.Warning, snapshot.Status);
+        Assert.Equal(Now.AddSeconds(-4), snapshot.StatusChangedAt);
+        Assert.Null(snapshot.CompletionEventAt);
+        Assert.Equal("turn-retry", snapshot.ServiceIncident?.EpisodeId);
+    }
+
+    [Fact]
+    public void Load_OverlaysFinalFailureAsError()
+    {
+        var loader = CreateLoaderWithIncident(
+            Incident("turn-failed", ServiceIncidentPhase.Failed, Now.AddSeconds(-3), 503),
+            HealthyObservation(ThreadStatus.Running, Now.AddSeconds(-1), Now.AddSeconds(-1)));
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(ThreadStatus.Error, snapshot.Status);
+        Assert.Equal(ServiceIncidentPhase.Failed, snapshot.ServiceIncident?.Phase);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Load_ClearsOldRetryWhenRolloutHasNewerLifecycleEvent(bool useTaskStarted)
+    {
+        DateTimeOffset lifecycleAt = Now.AddSeconds(-2);
+        RolloutLoadResult rollout = HealthyObservation(
+            ThreadStatus.Running,
+            lifecycleAt,
+            lifecycleAt,
+            completionEventAt: useTaskStarted ? null : lifecycleAt,
+            latestTaskStartedAt: useTaskStarted ? lifecycleAt : null);
+        var loader = CreateLoaderWithIncident(
+            Incident("old-turn", ServiceIncidentPhase.Retrying, Now.AddSeconds(-5), 503),
+            rollout);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(ThreadStatus.Running, snapshot.Status);
+        Assert.Null(snapshot.ServiceIncident);
+    }
+
+    [Fact]
+    public void Load_LogRepositoryFailureDoesNotDropMainThreads()
+    {
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("thread", "Thread")])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: new ThrowingLogEventRepository());
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(ThreadStatus.Idle, snapshot.Status);
+        Assert.Null(snapshot.ServiceIncident);
+    }
+
     private static ThreadStatusLoader CreateLoader(
         IReadOnlyList<ThreadRecord> records,
         IReadOnlyDictionary<string, string> titles,
@@ -183,6 +280,24 @@ public sealed class ThreadStatusLoaderTests
             new StubTitleRepository(new TitleLoadResult(SessionIndexStatus.Healthy, titles)),
             new StubRolloutParser(observations),
             new FixedTimeProvider(Now));
+
+    private static ThreadStatusLoader CreateLoaderWithIncident(
+        ServiceIncident incident,
+        RolloutLoadResult rollout) =>
+        new(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("thread", "Thread")])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = rollout,
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: new TrackingLogEventRepository(
+                new Dictionary<string, ServiceIncident> { ["thread"] = incident }));
 
     private static ThreadRecord Record(
         string id,
@@ -194,10 +309,27 @@ public sealed class ThreadStatusLoaderTests
         ThreadStatus status,
         DateTimeOffset changedAt,
         DateTimeOffset latestEventAt,
-        TokenUsageSnapshot? tokenUsage = null) =>
+        TokenUsageSnapshot? tokenUsage = null,
+        DateTimeOffset? completionEventAt = null,
+        DateTimeOffset? latestTaskStartedAt = null) =>
         new(
             RolloutSourceStatus.Healthy,
-            new RolloutObservation(status, changedAt, latestEventAt, null, null, tokenUsage));
+            new RolloutObservation(
+                status,
+                changedAt,
+                latestEventAt,
+                completionEventAt,
+                latestTaskStartedAt,
+                tokenUsage));
+
+    private static ServiceIncident Incident(
+        string episodeId,
+        ServiceIncidentPhase phase,
+        DateTimeOffset occurredAt,
+        int? statusCode = null,
+        int? retryAttempt = null,
+        int? retryLimit = null) =>
+        new(episodeId, phase, statusCode, retryAttempt, retryLimit, occurredAt);
 
     private sealed class StubThreadRepository(ThreadLoadResult result) : IThreadRepository
     {
@@ -228,6 +360,26 @@ public sealed class ThreadStatusLoaderTests
         IReadOnlyDictionary<string, RolloutLoadResult> observations) : IRolloutTailParser
     {
         public RolloutLoadResult Parse(string filePath) => observations[filePath];
+    }
+
+    private sealed class TrackingLogEventRepository(
+        IReadOnlyDictionary<string, ServiceIncident> incidents) : ILogEventRepository
+    {
+        public IReadOnlySet<string>? RequestedThreadIds { get; private set; }
+
+        public IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+            IReadOnlySet<string> threadIds)
+        {
+            RequestedThreadIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
+            return incidents;
+        }
+    }
+
+    private sealed class ThrowingLogEventRepository : ILogEventRepository
+    {
+        public IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+            IReadOnlySet<string> threadIds) =>
+            throw new IOException("Synthetic log read failure.");
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

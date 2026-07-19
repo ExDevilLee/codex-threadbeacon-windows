@@ -23,7 +23,8 @@ public partial class MainWindow : Window
         var loader = new ThreadStatusLoader(
             new SQLiteThreadRepository(paths.StateDatabase),
             new SessionIndexTitleRepository(paths.SessionIndex),
-            new RolloutTailParser());
+            new RolloutTailParser(),
+            logEventRepository: new SQLiteLogEventRepository(paths.LogDatabase));
         var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
         var monitoring = new MonitoringState();
         soundPlayer = new WavSoundPlaybackService();

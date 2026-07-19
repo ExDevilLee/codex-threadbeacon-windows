@@ -15,7 +15,8 @@ public sealed record ThreadSnapshot
         int subagentCount,
         RolloutSourceStatus rolloutSourceStatus,
         IReadOnlyList<SubagentSnapshot>? subagents = null,
-        ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy)
+        ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
+        ServiceIncident? serviceIncident = null)
     {
         Id = id;
         Title = title;
@@ -30,6 +31,7 @@ public sealed record ThreadSnapshot
         RolloutSourceStatus = rolloutSourceStatus;
         Subagents = subagents ?? Array.Empty<SubagentSnapshot>();
         SubagentSourceStatus = subagentSourceStatus;
+        ServiceIncident = serviceIncident;
     }
 
     public string Id { get; }
@@ -45,4 +47,5 @@ public sealed record ThreadSnapshot
     public RolloutSourceStatus RolloutSourceStatus { get; }
     public IReadOnlyList<SubagentSnapshot> Subagents { get; }
     public ThreadRepositoryStatus SubagentSourceStatus { get; }
+    public ServiceIncident? ServiceIncident { get; }
 }
