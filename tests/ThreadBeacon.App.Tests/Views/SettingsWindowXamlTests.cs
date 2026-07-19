@@ -64,4 +64,34 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Display.Language", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource Language}", markup, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void GeneralTab_UsesDedicatedRowsForAllSettings()
+    {
+        XDocument document = LoadDocument();
+        XElement generalGrid = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "Grid"
+                && element.Elements().Any(child => child.Name.LocalName == "Grid.RowDefinitions")
+                && element.Descendants().Any(child =>
+                    (string?)child.Attribute("Text") == "{DynamicResource RefreshInterval}"));
+        XElement rowDefinitions = Assert.Single(
+            generalGrid.Elements(),
+            element => element.Name.LocalName == "Grid.RowDefinitions");
+
+        Assert.Equal(5, rowDefinitions.Elements().Count());
+        XElement languageCombo = Assert.Single(
+            generalGrid.Descendants(),
+            element => element.Name.LocalName == "ComboBox"
+                && (string?)element.Attribute("SelectedValue")
+                    == "{Binding Display.Language, Mode=TwoWay}");
+        Assert.Equal("2", (string?)languageCombo.Attribute("Grid.Row"));
+
+        XElement maximumCountCombo = Assert.Single(
+            generalGrid.Descendants(),
+            element => element.Name.LocalName == "ComboBox"
+                && (string?)element.Attribute("SelectedValue")
+                    == "{Binding Display.MaximumTaskCount, Mode=TwoWay}");
+        Assert.Equal("4", (string?)maximumCountCombo.Attribute("Grid.Row"));
+    }
 }

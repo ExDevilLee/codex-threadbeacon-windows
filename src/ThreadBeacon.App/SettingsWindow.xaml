@@ -21,7 +21,9 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="22" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
@@ -43,21 +45,22 @@
                               SelectedValuePath="Value"
                               SelectedValue="{Binding Display.RefreshIntervalSeconds, Mode=TwoWay}" />
 
-                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0" Orientation="Horizontal">
-                        <TextBlock FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Text="{DynamicResource Language}" />
-                        <ComboBox Width="170"
-                                  Height="30"
-                                  Margin="24,0,0,0"
-                                  VerticalContentAlignment="Center"
-                                  ItemsSource="{Binding Display.LanguageOptions}"
-                                  DisplayMemberPath="DisplayName"
-                                  SelectedValuePath="Value"
-                                  SelectedValue="{Binding Display.Language, Mode=TwoWay}" />
-                    </StackPanel>
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource Language}" />
+                    <ComboBox Grid.Row="2"
+                              Grid.Column="1"
+                              Height="30"
+                              VerticalAlignment="Center"
+                              VerticalContentAlignment="Center"
+                              ItemsSource="{Binding Display.LanguageOptions}"
+                              DisplayMemberPath="DisplayName"
+                              SelectedValuePath="Value"
+                              SelectedValue="{Binding Display.Language, Mode=TwoWay}" />
 
-                    <StackPanel Grid.Row="2">
+                    <StackPanel Grid.Row="4">
                         <TextBlock FontSize="14"
                                    FontWeight="SemiBold"
                                    Text="{DynamicResource MaximumTaskCount}" />
@@ -66,7 +69,7 @@
                                    Foreground="{StaticResource SecondaryTextBrush}"
                                    Text="{DynamicResource MaximumTaskCountDescription}" />
                     </StackPanel>
-                    <ComboBox Grid.Row="2"
+                    <ComboBox Grid.Row="4"
                               Grid.Column="1"
                               Height="30"
                               VerticalAlignment="Center"
