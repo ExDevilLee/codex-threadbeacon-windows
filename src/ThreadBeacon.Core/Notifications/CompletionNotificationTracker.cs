@@ -38,30 +38,48 @@ public sealed class CompletionNotificationTracker
         CompletionNotificationEvent? firstNewEvent = null;
         foreach (ThreadSnapshot snapshot in snapshots)
         {
-            if (snapshot.CompletionEventAt is not DateTimeOffset occurredAt)
+            CompletionNotificationEvent? candidate = CreateCandidate(snapshot);
+            if (candidate is null)
             {
                 continue;
             }
 
-            string eventId = CreateEventId(snapshot.Id, occurredAt);
-            if (!seenEventIdSet.Add(eventId))
+            if (!seenEventIdSet.Add(candidate.EventId))
             {
                 continue;
             }
 
-            seenEventIds.Add(eventId);
-            firstNewEvent ??= new CompletionNotificationEvent(
-                eventId,
-                snapshot.Id,
-                occurredAt);
+            seenEventIds.Add(candidate.EventId);
+            if (firstNewEvent is null
+                || candidate.Category is SoundNotificationCategory.Warning
+                    && firstNewEvent.Category is SoundNotificationCategory.Done)
+            {
+                firstNewEvent = candidate;
+            }
         }
 
         TrimHistory();
         return policy is RefreshNotificationPolicy.Notify ? firstNewEvent : null;
     }
 
-    private static string CreateEventId(string threadId, DateTimeOffset occurredAt) =>
-        $"done:{threadId}:{occurredAt.ToUnixTimeMilliseconds()}";
+    private static CompletionNotificationEvent? CreateCandidate(ThreadSnapshot snapshot)
+    {
+        if (snapshot.ServiceIncident is ServiceIncident incident)
+        {
+            return new CompletionNotificationEvent(
+                $"warning:{snapshot.Id}:{incident.EpisodeId}",
+                snapshot.Id,
+                incident.OccurredAt,
+                SoundNotificationCategory.Warning);
+        }
+
+        return snapshot.CompletionEventAt is DateTimeOffset completedAt
+            ? new CompletionNotificationEvent(
+                $"done:{snapshot.Id}:{completedAt.ToUnixTimeMilliseconds()}",
+                snapshot.Id,
+                completedAt)
+            : null;
+    }
 
     private void TrimHistory()
     {

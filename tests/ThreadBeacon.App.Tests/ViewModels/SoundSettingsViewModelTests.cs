@@ -14,6 +14,8 @@ public sealed class SoundSettingsViewModelTests
             IsEnabled = false,
             IsCompletionEnabled = false,
             SelectedCompletionSound = CompletionSound.Pulse,
+            IsWarningEnabled = false,
+            SelectedWarningSound = CompletionSound.Chime,
         });
 
         var viewModel = new SoundSettingsViewModel(store, new RecordingSoundPlayer());
@@ -21,6 +23,8 @@ public sealed class SoundSettingsViewModelTests
         Assert.False(viewModel.IsEnabled);
         Assert.False(viewModel.IsCompletionEnabled);
         Assert.Equal(CompletionSound.Pulse, viewModel.SelectedCompletionSound);
+        Assert.False(viewModel.IsWarningEnabled);
+        Assert.Equal(CompletionSound.Chime, viewModel.SelectedWarningSound);
         Assert.Equal(
             [CompletionSound.Beacon, CompletionSound.Chime, CompletionSound.Pulse],
             viewModel.AvailableSounds.Select(option => option.Value));
@@ -35,11 +39,15 @@ public sealed class SoundSettingsViewModelTests
         viewModel.IsEnabled = false;
         viewModel.IsCompletionEnabled = false;
         viewModel.SelectedCompletionSound = CompletionSound.Chime;
+        viewModel.IsWarningEnabled = false;
+        viewModel.SelectedWarningSound = CompletionSound.Pulse;
 
-        Assert.Equal(3, store.SaveCount);
+        Assert.Equal(5, store.SaveCount);
         Assert.False(store.Current.IsEnabled);
         Assert.False(store.Current.IsCompletionEnabled);
         Assert.Equal(CompletionSound.Chime, store.Current.SelectedCompletionSound);
+        Assert.False(store.Current.IsWarningEnabled);
+        Assert.Equal(CompletionSound.Pulse, store.Current.SelectedWarningSound);
     }
 
     [Fact]
@@ -84,5 +92,21 @@ public sealed class SoundSettingsViewModelTests
         Exception? exception = Record.Exception(() => viewModel.PreviewCommand.Execute(null));
 
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public void WarningPreviewCommand_PlaysSelectedWarningSoundWhenEnabled()
+    {
+        var player = new RecordingSoundPlayer();
+        var viewModel = new SoundSettingsViewModel(
+            new MemorySoundSettingsStore(new SoundNotificationSettings
+            {
+                SelectedWarningSound = CompletionSound.Pulse,
+            }),
+            player);
+
+        viewModel.WarningPreviewCommand.Execute(null);
+
+        Assert.Equal([CompletionSound.Pulse], player.Played);
     }
 }

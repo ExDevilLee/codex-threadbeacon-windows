@@ -505,6 +505,29 @@
                                     Content="试听" />
                         </Grid>
                     </StackPanel>
+                    <Separator Margin="0,14,0,12" />
+                    <StackPanel IsEnabled="{Binding IsWarningConfigurationEnabled}">
+                        <CheckBox Content="429/503 服务异常"
+                                  IsChecked="{Binding IsWarningEnabled, Mode=TwoWay}" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox MinWidth="132"
+                                      Height="28"
+                                      ItemsSource="{Binding AvailableSounds}"
+                                      DisplayMemberPath="DisplayName"
+                                      SelectedValuePath="Value"
+                                      SelectedValue="{Binding SelectedWarningSound, Mode=TwoWay}" />
+                            <Button Grid.Column="1"
+                                    Height="28"
+                                    Margin="8,0,0,0"
+                                    Padding="12,0"
+                                    Command="{Binding WarningPreviewCommand}"
+                                    Content="试听" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Popup>

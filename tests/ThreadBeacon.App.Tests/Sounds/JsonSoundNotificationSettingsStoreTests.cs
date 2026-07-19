@@ -18,6 +18,8 @@ public sealed class JsonSoundNotificationSettingsStoreTests : IDisposable
         Assert.True(result.IsEnabled);
         Assert.True(result.IsCompletionEnabled);
         Assert.Equal(CompletionSound.Beacon, result.SelectedCompletionSound);
+        Assert.True(result.IsWarningEnabled);
+        Assert.Equal(CompletionSound.Chime, result.SelectedWarningSound);
         Assert.Empty(result.SeenEventIds);
     }
 
@@ -45,7 +47,9 @@ public sealed class JsonSoundNotificationSettingsStoreTests : IDisposable
             IsEnabled = false,
             IsCompletionEnabled = false,
             SelectedCompletionSound = CompletionSound.Pulse,
-            SeenEventIds = ["done:a:1000", "done:b:2000"],
+            IsWarningEnabled = false,
+            SelectedWarningSound = CompletionSound.Pulse,
+            SeenEventIds = ["done:a:1000", "warning:b:turn-b"],
         };
 
         bool saved = store.Save(expected);
@@ -55,6 +59,8 @@ public sealed class JsonSoundNotificationSettingsStoreTests : IDisposable
         Assert.Equal(expected.IsEnabled, result.IsEnabled);
         Assert.Equal(expected.IsCompletionEnabled, result.IsCompletionEnabled);
         Assert.Equal(expected.SelectedCompletionSound, result.SelectedCompletionSound);
+        Assert.Equal(expected.IsWarningEnabled, result.IsWarningEnabled);
+        Assert.Equal(expected.SelectedWarningSound, result.SelectedWarningSound);
         Assert.Equal(expected.SeenEventIds, result.SeenEventIds);
         Assert.Contains("\"Pulse\"", File.ReadAllText(SettingsPath));
     }

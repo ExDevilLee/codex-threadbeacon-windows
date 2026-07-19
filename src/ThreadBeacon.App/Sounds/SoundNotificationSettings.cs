@@ -10,5 +10,9 @@ public sealed record SoundNotificationSettings
 
     public CompletionSound SelectedCompletionSound { get; init; } = CompletionSound.Beacon;
 
+    public bool IsWarningEnabled { get; init; } = true;
+
+    public CompletionSound SelectedWarningSound { get; init; } = CompletionSound.Chime;
+
     public IReadOnlyList<string> SeenEventIds { get; init; } = [];
 }

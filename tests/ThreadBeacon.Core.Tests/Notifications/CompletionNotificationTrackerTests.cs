@@ -100,6 +100,79 @@ public sealed class CompletionNotificationTrackerTests
         Assert.Equal("done:thread-256:256000", tracker.SeenEventIds[^1]);
     }
 
+    [Fact]
+    public void Observe_EmitsWarningOnlyOnceWhenEpisodeBecomesFailure()
+    {
+        var tracker = new CompletionNotificationTracker();
+        ThreadSnapshot retrying = Incident(
+            "thread-1",
+            "turn-a",
+            ServiceIncidentPhase.Retrying,
+            AtSeconds(20));
+        ThreadSnapshot failed = Incident(
+            "thread-1",
+            "turn-a",
+            ServiceIncidentPhase.Failed,
+            AtSeconds(21));
+
+        var first = tracker.Observe([retrying], RefreshNotificationPolicy.Notify);
+        var repeated = tracker.Observe([failed], RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(SoundNotificationCategory.Warning, first?.Category);
+        Assert.Equal("warning:thread-1:turn-a", first?.EventId);
+        Assert.Null(repeated);
+        Assert.Equal(["warning:thread-1:turn-a"], tracker.SeenEventIds);
+    }
+
+    [Fact]
+    public void Observe_IncidentTakesPriorityOverCompletionEvidence()
+    {
+        var tracker = new CompletionNotificationTracker();
+        DateTimeOffset occurredAt = AtSeconds(30);
+        ThreadSnapshot snapshot = new(
+            "thread-1",
+            "thread-1",
+            ThreadStatus.Error,
+            occurredAt,
+            occurredAt,
+            occurredAt,
+            null,
+            occurredAt,
+            null,
+            0,
+            RolloutSourceStatus.Healthy,
+            serviceIncident: new ServiceIncident(
+                "turn-failed",
+                ServiceIncidentPhase.Failed,
+                503,
+                5,
+                5,
+                occurredAt));
+
+        var result = tracker.Observe([snapshot], RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(SoundNotificationCategory.Warning, result?.Category);
+        Assert.Equal(["warning:thread-1:turn-failed"], tracker.SeenEventIds);
+    }
+
+    [Fact]
+    public void Observe_PrefersWarningAcrossSnapshotsWhileRecordingBoth()
+    {
+        var tracker = new CompletionNotificationTracker();
+
+        var result = tracker.Observe(
+            [
+                Completed("completed", AtSeconds(10)),
+                Incident("warning", "turn-warning", ServiceIncidentPhase.Retrying, AtSeconds(20)),
+            ],
+            RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(SoundNotificationCategory.Warning, result?.Category);
+        Assert.Equal(
+            ["done:completed:10000", "warning:warning:turn-warning"],
+            tracker.SeenEventIds);
+    }
+
     private static DateTimeOffset AtSeconds(long seconds) =>
         DateTimeOffset.FromUnixTimeSeconds(seconds);
 
@@ -119,4 +192,29 @@ public sealed class CompletionNotificationTrackerTests
             null,
             0,
             RolloutSourceStatus.Healthy);
+
+    private static ThreadSnapshot Incident(
+        string id,
+        string episodeId,
+        ServiceIncidentPhase phase,
+        DateTimeOffset occurredAt) =>
+        new(
+            id,
+            id,
+            phase is ServiceIncidentPhase.Failed ? ThreadStatus.Error : ThreadStatus.Warning,
+            occurredAt,
+            occurredAt,
+            occurredAt,
+            null,
+            null,
+            null,
+            0,
+            RolloutSourceStatus.Healthy,
+            serviceIncident: new ServiceIncident(
+                episodeId,
+                phase,
+                503,
+                5,
+                5,
+                occurredAt));
 }

@@ -31,14 +31,27 @@ public sealed class CompletionNotificationCoordinator : ICompletionNotificationO
             settings.ReplaceSeenEventIds(tracker.SeenEventIds);
         }
 
-        if (notification is null || !settings.IsEnabled || !settings.IsCompletionEnabled)
+        if (notification is null || !settings.IsEnabled)
+        {
+            return;
+        }
+
+        CompletionSound? sound = notification.Category switch
+        {
+            SoundNotificationCategory.Done when settings.IsCompletionEnabled =>
+                settings.SelectedCompletionSound,
+            SoundNotificationCategory.Warning when settings.IsWarningEnabled =>
+                settings.SelectedWarningSound,
+            _ => null,
+        };
+        if (sound is null)
         {
             return;
         }
 
         try
         {
-            player.Play(settings.SelectedCompletionSound);
+            player.Play(sound.Value);
         }
         catch
         {

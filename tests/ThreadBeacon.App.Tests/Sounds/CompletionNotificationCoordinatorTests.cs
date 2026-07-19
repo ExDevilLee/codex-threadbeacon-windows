@@ -98,6 +98,43 @@ public sealed class CompletionNotificationCoordinatorTests
         Assert.Equal(["done:thread-1:10000"], store.Current.SeenEventIds);
     }
 
+    [Fact]
+    public void Observe_NewIncidentPlaysSelectedWarningSoundOnlyOnce()
+    {
+        var store = new MemorySoundSettingsStore(new SoundNotificationSettings
+        {
+            SelectedWarningSound = CompletionSound.Pulse,
+        });
+        var player = new RecordingSoundPlayer();
+        var settings = new SoundSettingsViewModel(store, player);
+        var coordinator = new CompletionNotificationCoordinator(settings, player);
+        ThreadSnapshot retrying = Incident(ServiceIncidentPhase.Retrying);
+        ThreadSnapshot failed = Incident(ServiceIncidentPhase.Failed);
+
+        coordinator.Observe([retrying], RefreshNotificationPolicy.Notify);
+        coordinator.Observe([failed], RefreshNotificationPolicy.Notify);
+
+        Assert.Equal([CompletionSound.Pulse], player.Played);
+        Assert.Equal(["warning:thread-1:turn-a"], store.Current.SeenEventIds);
+    }
+
+    [Fact]
+    public void Observe_DisabledWarningStillPersistsEpisode()
+    {
+        var store = new MemorySoundSettingsStore(new SoundNotificationSettings
+        {
+            IsWarningEnabled = false,
+        });
+        var player = new RecordingSoundPlayer();
+        var settings = new SoundSettingsViewModel(store, player);
+        var coordinator = new CompletionNotificationCoordinator(settings, player);
+
+        coordinator.Observe([Incident(ServiceIncidentPhase.Retrying)], RefreshNotificationPolicy.Notify);
+
+        Assert.Empty(player.Played);
+        Assert.Equal(["warning:thread-1:turn-a"], store.Current.SeenEventIds);
+    }
+
     private static DateTimeOffset AtSeconds(long seconds) =>
         DateTimeOffset.FromUnixTimeSeconds(seconds);
 
@@ -114,6 +151,30 @@ public sealed class CompletionNotificationCoordinatorTests
             null,
             0,
             RolloutSourceStatus.Healthy);
+
+    private static ThreadSnapshot Incident(ServiceIncidentPhase phase)
+    {
+        DateTimeOffset occurredAt = AtSeconds(20);
+        return new ThreadSnapshot(
+            "thread-1",
+            "thread-1",
+            phase is ServiceIncidentPhase.Failed ? ThreadStatus.Error : ThreadStatus.Warning,
+            occurredAt,
+            occurredAt,
+            occurredAt,
+            null,
+            null,
+            null,
+            0,
+            RolloutSourceStatus.Healthy,
+            serviceIncident: new ServiceIncident(
+                "turn-a",
+                phase,
+                503,
+                5,
+                5,
+                occurredAt));
+    }
 }
 
 internal sealed class MemorySoundSettingsStore(SoundNotificationSettings initial)

@@ -29,6 +29,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
         this.player = player ?? throw new ArgumentNullException(nameof(player));
         settings = settingsStore.Load();
         PreviewCommand = new RelayCommand(Preview);
+        WarningPreviewCommand = new RelayCommand(PreviewWarning);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -38,6 +39,8 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
     public IReadOnlyList<string> SeenEventIds => settings.SeenEventIds;
 
     public ICommand PreviewCommand { get; }
+
+    public ICommand WarningPreviewCommand { get; }
 
     public bool IsEnabled
     {
@@ -53,6 +56,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
             Save();
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsCompletionConfigurationEnabled));
+            OnPropertyChanged(nameof(IsWarningConfigurationEnabled));
         }
     }
 
@@ -90,6 +94,40 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsWarningEnabled
+    {
+        get => settings.IsWarningEnabled;
+        set
+        {
+            if (settings.IsWarningEnabled == value)
+            {
+                return;
+            }
+
+            settings = settings with { IsWarningEnabled = value };
+            Save();
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsWarningConfigurationEnabled => IsEnabled;
+
+    public CompletionSound SelectedWarningSound
+    {
+        get => settings.SelectedWarningSound;
+        set
+        {
+            if (settings.SelectedWarningSound == value)
+            {
+                return;
+            }
+
+            settings = settings with { SelectedWarningSound = value };
+            Save();
+            OnPropertyChanged();
+        }
+    }
+
     public void ReplaceSeenEventIds(IReadOnlyList<string> eventIds)
     {
         ArgumentNullException.ThrowIfNull(eventIds);
@@ -112,6 +150,23 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
         try
         {
             player.Play(SelectedCompletionSound);
+        }
+        catch
+        {
+            // Preview is optional and must not destabilize settings interaction.
+        }
+    }
+
+    private void PreviewWarning()
+    {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
+        try
+        {
+            player.Play(SelectedWarningSound);
         }
         catch
         {
