@@ -31,6 +31,8 @@ public sealed class JsonThreadListPreferenceStoreTests : IDisposable
         var store = new JsonThreadListPreferenceStore(SettingsPath);
         var expected = new ThreadListPreferences(
             pinnedThreadIds: ["pinned-id"],
+            favoriteThreadIds: ["favorite-id"],
+            showsFavoritesOnly: true,
             ignoredRules: new Dictionary<string, IgnoredThreadRule>(StringComparer.Ordinal)
             {
                 ["ignored-id"] = new(
@@ -45,9 +47,27 @@ public sealed class JsonThreadListPreferenceStoreTests : IDisposable
 
         Assert.True(saved);
         Assert.Equal(["pinned-id"], loaded.PinnedThreadIds);
+        Assert.Equal(["favorite-id"], loaded.FavoriteThreadIds);
+        Assert.True(loaded.ShowsFavoritesOnly);
         Assert.Equal(expected.IgnoredRules["ignored-id"], loaded.IgnoredRules["ignored-id"]);
         Assert.DoesNotContain("taskTitle", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("rolloutPath", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("UntilNextTurn", json);
+    }
+
+    [Fact]
+    public void Load_OldPreferencesDefaultFavoritesToEmptyAndFilterOff()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+        File.WriteAllText(
+            SettingsPath,
+            "{\"pinnedThreadIds\":[\"pinned\"],\"ignoredRules\":{}}");
+
+        ThreadListPreferences loaded = new JsonThreadListPreferenceStore(SettingsPath).Load();
+
+        Assert.Equal(["pinned"], loaded.PinnedThreadIds);
+        Assert.Empty(loaded.FavoriteThreadIds);
+        Assert.False(loaded.ShowsFavoritesOnly);
     }
 
     public void Dispose()

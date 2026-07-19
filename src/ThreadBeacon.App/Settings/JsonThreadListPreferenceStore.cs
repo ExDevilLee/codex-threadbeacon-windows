@@ -35,7 +35,11 @@ public sealed class JsonThreadListPreferenceStore : IThreadListPreferenceStore
         {
             string json = File.ReadAllText(settingsPath);
             PreferenceData data = JsonSerializer.Deserialize<PreferenceData>(json, SerializerOptions) ?? new();
-            return new ThreadListPreferences(data.PinnedThreadIds, data.IgnoredRules);
+            return new ThreadListPreferences(
+                data.PinnedThreadIds,
+                data.FavoriteThreadIds,
+                data.ShowsFavoritesOnly,
+                data.IgnoredRules);
         }
         catch (Exception exception) when (IsSettingsException(exception))
         {
@@ -57,6 +61,8 @@ public sealed class JsonThreadListPreferenceStore : IThreadListPreferenceStore
             var data = new PreferenceData
             {
                 PinnedThreadIds = preferences.PinnedThreadIds.Order(StringComparer.Ordinal).ToArray(),
+                FavoriteThreadIds = preferences.FavoriteThreadIds.Order(StringComparer.Ordinal).ToArray(),
+                ShowsFavoritesOnly = preferences.ShowsFavoritesOnly,
                 IgnoredRules = new Dictionary<string, IgnoredThreadRule>(
                     preferences.IgnoredRules,
                     StringComparer.Ordinal),
@@ -80,6 +86,10 @@ public sealed class JsonThreadListPreferenceStore : IThreadListPreferenceStore
     private sealed class PreferenceData
     {
         public IReadOnlyList<string> PinnedThreadIds { get; set; } = [];
+
+        public IReadOnlyList<string> FavoriteThreadIds { get; set; } = [];
+
+        public bool ShowsFavoritesOnly { get; set; }
 
         public Dictionary<string, IgnoredThreadRule> IgnoredRules { get; set; } =
             new(StringComparer.Ordinal);

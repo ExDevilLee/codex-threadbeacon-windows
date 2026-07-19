@@ -19,7 +19,7 @@
 - Modify: `tests/ThreadBeacon.Core.Tests/Services/ThreadListPolicyTests.cs`
 - Modify: `tests/ThreadBeacon.App.Tests/Settings/JsonThreadListPreferenceStoreTests.cs`
 
-- [ ] Add failing Core tests proving favorites-only mode includes only favorite candidates, favorite status does not reorder the all-tasks list, missing favorite IDs remain persisted, and ignore rules still win over favorites.
+- [x] Add failing Core tests proving favorites-only mode includes only favorite candidates, favorite status does not reorder the all-tasks list, missing favorite IDs remain persisted, and ignore rules still win over favorites.
 
 ```csharp
 var preferences = new ThreadListPreferences(
@@ -29,11 +29,11 @@ ThreadListResult result = ThreadListPolicy.Evaluate(candidates, preferences, lim
 Assert.Equal(["favorite"], result.VisibleSnapshots.Select(x => x.Id));
 ```
 
-- [ ] Add failing store tests proving favorite IDs and filter state round-trip, old pin/ignore-only JSON defaults favorites to empty/off, and serialized JSON contains no title or Codex path.
-- [ ] Run focused policy/store tests; expect missing constructor members and properties.
-- [ ] Add ordinal `FavoriteThreadIds`, mutable `ShowsFavoritesOnly`, clone support, DTO fields with empty/off defaults, and the policy filter before visible sorting.
-- [ ] Re-run focused tests, full Core tests, and full App tests with zero failures.
-- [ ] Commit `feat(favorites): add favorite list preferences`.
+- [x] Add failing store tests proving favorite IDs and filter state round-trip, old pin/ignore-only JSON defaults favorites to empty/off, and serialized JSON contains no title or Codex path.
+- [x] Run focused policy/store tests; expect missing constructor members and properties.
+- [x] Add ordinal `FavoriteThreadIds`, mutable `ShowsFavoritesOnly`, clone support, DTO fields with empty/off defaults, and the policy filter before visible sorting.
+- [x] Re-run focused tests, full Core tests, and full App tests with zero failures.
+- [x] Commit `feat(favorites): add favorite list preferences`.
 
 ### Task 2: Archived-capable read-only favorite loading
 

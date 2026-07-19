@@ -99,6 +99,48 @@ public sealed class ThreadListPolicyTests
         Assert.Contains("ignored", preferences.IgnoredRules.Keys);
     }
 
+    [Fact]
+    public void Evaluate_FavoritesOnlyFiltersWithoutChangingNormalSortOrder()
+    {
+        ThreadSnapshot[] candidates =
+        [
+            Snapshot("running", ThreadStatus.Running, Now.AddMinutes(1)),
+            Snapshot("favorite-idle", ThreadStatus.Idle, Now.AddMinutes(2)),
+            Snapshot("newer-idle", ThreadStatus.Idle, Now.AddMinutes(3)),
+        ];
+        var allPreferences = new ThreadListPreferences(favoriteThreadIds: ["favorite-idle"]);
+        var favoritePreferences = new ThreadListPreferences(
+            favoriteThreadIds: ["favorite-idle"],
+            showsFavoritesOnly: true);
+
+        ThreadListResult all = ThreadListPolicy.Evaluate(candidates, allPreferences, limit: 8);
+        ThreadListResult favorites = ThreadListPolicy.Evaluate(candidates, favoritePreferences, limit: 8);
+
+        Assert.Equal(["running", "newer-idle", "favorite-idle"], all.VisibleSnapshots.Select(x => x.Id));
+        Assert.Equal(["favorite-idle"], favorites.VisibleSnapshots.Select(x => x.Id));
+    }
+
+    [Fact]
+    public void Evaluate_IgnoreWinsAndMissingFavoriteRemainsPersisted()
+    {
+        var preferences = new ThreadListPreferences(
+            favoriteThreadIds: ["favorite", "missing"],
+            showsFavoritesOnly: true,
+            ignoredRules: new Dictionary<string, IgnoredThreadRule>(StringComparer.Ordinal)
+            {
+                ["favorite"] = new("favorite", Now, ThreadIgnoreMode.UntilNextTurn),
+            });
+
+        ThreadListResult result = ThreadListPolicy.Evaluate(
+            [Snapshot("favorite", ThreadStatus.Running)],
+            preferences,
+            limit: 8);
+
+        Assert.Empty(result.VisibleSnapshots);
+        Assert.Equal(["favorite"], result.IgnoredSnapshots.Select(x => x.Id));
+        Assert.True(result.Preferences.FavoriteThreadIds.SetEquals(["favorite", "missing"]));
+    }
+
     private static ThreadSnapshot Snapshot(
         string id,
         ThreadStatus status,

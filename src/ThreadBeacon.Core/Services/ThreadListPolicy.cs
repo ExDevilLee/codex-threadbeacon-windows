@@ -24,26 +24,28 @@ public static class ThreadListPolicy
             }
         }
 
-        IOrderedEnumerable<ThreadSnapshot> sorted = candidates
+        IEnumerable<ThreadSnapshot> displayCandidates = updated.ShowsFavoritesOnly
+            ? candidates.Where(snapshot => updated.FavoriteThreadIds.Contains(snapshot.Id))
+            : candidates;
+        IOrderedEnumerable<ThreadSnapshot> visibleCandidates = Order(
+            displayCandidates.Where(snapshot => !updated.IgnoredRules.ContainsKey(snapshot.Id)),
+            updated.PinnedThreadIds);
+        IOrderedEnumerable<ThreadSnapshot> ignoredCandidates = Order(
+            candidates.Where(snapshot => updated.IgnoredRules.ContainsKey(snapshot.Id)),
+            updated.PinnedThreadIds);
+
+        return new ThreadListResult(
+            visibleCandidates.Take(limit).ToArray(),
+            ignoredCandidates.ToArray(),
+            updated);
+    }
+
+    private static IOrderedEnumerable<ThreadSnapshot> Order(
+        IEnumerable<ThreadSnapshot> snapshots,
+        IReadOnlySet<string> pinnedThreadIds) =>
+        snapshots
             .OrderBy(snapshot => ThreadStatusPriority.Get(snapshot.Status))
-            .ThenByDescending(snapshot => updated.PinnedThreadIds.Contains(snapshot.Id))
+            .ThenByDescending(snapshot => pinnedThreadIds.Contains(snapshot.Id))
             .ThenByDescending(snapshot => snapshot.LatestEventAt ?? DateTimeOffset.MinValue)
             .ThenBy(snapshot => snapshot.Id, StringComparer.Ordinal);
-
-        var visible = new List<ThreadSnapshot>(Math.Min(candidates.Count, limit));
-        var ignored = new List<ThreadSnapshot>();
-        foreach (ThreadSnapshot snapshot in sorted)
-        {
-            if (updated.IgnoredRules.ContainsKey(snapshot.Id))
-            {
-                ignored.Add(snapshot);
-            }
-            else if (visible.Count < limit)
-            {
-                visible.Add(snapshot);
-            }
-        }
-
-        return new ThreadListResult(visible, ignored, updated);
-    }
 }
