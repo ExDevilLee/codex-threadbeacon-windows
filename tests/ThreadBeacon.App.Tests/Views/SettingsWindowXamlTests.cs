@@ -41,4 +41,17 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Sound.IsWarningCategoryEnabled", markup, StringComparison.Ordinal);
         Assert.Contains("Sound.IsWarningSoundEnabled", markup, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ComboBoxes_VerticallyCenterSelectedText()
+    {
+        XElement[] comboBoxes = LoadDocument()
+            .Descendants()
+            .Where(element => element.Name.LocalName == "ComboBox")
+            .ToArray();
+
+        Assert.Equal(4, comboBoxes.Length);
+        Assert.All(comboBoxes, comboBox =>
+            Assert.Equal("Center", (string?)comboBox.Attribute("VerticalContentAlignment")));
+    }
 }
