@@ -73,15 +73,15 @@
 
 ### Task 5: Documentation, Verification, Security Audit, And Push
 
-- [ ] Document direct-child fields, on-demand reads, transient expansion, and explicit
+- [x] Document direct-child fields, on-demand reads, transient expansion, and explicit
   exclusions in `README.md`, `README-EN.md`, `ROADMAP.md`, and `PRIVACY.md`.
-- [ ] Run `dotnet test ThreadBeacon.slnx`, `dotnet build ThreadBeacon.slnx -c Release`,
+- [x] Run `dotnet test ThreadBeacon.slnx`, `dotnet build ThreadBeacon.slnx -c Release`,
   and the vulnerable-package audit; require clean output.
-- [ ] Launch Release and verify expansion/collapse, automatic refresh stability,
+- [x] Launch Release and verify expansion/collapse, automatic refresh stability,
   detail hover/click/outside dismissal, and 620px/480px layout.
-- [ ] Inspect the complete diff and tracked files for credentials, private keys,
+- [x] Inspect the complete diff and tracked files for credentials, private keys,
   absolute user paths, local settings, Codex content, build output, or network/write
   access.
-- [ ] Commit documentation as `docs: document Subagent inline expansion`.
+- [x] Commit documentation as `docs: document Subagent inline expansion`.
 - [ ] Push `main`, fetch, confirm a clean worktree and `HEAD == origin/main`, then
   leave the verified Release build running for stage acceptance.

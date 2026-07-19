@@ -22,7 +22,7 @@ The info button beside cumulative Token usage shows session total, input, cached
 
 The speaker button configures task-completion sounds and provides the same Beacon, Chime, and Pulse built-in tones as the macOS version, including preview playback. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
 
-A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. The feature does not read or display child titles, status, Token usage, paths, or conversation bodies.
+A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. Clicking the count expands direct children inline with `Agent alias | title`, derived status, recent activity, and cumulative Token usage. The detail button shows role, model, reasoning effort, and numeric Token fields. Child records and rollout tails are read only for visible expanded parents; collapsing stops those reads. Conversation bodies and deeper descendants are never read or displayed.
 
 The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. Only primary snapshots with the derived `Running` status contribute to the numerator, and the denominator matches the primary snapshots currently displayed. Pausing preserves the last successful count; manual refresh or monitoring resume recalculates it.
 
@@ -33,13 +33,13 @@ The first POC is deliberately limited to:
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
-- Showing a non-zero historical direct-Subagent count after each primary task title.
+- Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 
-Failure/warning incident sounds, task pin/ignore rules, subagent expansion, HTTP 429/503 incidents, and the system tray remain deferred.
+Failure/warning incident sounds, task pin/ignore rules, Subagent alerts and Token aggregation, HTTP 429/503 incidents, and the system tray remain deferred.
 
 ## Technology
 
@@ -84,6 +84,10 @@ Regenerate the ICO in PowerShell:
 ```powershell
 .\script\generate_app_icon.ps1
 ```
+
+## Privacy
+
+See [PRIVACY.md](PRIVACY.md) for the exact local data scope and processing boundaries.
 
 ## License
 

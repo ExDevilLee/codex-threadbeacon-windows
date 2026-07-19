@@ -21,6 +21,7 @@
 - [x] Display cumulative Token usage.
 - [x] Show a macOS-aligned Token detail popover with hover and click-to-pin behavior.
 - [x] Show a neutral direct-Subagent count beside the primary task title when non-zero.
+- [x] Expand direct Subagents inline on demand with status, activity, Token, and metadata details.
 - [x] Show running primary tasks over currently visible tasks in the window header.
 - [x] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
@@ -49,7 +50,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 
 - Failure, warning, attention, and service-incident sounds.
 - Thread pin and ignore rules.
-- Subagent inline expansion, child status, alerts, and Token aggregation.
+- Subagent alerts, reliable active-child counts, and parent-child Token aggregation.
 - HTTP 429/503 incident monitoring.
 - System tray integration.
 - Packaging, signing, and automatic updates.
