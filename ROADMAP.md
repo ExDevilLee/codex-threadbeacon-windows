@@ -65,6 +65,15 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Restore one ignored task or all ignored tasks from the conditional header control.
 - [x] Persist only task IDs, ignore timestamps, and rule types without modifying Codex data.
 
+## Phase 6: Favorites and Archived Watchlist
+
+- [x] Favorite or unfavorite a primary task independently of pin and ignore.
+- [x] Persist favorite task IDs and the all/favorites-only filter locally.
+- [x] Keep the existing status, pin, and recency order when favorites are not filtered.
+- [x] Load specified archived favorites through a separate parameterized read-only query.
+- [x] Show archived favorites with a neutral state while retaining available rename and Token data.
+- [x] Exclude archived favorites from service-incident queries and completion/incident notifications.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

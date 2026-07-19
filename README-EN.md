@@ -18,6 +18,8 @@ The first window enhancement is complete: the pin button in the top-right keeps 
 
 Right-click a primary task to pin or ignore it. Status priority always outranks task pinning, while pinned tasks lead within the same status; a normal ignore rule clears automatically when the task starts a newer turn. When ignored tasks exist, a header button restores one task or all tasks. These local rules store only task IDs, ignore timestamps, and the rule type, never titles, and do not modify Codex data. Task pinning is independent of window always-on-top.
 
+Right-clicking also favorites a primary task independently of pin and ignore. The header star switches between all tasks and favorites only, and persists the filter with the favorite task IDs locally. Favorites do not alter the existing status, pin, or recency order. If Codex archives a favorite, it remains in the watchlist with a neutral `Archived` state while retaining any available renamed title and Token data. Archived favorites do not query 429/503 logs or emit completion or incident sounds.
+
 The middle header button temporarily pauses or resumes the 2-second automatic monitoring cycle. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
 
 The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
@@ -41,6 +43,7 @@ The first POC is deliberately limited to:
 - Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.
+- Favoriting independently, filtering to favorites, and watching archived favorites.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
