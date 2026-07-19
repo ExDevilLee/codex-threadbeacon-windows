@@ -1,0 +1,120 @@
+<Window x:Class="ThreadBeacon.App.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ThreadBeacon 设置"
+        Icon="Resources/AppIcon.ico"
+        Width="440"
+        Height="360"
+        MinWidth="400"
+        MinHeight="340"
+        Background="{StaticResource WindowBackgroundBrush}"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="20,14,20,20">
+        <TabControl Background="Transparent"
+                    BorderBrush="{StaticResource ControlBorderBrush}">
+            <TabItem Header="通用">
+                <Grid Margin="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="150" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="22" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel>
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Text="刷新间隔" />
+                        <TextBlock Margin="0,4,18,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Text="调整任务状态的自动刷新频率。" />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1"
+                              Height="30"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding Display.RefreshIntervalOptions}"
+                              DisplayMemberPath="DisplayName"
+                              SelectedValuePath="Value"
+                              SelectedValue="{Binding Display.RefreshIntervalSeconds, Mode=TwoWay}" />
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Text="显示任务数量" />
+                        <TextBlock Margin="0,4,18,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Text="设置主窗口最多显示的任务数。" />
+                    </StackPanel>
+                    <ComboBox Grid.Row="2"
+                              Grid.Column="1"
+                              Height="30"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding Display.MaximumTaskCountOptions}"
+                              DisplayMemberPath="DisplayName"
+                              SelectedValuePath="Value"
+                              SelectedValue="{Binding Display.MaximumTaskCount, Mode=TwoWay}" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="提示音">
+                <StackPanel Margin="18">
+                    <CheckBox Content="启用提示音"
+                              IsChecked="{Binding Sound.IsEnabled, Mode=TwoWay}" />
+
+                    <CheckBox Margin="0,16,0,0"
+                              Content="任务完成"
+                              IsChecked="{Binding Sound.IsCompletionEnabled, Mode=TwoWay}"
+                              IsEnabled="{Binding Sound.IsCompletionCategoryEnabled}" />
+                    <Grid Margin="20,8,0,0"
+                          IsEnabled="{Binding Sound.IsCompletionSoundEnabled}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Height="30"
+                                  ItemsSource="{Binding Sound.AvailableSounds}"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="Value"
+                                  SelectedValue="{Binding Sound.SelectedCompletionSound, Mode=TwoWay}" />
+                        <Button Grid.Column="1"
+                                Height="30"
+                                Margin="8,0,0,0"
+                                Padding="14,0"
+                                Command="{Binding Sound.PreviewCommand}"
+                                Content="试听" />
+                    </Grid>
+
+                    <Separator Margin="0,16,0,14" />
+
+                    <CheckBox Content="429/503 服务异常"
+                              IsChecked="{Binding Sound.IsWarningEnabled, Mode=TwoWay}"
+                              IsEnabled="{Binding Sound.IsWarningCategoryEnabled}" />
+                    <Grid Margin="20,8,0,0"
+                          IsEnabled="{Binding Sound.IsWarningSoundEnabled}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Height="30"
+                                  ItemsSource="{Binding Sound.AvailableSounds}"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="Value"
+                                  SelectedValue="{Binding Sound.SelectedWarningSound, Mode=TwoWay}" />
+                        <Button Grid.Column="1"
+                                Height="30"
+                                Margin="8,0,0,0"
+                                Padding="14,0"
+                                Command="{Binding Sound.WarningPreviewCommand}"
+                                Content="试听" />
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

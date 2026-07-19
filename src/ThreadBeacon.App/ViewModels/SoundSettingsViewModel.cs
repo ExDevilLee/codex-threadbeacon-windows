@@ -60,6 +60,10 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsCompletionConfigurationEnabled));
             OnPropertyChanged(nameof(IsWarningConfigurationEnabled));
+            OnPropertyChanged(nameof(IsCompletionCategoryEnabled));
+            OnPropertyChanged(nameof(IsCompletionSoundEnabled));
+            OnPropertyChanged(nameof(IsWarningCategoryEnabled));
+            OnPropertyChanged(nameof(IsWarningSoundEnabled));
         }
     }
 
@@ -76,10 +80,15 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
             settings = settings with { IsCompletionEnabled = value };
             Save();
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCompletionSoundEnabled));
         }
     }
 
     public bool IsCompletionConfigurationEnabled => IsEnabled;
+
+    public bool IsCompletionCategoryEnabled => IsEnabled;
+
+    public bool IsCompletionSoundEnabled => IsEnabled && IsCompletionEnabled;
 
     public CompletionSound SelectedCompletionSound
     {
@@ -110,10 +119,15 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
             settings = settings with { IsWarningEnabled = value };
             Save();
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsWarningSoundEnabled));
         }
     }
 
     public bool IsWarningConfigurationEnabled => IsEnabled;
+
+    public bool IsWarningCategoryEnabled => IsEnabled;
+
+    public bool IsWarningSoundEnabled => IsEnabled && IsWarningEnabled;
 
     public CompletionSound SelectedWarningSound
     {
@@ -145,7 +159,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 
     private void Preview()
     {
-        if (!IsEnabled)
+        if (!IsCompletionSoundEnabled)
         {
             return;
         }
@@ -162,7 +176,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 
     private void PreviewWarning()
     {
-        if (!IsEnabled)
+        if (!IsWarningSoundEnabled)
         {
             return;
         }

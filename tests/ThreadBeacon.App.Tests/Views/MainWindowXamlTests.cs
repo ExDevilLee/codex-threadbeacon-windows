@@ -83,4 +83,15 @@ public sealed class MainWindowXamlTests
         Assert.Equal("{Binding DataSourceHealth}", (string?)health.Attribute("Details"));
         Assert.Equal("2", (string?)updated.Attribute("Grid.Column"));
     }
+
+    [Fact]
+    public void Toolbar_UsesSettingsWindowEntryInsteadOfSoundPopup()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Contains("SettingsButton", markup, StringComparison.Ordinal);
+        Assert.Contains("OnSettingsButtonClick", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("SoundButton", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("SoundSettingsPopup", markup, StringComparison.Ordinal);
+    }
 }

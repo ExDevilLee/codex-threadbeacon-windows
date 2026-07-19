@@ -15,6 +15,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer refreshTimer;
     private readonly WavSoundPlaybackService soundPlayer;
     private readonly MonitoringSettingsCoordinator monitoringSettingsCoordinator;
+    private readonly SettingsWindowViewModel settingsViewModel;
+    private SettingsWindow? settingsWindow;
 
     public MainWindow()
     {
@@ -37,6 +39,7 @@ public partial class MainWindow : Window
         var completionNotifications = new CompletionNotificationCoordinator(
             soundSettings,
             soundPlayer);
+        settingsViewModel = new SettingsWindowViewModel(displaySettings, soundSettings);
         viewModel = new MainWindowViewModel(
             loader,
             windowPin,
@@ -45,7 +48,6 @@ public partial class MainWindow : Window
             JsonThreadListPreferenceStore.CreateDefault(),
             displaySettings: displaySettings);
         DataContext = viewModel;
-        SoundSettingsPanel.DataContext = soundSettings;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -108,8 +110,36 @@ public partial class MainWindow : Window
         soundPlayer.Dispose();
     }
 
-    private void OnSoundButtonClick(object sender, RoutedEventArgs e) =>
-        SoundSettingsPopup.IsOpen = !SoundSettingsPopup.IsOpen;
+    private void OnSettingsButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (settingsWindow is not null)
+        {
+            if (settingsWindow.WindowState is WindowState.Minimized)
+            {
+                settingsWindow.WindowState = WindowState.Normal;
+            }
+
+            settingsWindow.Activate();
+            return;
+        }
+
+        settingsWindow = new SettingsWindow
+        {
+            Owner = this,
+            DataContext = settingsViewModel,
+        };
+        settingsWindow.Closed += OnSettingsWindowClosed;
+        settingsWindow.Show();
+    }
+
+    private void OnSettingsWindowClosed(object? sender, EventArgs e)
+    {
+        if (settingsWindow is not null)
+        {
+            settingsWindow.Closed -= OnSettingsWindowClosed;
+            settingsWindow = null;
+        }
+    }
 
     private void OnIgnoredTasksButtonClick(object sender, RoutedEventArgs e) =>
         IgnoredTasksPopup.IsOpen = !IgnoredTasksPopup.IsOpen;

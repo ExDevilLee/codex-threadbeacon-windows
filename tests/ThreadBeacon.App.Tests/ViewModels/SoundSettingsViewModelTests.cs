@@ -90,6 +90,50 @@ public sealed class SoundSettingsViewModelTests
     }
 
     [Fact]
+    public void CategoryAndSoundEnablement_RequireExpectedSwitches()
+    {
+        var viewModel = new SoundSettingsViewModel(
+            new MemorySoundSettingsStore(new SoundNotificationSettings
+            {
+                IsEnabled = true,
+                IsCompletionEnabled = false,
+                IsWarningEnabled = true,
+            }),
+            new RecordingSoundPlayer());
+
+        Assert.True(viewModel.IsCompletionCategoryEnabled);
+        Assert.False(viewModel.IsCompletionSoundEnabled);
+        Assert.True(viewModel.IsWarningCategoryEnabled);
+        Assert.True(viewModel.IsWarningSoundEnabled);
+
+        viewModel.IsEnabled = false;
+
+        Assert.False(viewModel.IsCompletionCategoryEnabled);
+        Assert.False(viewModel.IsCompletionSoundEnabled);
+        Assert.False(viewModel.IsWarningCategoryEnabled);
+        Assert.False(viewModel.IsWarningSoundEnabled);
+    }
+
+    [Fact]
+    public void PreviewCommands_DoNothingWhenTheirCategoryIsDisabled()
+    {
+        var player = new RecordingSoundPlayer();
+        var viewModel = new SoundSettingsViewModel(
+            new MemorySoundSettingsStore(new SoundNotificationSettings
+            {
+                IsEnabled = true,
+                IsCompletionEnabled = false,
+                IsWarningEnabled = false,
+            }),
+            player);
+
+        viewModel.PreviewCommand.Execute(null);
+        viewModel.WarningPreviewCommand.Execute(null);
+
+        Assert.Empty(player.Played);
+    }
+
+    [Fact]
     public void PreviewCommand_PlaybackFailureDoesNotEscape()
     {
         var viewModel = new SoundSettingsViewModel(
