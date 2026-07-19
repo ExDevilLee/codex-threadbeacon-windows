@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ThreadBeacon.App.Localization;
+using ThreadBeacon.App.Theme;
 
 namespace ThreadBeacon.App.Settings;
 
@@ -18,7 +19,8 @@ public sealed record DisplaySettings
         int refreshIntervalSeconds = DefaultRefreshIntervalSeconds,
         int maximumTaskCount = DefaultMaximumTaskCount,
         int version = 1,
-        AppLanguage language = AppLanguage.System)
+        AppLanguage language = AppLanguage.System,
+        AppTheme theme = AppTheme.System)
     {
         RefreshIntervalSeconds = RefreshIntervals.Contains(refreshIntervalSeconds)
             ? refreshIntervalSeconds
@@ -28,6 +30,7 @@ public sealed record DisplaySettings
             : DefaultMaximumTaskCount;
         Version = version;
         Language = language;
+        Theme = theme;
     }
 
     public static IReadOnlyList<int> SupportedRefreshIntervalSeconds => RefreshIntervals;
@@ -42,4 +45,7 @@ public sealed record DisplaySettings
 
     [JsonConverter(typeof(AppLanguageJsonConverter))]
     public AppLanguage Language { get; }
+
+    [JsonConverter(typeof(AppThemeJsonConverter))]
+    public AppTheme Theme { get; }
 }

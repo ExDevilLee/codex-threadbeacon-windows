@@ -22,7 +22,8 @@ public partial class App : Application
                     current.RefreshIntervalSeconds,
                     current.MaximumTaskCount,
                     current.Version,
-                    value));
+                    value,
+                    current.Theme));
             });
         LanguageState.ApplyResources(this);
         LanguageState.Changed += (_, _) => LanguageState.ApplyResources(this);

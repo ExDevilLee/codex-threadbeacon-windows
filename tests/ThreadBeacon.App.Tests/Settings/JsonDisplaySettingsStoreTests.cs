@@ -1,5 +1,6 @@
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Localization;
+using ThreadBeacon.App.Theme;
 
 namespace ThreadBeacon.App.Tests.Settings;
 
@@ -30,6 +31,7 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(2, settings.RefreshIntervalSeconds);
         Assert.Equal(8, settings.MaximumTaskCount);
         Assert.Equal(1, settings.Version);
+        Assert.Equal(AppTheme.System, settings.Theme);
     }
 
     [Fact]
@@ -55,6 +57,43 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(AppLanguage.English, store.Load().Language);
         Assert.Contains("\"language\": \"en\"", File.ReadAllText(
             Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SaveAndLoad_RoundTripsThemeWithoutChangingOtherPreferences()
+    {
+        var store = Store();
+
+        Assert.True(store.Save(new DisplaySettings(
+            5,
+            20,
+            language: AppLanguage.English,
+            theme: AppTheme.Dark)));
+        DisplaySettings settings = store.Load();
+
+        Assert.Equal(5, settings.RefreshIntervalSeconds);
+        Assert.Equal(20, settings.MaximumTaskCount);
+        Assert.Equal(AppLanguage.English, settings.Language);
+        Assert.Equal(AppTheme.Dark, settings.Theme);
+        Assert.Contains("\"theme\": \"dark\"", File.ReadAllText(
+            Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Load_UnknownThemeFallsBackToSystem()
+    {
+        Directory.CreateDirectory(tempDirectory);
+        File.WriteAllText(
+            Path.Combine(tempDirectory, "display-settings.json"),
+            """
+            { "version": 1, "refreshIntervalSeconds": 5, "maximumTaskCount": 12, "theme": "unsupported" }
+            """);
+
+        DisplaySettings settings = Store().Load();
+
+        Assert.Equal(AppTheme.System, settings.Theme);
+        Assert.Equal(5, settings.RefreshIntervalSeconds);
+        Assert.Equal(12, settings.MaximumTaskCount);
     }
 
     [Fact]

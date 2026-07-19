@@ -99,7 +99,8 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
                     settings.RefreshIntervalSeconds,
                     settings.MaximumTaskCount,
                     settings.Version,
-                    value);
+                    value,
+                    settings.Theme);
                 settingsStore?.Save(settings);
             }
 
@@ -114,7 +115,12 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         get => settings.RefreshIntervalSeconds;
         set
         {
-            var updated = new DisplaySettings(value, settings.MaximumTaskCount, settings.Version);
+            var updated = new DisplaySettings(
+                value,
+                settings.MaximumTaskCount,
+                settings.Version,
+                settings.Language,
+                settings.Theme);
             if (updated.RefreshIntervalSeconds == settings.RefreshIntervalSeconds)
             {
                 return;
@@ -134,7 +140,12 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         get => settings.MaximumTaskCount;
         set
         {
-            var updated = new DisplaySettings(settings.RefreshIntervalSeconds, value, settings.Version);
+            var updated = new DisplaySettings(
+                settings.RefreshIntervalSeconds,
+                value,
+                settings.Version,
+                settings.Language,
+                settings.Theme);
             if (updated.MaximumTaskCount == settings.MaximumTaskCount)
             {
                 return;

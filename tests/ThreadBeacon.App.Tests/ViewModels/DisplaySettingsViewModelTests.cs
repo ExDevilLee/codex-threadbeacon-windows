@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Localization;
+using ThreadBeacon.App.Theme;
 using ThreadBeacon.App.ViewModels;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -75,6 +76,19 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Same(taskOption, viewModel.MaximumTaskCountOptions[0]);
         Assert.Equal("1 sec", refreshOption.DisplayName);
         Assert.Equal("4 tasks", taskOption.DisplayName);
+    }
+
+    [Fact]
+    public void OtherDisplaySetters_PreserveThemePreference()
+    {
+        var store = new MemoryDisplaySettingsStore(
+            new DisplaySettings(theme: AppTheme.Dark));
+        var viewModel = new DisplaySettingsViewModel(store);
+
+        viewModel.RefreshIntervalSeconds = 5;
+        viewModel.MaximumTaskCount = 20;
+
+        Assert.Equal(AppTheme.Dark, store.Current.Theme);
     }
 
     [Fact]
