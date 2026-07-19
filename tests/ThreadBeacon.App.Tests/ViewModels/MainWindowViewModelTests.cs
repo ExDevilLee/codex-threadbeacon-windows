@@ -312,6 +312,35 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task RefreshAsync_UsesConfiguredMaximumTaskCount()
+    {
+        ThreadRecord[] records = Enumerable.Range(1, 20)
+            .Select(index => Record($"task-{index:D2}"))
+            .ToArray();
+        var repository = new PreferenceThreadRepository(records);
+        var displaySettings = new DisplaySettingsViewModel(
+            new MemoryDisplaySettingsStore(new DisplaySettings(maximumTaskCount: 12)));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(records.ToDictionary(
+                record => record.Id,
+                _ => ThreadStatus.Running,
+                StringComparer.Ordinal)),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            displaySettings: displaySettings);
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal(12, repository.LastRecentLimit);
+        Assert.Equal(12, viewModel.Threads.Count);
+    }
+
+    [Fact]
     public async Task IgnoreAndRestore_UpdateRowsAndPersistImmediately()
     {
         ThreadRecord[] records = [Record("task")];
@@ -583,6 +612,14 @@ public sealed class MainWindowViewModelTests
         public AppSettings Load() => new();
 
         public bool Save(AppSettings settings) => true;
+    }
+
+    private sealed class MemoryDisplaySettingsStore(DisplaySettings settings)
+        : IDisplaySettingsStore
+    {
+        public DisplaySettings Load() => settings;
+
+        public bool Save(DisplaySettings updatedSettings) => true;
     }
 
     private sealed class ThrowingThreadRepository : IThreadRepository

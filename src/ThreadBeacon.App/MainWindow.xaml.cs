@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel viewModel;
     private readonly DispatcherTimer refreshTimer;
     private readonly WavSoundPlaybackService soundPlayer;
+    private readonly MonitoringSettingsCoordinator monitoringSettingsCoordinator;
 
     public MainWindow()
     {
@@ -27,6 +28,8 @@ public partial class MainWindow : Window
             logEventRepository: new SQLiteLogEventRepository(paths.LogDatabase));
         var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
         var monitoring = new MonitoringState();
+        var displaySettings = new DisplaySettingsViewModel(
+            JsonDisplaySettingsStore.CreateDefault());
         soundPlayer = new WavSoundPlaybackService();
         var soundSettings = new SoundSettingsViewModel(
             JsonSoundNotificationSettingsStore.CreateDefault(),
@@ -39,7 +42,8 @@ public partial class MainWindow : Window
             windowPin,
             monitoring,
             completionNotifications,
-            JsonThreadListPreferenceStore.CreateDefault());
+            JsonThreadListPreferenceStore.CreateDefault(),
+            displaySettings: displaySettings);
         DataContext = viewModel;
         SoundSettingsPanel.DataContext = soundSettings;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
@@ -47,8 +51,12 @@ public partial class MainWindow : Window
 
         refreshTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromSeconds(2),
+            Interval = displaySettings.RefreshInterval,
         };
+        monitoringSettingsCoordinator = new MonitoringSettingsCoordinator(
+            displaySettings,
+            interval => refreshTimer.Interval = interval,
+            () => viewModel.RefreshAsync(RefreshNotificationPolicy.Baseline));
         refreshTimer.Tick += OnRefreshTimerTick;
         Loaded += OnLoaded;
         Closed += OnClosed;
@@ -96,6 +104,7 @@ public partial class MainWindow : Window
         refreshTimer.Stop();
         viewModel.Monitoring.PropertyChanged -= OnMonitoringPropertyChanged;
         viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        monitoringSettingsCoordinator.Dispose();
         soundPlayer.Dispose();
     }
 

@@ -23,6 +23,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly TimeProvider timeProvider;
     private readonly AsyncRelayCommand refreshCommand;
     private readonly RelayCommand toggleFavoritesOnlyCommand;
+    private readonly DisplaySettingsViewModel displaySettings;
     private ThreadListPreferences preferences;
     private IReadOnlyList<ThreadSnapshot> candidateSnapshots = [];
     private ThreadRepositoryStatus lastThreadSourceStatus = ThreadRepositoryStatus.Healthy;
@@ -44,7 +45,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         MonitoringState monitoring,
         ICompletionNotificationObserver? completionObserver = null,
         IThreadListPreferenceStore? preferenceStore = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        DisplaySettingsViewModel? displaySettings = null)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
@@ -52,6 +54,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         this.completionObserver = completionObserver;
         this.preferenceStore = preferenceStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
+        this.displaySettings = displaySettings ?? new DisplaySettingsViewModel();
         preferences = preferenceStore?.Load() ?? new ThreadListPreferences();
         threadRows = new ThreadRowCollection(
             ToggleSubagentsAsync,
@@ -166,7 +169,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             var favoriteIds = new HashSet<string>(
                 preferences.FavoriteThreadIds,
                 StringComparer.Ordinal);
-            int recentLimit = Math.Min(int.MaxValue, 8 + preferences.IgnoredRules.Count);
+            int recentLimit = (int)Math.Min(
+                int.MaxValue,
+                (long)displaySettings.MaximumTaskCount + preferences.IgnoredRules.Count);
             ThreadSnapshotLoadResult result = await Task.Run(
                 () => loader.Load(new ThreadLoadRequest(
                     recentLimit,
@@ -337,7 +342,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private ThreadListResult ApplyListPolicy(DateTimeOffset now)
     {
-        ThreadListResult list = ThreadListPolicy.Evaluate(candidateSnapshots, preferences, 8);
+        ThreadListResult list = ThreadListPolicy.Evaluate(
+            candidateSnapshots,
+            preferences,
+            displaySettings.MaximumTaskCount);
         preferences = list.Preferences;
         expandedThreadIds.IntersectWith(list.VisibleSnapshots.Select(thread => thread.Id));
         threadRows.Reconcile(
