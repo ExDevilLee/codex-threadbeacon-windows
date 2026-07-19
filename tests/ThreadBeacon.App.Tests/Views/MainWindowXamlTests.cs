@@ -30,6 +30,30 @@ public sealed class MainWindowXamlTests
     }
 
     [Fact]
+    public void Toolbar_WindowPinSelectedStateUsesCompleteFilledPinGlyph()
+    {
+        XDocument document = LoadDocument();
+        XElement pinButton = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "Button"
+                && (string?)element.Attribute("Command") == "{Binding WindowPin.ToggleCommand}");
+        XElement selectedTrigger = Assert.Single(
+            pinButton.Descendants(),
+            element => element.Name.LocalName == "DataTrigger"
+                && (string?)element.Attribute("Binding") == "{Binding WindowPin.IsPinned}"
+                && (string?)element.Attribute("Value") == "True"
+                && element.Elements().Any(setter =>
+                    setter.Name.LocalName == "Setter"
+                    && (string?)setter.Attribute("Property") == "Text"));
+        XElement textSetter = Assert.Single(
+            selectedTrigger.Elements(),
+            setter => setter.Name.LocalName == "Setter"
+                && (string?)setter.Attribute("Property") == "Text");
+
+        Assert.Equal("\uE842", (string?)textSetter.Attribute("Value"));
+    }
+
+    [Fact]
     public void TaskRow_MenuAndGlyphsExposeFavoriteBeforePinAndArchiveState()
     {
         XDocument document = LoadDocument();

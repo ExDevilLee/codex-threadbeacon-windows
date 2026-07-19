@@ -120,7 +120,7 @@
                                         Value="{StaticResource SecondaryTextBrush}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
-                                        <Setter Property="Text" Value="&#xE841;" />
+                                        <Setter Property="Text" Value="&#xE842;" />
                                         <Setter Property="Foreground" Value="#0067C0" />
                                     </DataTrigger>
                                 </Style.Triggers>
