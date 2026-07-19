@@ -101,6 +101,17 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Keep centered startup when no valid placement exists and keep settings centered on its owner.
 - [x] Avoid saving minimized/maximized geometry or reacting to runtime display hot-plug changes.
 
+## Phase 10: UI Localization
+
+- [x] Store `System`, `zh-Hans`, and `en` as semantic language preferences.
+- [x] Resolve Chinese system locales to Simplified Chinese and all other locales to English.
+- [x] Apply WPF resource dictionaries immediately without restarting the app.
+- [x] Keep the main window and settings window on one shared observable language state.
+- [x] Localize the settings window, main window headings, toolbar labels, and detail popover titles.
+- [x] Keep task data, Agent aliases, model names, HTTP codes, and raw diagnostics unchanged.
+- [x] Add tests for parsing, fallback, persistence, change notifications, and XAML bindings.
+- [ ] Migrate remaining dynamic status, health, Token, and Subagent row labels through the same service.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

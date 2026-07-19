@@ -1,4 +1,5 @@
 using ThreadBeacon.App.Settings;
+using ThreadBeacon.App.Localization;
 
 namespace ThreadBeacon.App.Tests.Settings;
 
@@ -42,6 +43,18 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.True(saved);
         Assert.Equal(5, settings.RefreshIntervalSeconds);
         Assert.Equal(20, settings.MaximumTaskCount);
+    }
+
+    [Fact]
+    public void SaveAndLoad_RoundTripsLanguagePreference()
+    {
+        var store = Store();
+
+        Assert.True(store.Save(new DisplaySettings(5, 20, language: AppLanguage.English)));
+
+        Assert.Equal(AppLanguage.English, store.Load().Language);
+        Assert.Contains("\"language\": \"en\"", File.ReadAllText(
+            Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
     }
 
     [Fact]

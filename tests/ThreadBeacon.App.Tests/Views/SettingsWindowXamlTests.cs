@@ -17,7 +17,7 @@ public sealed class SettingsWindowXamlTests
             .OfType<string>()
             .ToArray();
 
-        Assert.Equal(["通用", "提示音"], headers);
+        Assert.Equal(["{DynamicResource GeneralTab}", "{DynamicResource SoundsTab}"], headers);
     }
 
     [Fact]
@@ -50,8 +50,18 @@ public sealed class SettingsWindowXamlTests
             .Where(element => element.Name.LocalName == "ComboBox")
             .ToArray();
 
-        Assert.Equal(4, comboBoxes.Length);
+        Assert.Equal(5, comboBoxes.Length);
         Assert.All(comboBoxes, comboBox =>
             Assert.Equal("Center", (string?)comboBox.Attribute("VerticalContentAlignment")));
+    }
+
+    [Fact]
+    public void GeneralTab_BindsLanguagePreference()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Contains("Display.LanguageOptions", markup, StringComparison.Ordinal);
+        Assert.Contains("Display.Language", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource Language}", markup, StringComparison.Ordinal);
     }
 }

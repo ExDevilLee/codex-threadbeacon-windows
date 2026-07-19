@@ -25,8 +25,8 @@ public sealed class MainWindowXamlTests
         XElement favoriteButton = buttons[favoriteIndex];
         string markup = favoriteButton.ToString(SaveOptions.DisableFormatting);
         Assert.Contains("ShowsFavoritesOnly", markup, StringComparison.Ordinal);
-        Assert.Contains("仅显示收藏", markup, StringComparison.Ordinal);
-        Assert.Contains("显示全部任务", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource ShowFavoritesOnly}", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource ShowAllTasks}", markup, StringComparison.Ordinal);
     }
 
     [Fact]

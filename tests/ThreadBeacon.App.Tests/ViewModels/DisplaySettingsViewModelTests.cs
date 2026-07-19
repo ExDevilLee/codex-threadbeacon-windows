@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using ThreadBeacon.App.Settings;
+using ThreadBeacon.App.Localization;
 using ThreadBeacon.App.ViewModels;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
@@ -41,6 +42,21 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Contains(nameof(DisplaySettingsViewModel.RefreshIntervalSeconds), changed);
         Assert.Contains(nameof(DisplaySettingsViewModel.RefreshInterval), changed);
         Assert.Contains(nameof(DisplaySettingsViewModel.MaximumTaskCount), changed);
+    }
+
+    [Fact]
+    public void Language_UpdatesStateAndLocalizedDisplayOptions()
+    {
+        var state = new AppLanguageState(AppLanguage.System, "en-US");
+        var viewModel = new DisplaySettingsViewModel(
+            new MemoryDisplaySettingsStore(new DisplaySettings()),
+            state);
+
+        viewModel.Language = AppLanguage.English;
+
+        Assert.Equal(AppLanguage.English, state.Preference);
+        Assert.Equal("1 sec", viewModel.RefreshIntervalOptions[0].DisplayName);
+        Assert.Equal("4 tasks", viewModel.MaximumTaskCountOptions[0].DisplayName);
     }
 
     [Fact]

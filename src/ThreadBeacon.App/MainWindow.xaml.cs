@@ -35,7 +35,8 @@ public partial class MainWindow : Window
         var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
         var monitoring = new MonitoringState();
         var displaySettings = new DisplaySettingsViewModel(
-            JsonDisplaySettingsStore.CreateDefault());
+            JsonDisplaySettingsStore.CreateDefault(),
+            App.LanguageState);
         soundPlayer = new WavSoundPlaybackService();
         var soundSettings = new SoundSettingsViewModel(
             JsonSoundNotificationSettingsStore.CreateDefault(),

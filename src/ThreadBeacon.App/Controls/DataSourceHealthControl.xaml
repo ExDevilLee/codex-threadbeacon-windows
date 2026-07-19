@@ -78,7 +78,7 @@
                         <TextBlock Grid.Column="2"
                                    FontSize="14"
                                    FontWeight="SemiBold"
-                                   Text="数据源健康" />
+                                   Text="{DynamicResource DataSourceHealth}" />
                         <TextBlock Grid.Column="3"
                                    VerticalAlignment="Center"
                                    FontSize="11"

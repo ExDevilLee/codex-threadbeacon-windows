@@ -13,7 +13,7 @@
                 Padding="0"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
-                AutomationProperties.Name="查看 Subagent 详情"
+                AutomationProperties.Name="{DynamicResource SubagentDetails}"
                 Background="Transparent"
                 BorderBrush="Transparent"
                 BorderThickness="0"
@@ -53,7 +53,7 @@
                 <StackPanel>
                     <TextBlock FontSize="14"
                                FontWeight="SemiBold"
-                               Text="Subagent 详情" />
+                               Text="{DynamicResource SubagentDetails}" />
                     <TextBlock Margin="0,6,0,0"
                                FontSize="12"
                                FontWeight="SemiBold"

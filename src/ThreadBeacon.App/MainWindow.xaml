@@ -44,7 +44,7 @@
                 <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                     <TextBlock FontSize="12"
                                Foreground="{StaticResource SecondaryTextBrush}"
-                               Text="Codex 任务状态" />
+                               Text="{DynamicResource CodexTaskStatus}" />
                     <TextBlock Margin="6,0,0,0"
                                FontFamily="Cascadia Mono, Consolas"
                                FontSize="11"
@@ -66,12 +66,12 @@
                         Command="{Binding ToggleFavoritesOnlyCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="ToolTip" Value="仅显示收藏" />
-                            <Setter Property="AutomationProperties.Name" Value="仅显示收藏" />
+                            <Setter Property="ToolTip" Value="{DynamicResource ShowFavoritesOnly}" />
+                            <Setter Property="AutomationProperties.Name" Value="{DynamicResource ShowFavoritesOnly}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding ShowsFavoritesOnly}" Value="True">
-                                    <Setter Property="ToolTip" Value="显示全部任务" />
-                                    <Setter Property="AutomationProperties.Name" Value="显示全部任务" />
+                                    <Setter Property="ToolTip" Value="{DynamicResource ShowAllTasks}" />
+                                    <Setter Property="AutomationProperties.Name" Value="{DynamicResource ShowAllTasks}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -102,12 +102,12 @@
                         Command="{Binding WindowPin.ToggleCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="ToolTip" Value="钉在最前面" />
-                            <Setter Property="AutomationProperties.Name" Value="钉在最前面" />
+                            <Setter Property="ToolTip" Value="{DynamicResource PinToFront}" />
+                            <Setter Property="AutomationProperties.Name" Value="{DynamicResource PinToFront}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
-                                    <Setter Property="ToolTip" Value="取消钉住" />
-                                    <Setter Property="AutomationProperties.Name" Value="取消钉住" />
+                                    <Setter Property="ToolTip" Value="{DynamicResource Unpin}" />
+                                    <Setter Property="AutomationProperties.Name" Value="{DynamicResource Unpin}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -167,8 +167,8 @@
                         Background="{StaticResource SurfaceBrush}"
                         BorderBrush="{StaticResource ControlBorderBrush}"
                         Click="OnSettingsButtonClick"
-                        ToolTip="设置"
-                        AutomationProperties.Name="设置">
+                        ToolTip="{DynamicResource Settings}"
+                        AutomationProperties.Name="{DynamicResource Settings}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
                                FontSize="15"
                                Foreground="{StaticResource SecondaryTextBrush}"
@@ -217,7 +217,7 @@
                         Background="{StaticResource SurfaceBrush}"
                         BorderBrush="{StaticResource ControlBorderBrush}"
                         Command="{Binding RefreshCommand}"
-                        ToolTip="刷新">
+                        ToolTip="{DynamicResource Refresh}">
                     <TextBlock FontFamily="Segoe Fluent Icons"
                                FontSize="15"
                                Text="&#xE72C;" />
@@ -236,21 +236,21 @@
             <TextBlock Grid.Column="1"
                        FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
-                       Text="状态" />
+                       Text="{DynamicResource Status}" />
             <TextBlock Grid.Column="2"
                        FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
-                       Text="任务" />
+                       Text="{DynamicResource Task}" />
             <TextBlock Grid.Column="3"
                        HorizontalAlignment="Right"
                        FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
-                       Text="累计 Token" />
+                       Text="{DynamicResource TotalToken}" />
             <TextBlock Grid.Column="4"
                        HorizontalAlignment="Right"
                        FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
-                       Text="持续" />
+                       Text="{DynamicResource Duration}" />
         </Grid>
 
         <Grid Grid.Row="3">

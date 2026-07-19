@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:String x:Key="SettingsTitle">ThreadBeacon 设置</sys:String>
+    <sys:String x:Key="GeneralTab">通用</sys:String>
+    <sys:String x:Key="SoundsTab">提示音</sys:String>
+    <sys:String x:Key="RefreshInterval">刷新间隔</sys:String>
+    <sys:String x:Key="RefreshIntervalDescription">调整任务状态的自动刷新频率。</sys:String>
+    <sys:String x:Key="MaximumTaskCount">显示任务数量</sys:String>
+    <sys:String x:Key="MaximumTaskCountDescription">设置主窗口最多显示的任务数。</sys:String>
+    <sys:String x:Key="Language">界面语言</sys:String>
+    <sys:String x:Key="EnableSounds">启用提示音</sys:String>
+    <sys:String x:Key="TaskCompletion">任务完成</sys:String>
+    <sys:String x:Key="ServiceIncident">429/503 服务异常</sys:String>
+    <sys:String x:Key="Preview">试听</sys:String>
+    <sys:String x:Key="CodexTaskStatus">Codex 任务状态</sys:String>
+    <sys:String x:Key="Status">状态</sys:String>
+    <sys:String x:Key="Task">任务</sys:String>
+    <sys:String x:Key="TotalToken">累计 Token</sys:String>
+    <sys:String x:Key="Duration">持续</sys:String>
+    <sys:String x:Key="Settings">设置</sys:String>
+    <sys:String x:Key="Refresh">刷新</sys:String>
+    <sys:String x:Key="PinToFront">钉在最前面</sys:String>
+    <sys:String x:Key="Unpin">取消钉住</sys:String>
+    <sys:String x:Key="ShowFavoritesOnly">仅显示收藏</sys:String>
+    <sys:String x:Key="ShowAllTasks">显示全部任务</sys:String>
+    <sys:String x:Key="ManageIgnored">管理已忽略任务</sys:String>
+    <sys:String x:Key="PauseMonitoring">暂停监听</sys:String>
+    <sys:String x:Key="ResumeMonitoring">恢复监听</sys:String>
+    <sys:String x:Key="DataSourceHealth">数据源健康</sys:String>
+    <sys:String x:Key="TokenDetails">Token 详情</sys:String>
+    <sys:String x:Key="ViewTokenDetails">查看 Token 详情</sys:String>
+    <sys:String x:Key="SubagentDetails">Subagent 详情</sys:String>
+</ResourceDictionary>
