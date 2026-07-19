@@ -388,12 +388,12 @@ git commit -m "feat(sound): bundle original completion tones"
 - Modify: `src/ThreadBeacon.App/MainWindow.xaml.cs`
 - Test: `tests/ThreadBeacon.App.Tests/ViewModels/MainWindowViewModelTests.cs`
 
-- [ ] **Step 1: Add policy coverage before window wiring**
+- [x] **Step 1: Add policy coverage before window wiring**
 
 Keep the existing default/manual refresh assertion as Baseline and the explicit
 automatic call as Notify. Run the application tests before changing the window.
 
-- [ ] **Step 2: Construct sound services in the window**
+- [x] **Step 2: Construct sound services in the window**
 
 Create one JSON store, WAV player, settings view model, and coordinator. Inject the
 coordinator into `MainWindowViewModel`. Assign the settings panel's data context to
@@ -409,7 +409,7 @@ await viewModel.RefreshAsync(RefreshNotificationPolicy.Baseline); // Resume
 
 The bound manual command remains Baseline.
 
-- [ ] **Step 3: Add the speaker button and popover**
+- [x] **Step 3: Add the speaker button and popover**
 
 Insert a 32-by-32 Segoe Fluent Icons speaker button between pin and pause with an
 eight-pixel right margin. Its tooltip and automation name are `提示音设置`.
@@ -430,7 +430,7 @@ Add a `Popup` placed below the speaker, `StaysOpen="False"`, containing a single
 Disable the completion controls when global sounds are disabled. Toggle the popup
 from the speaker click handler; rely on `StaysOpen=False` for outside-click closing.
 
-- [ ] **Step 4: Run all automated verification**
+- [x] **Step 4: Run all automated verification**
 
 Run:
 
@@ -441,14 +441,14 @@ dotnet build ThreadBeacon.slnx -c Release
 
 Expected: all tests pass and the Release build has zero warnings and zero errors.
 
-- [ ] **Step 5: Run the app and inspect interaction**
+- [x] **Step 5: Run the app and inspect interaction**
 
 Launch the Release executable. Verify the toolbar order is pin, sound, pause, refresh;
 the popover closes on outside click; toggles and tone selection persist after restart;
 Preview plays each enabled tone; disabled sounds do not preview; pause/resume still
 works; and content does not overlap at 480-pixel width.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/MainWindow.xaml src/ThreadBeacon.App/MainWindow.xaml.cs tests/ThreadBeacon.App.Tests/ViewModels/MainWindowViewModelTests.cs

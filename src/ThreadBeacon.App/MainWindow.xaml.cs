@@ -2,7 +2,9 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 using ThreadBeacon.App.Settings;
+using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.ViewModels;
+using ThreadBeacon.Core.Notifications;
 using ThreadBeacon.Core.Services;
 
 namespace ThreadBeacon.App;
@@ -11,6 +13,7 @@ public partial class MainWindow : Window
 {
     private readonly MainWindowViewModel viewModel;
     private readonly DispatcherTimer refreshTimer;
+    private readonly WavSoundPlaybackService soundPlayer;
 
     public MainWindow()
     {
@@ -23,8 +26,20 @@ public partial class MainWindow : Window
             new RolloutTailParser());
         var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
         var monitoring = new MonitoringState();
-        viewModel = new MainWindowViewModel(loader, windowPin, monitoring);
+        soundPlayer = new WavSoundPlaybackService();
+        var soundSettings = new SoundSettingsViewModel(
+            JsonSoundNotificationSettingsStore.CreateDefault(),
+            soundPlayer);
+        var completionNotifications = new CompletionNotificationCoordinator(
+            soundSettings,
+            soundPlayer);
+        viewModel = new MainWindowViewModel(
+            loader,
+            windowPin,
+            monitoring,
+            completionNotifications);
         DataContext = viewModel;
+        SoundSettingsPanel.DataContext = soundSettings;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
 
         refreshTimer = new DispatcherTimer(DispatcherPriority.Background)
@@ -38,7 +53,7 @@ public partial class MainWindow : Window
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await viewModel.RefreshAsync();
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Baseline);
         if (viewModel.Monitoring.ShouldAutoRefresh)
         {
             refreshTimer.Start();
@@ -49,7 +64,7 @@ public partial class MainWindow : Window
     {
         if (viewModel.Monitoring.ShouldAutoRefresh)
         {
-            await viewModel.RefreshAsync();
+            await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
         }
     }
 
@@ -66,7 +81,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        await viewModel.RefreshAsync();
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Baseline);
         if (viewModel.Monitoring.ShouldAutoRefresh)
         {
             refreshTimer.Start();
@@ -77,6 +92,10 @@ public partial class MainWindow : Window
     {
         refreshTimer.Stop();
         viewModel.Monitoring.PropertyChanged -= OnMonitoringPropertyChanged;
+        soundPlayer.Dispose();
     }
+
+    private void OnSoundButtonClick(object sender, RoutedEventArgs e) =>
+        SoundSettingsPopup.IsOpen = !SoundSettingsPopup.IsOpen;
 }
 

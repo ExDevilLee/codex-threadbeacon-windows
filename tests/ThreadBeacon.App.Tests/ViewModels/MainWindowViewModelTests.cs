@@ -57,6 +57,20 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task RefreshAsync_DefaultsToBaselineNotificationPolicy()
+    {
+        var observer = new RecordingCompletionObserver();
+        MainWindowViewModel viewModel = CreateViewModel(
+            new MonitoringState(),
+            ThreadRepositoryStatus.Healthy,
+            observer);
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal(RefreshNotificationPolicy.Baseline, observer.LastPolicy);
+    }
+
+    [Fact]
     public async Task RefreshAsync_LoaderFailureDoesNotInvokeNotificationObserver()
     {
         var observer = new RecordingCompletionObserver();
