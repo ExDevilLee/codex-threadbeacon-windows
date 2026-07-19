@@ -320,7 +320,7 @@ git commit -m "feat(sound): notify on automatic completions"
 - Modify: `src/ThreadBeacon.App/ThreadBeacon.App.csproj`
 - Test: `tests/ThreadBeacon.App.Tests/Sounds/WavSoundPlaybackServiceTests.cs`
 
-- [ ] **Step 1: Write failing resource-resolution tests**
+- [x] **Step 1: Write failing resource-resolution tests**
 
 Construct the player with a temporary base directory and assert each enum maps to:
 
@@ -332,7 +332,7 @@ Resources/Sounds/Done-Pulse.wav
 
 Assert `Play` returns false when the file is missing and does not throw.
 
-- [ ] **Step 2: Run focused tests and confirm failure**
+- [x] **Step 2: Run focused tests and confirm failure**
 
 Run:
 
@@ -342,14 +342,14 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 
 Expected: compilation fails because `WavSoundPlaybackService` does not exist.
 
-- [ ] **Step 3: Implement defensive WAV playback**
+- [x] **Step 3: Implement defensive WAV playback**
 
 Resolve a fixed filename from the enum, combine it with the injected or default
 `AppContext.BaseDirectory`, verify existence, and use `System.Media.SoundPlayer` to
 play asynchronously. Keep the active player in a field so it is not collected during
 playback. Catch IO, invalid WAV, and platform/audio exceptions and return `false`.
 
-- [ ] **Step 4: Reuse and bundle the macOS WAV assets**
+- [x] **Step 4: Reuse and bundle the macOS WAV assets**
 
 Copy the three author-owned WAV files from the local macOS reference checkout into
 `src/ThreadBeacon.App/Resources/Sounds`. Add:
@@ -362,7 +362,7 @@ Copy the three author-owned WAV files from the local macOS reference checkout in
 
 Compare SHA-256 hashes with the macOS source files and inspect WAV headers.
 
-- [ ] **Step 5: Run tests and Release build**
+- [x] **Step 5: Run tests and Release build**
 
 Run:
 
@@ -374,7 +374,7 @@ dotnet build ThreadBeacon.slnx -c Release
 Expected: all tests pass; build has zero errors; all three WAV files exist under the
 Release output `Resources\Sounds` directory.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/Sounds src/ThreadBeacon.App/Resources/Sounds src/ThreadBeacon.App/ThreadBeacon.App.csproj tests/ThreadBeacon.App.Tests/Sounds

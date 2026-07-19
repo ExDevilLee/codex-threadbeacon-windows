@@ -19,4 +19,10 @@
     </Resource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Resources\Sounds\*.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
