@@ -20,7 +20,7 @@ The middle header button temporarily pauses or resumes the 2-second automatic mo
 
 The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
 
-The speaker button configures task-completion sounds and provides the same Beacon, Chime, and Pulse built-in tones as the macOS version, including preview playback. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
+The speaker button configures notification sounds and provides the same Beacon, Chime, Pulse, Alert, Resolve, and Knock built-in tones as the macOS version, including preview playback. New installations default to Chime for task completion and Alert for 429/503 incidents; either notification can independently use any of the six sounds. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
 
 The App now also monitors HTTP 429/503 service incidents for currently visible primary tasks. Active retries appear as a yellow “Service incident” with the HTTP status and retry progress; exhausted retries become a red “Service failure.” A later HTTP 200 in the same turn or a newer rollout lifecycle event clears the stale incident. Each incident episode can play one independently configurable warning sound and shares the baseline and 256-entry local derived-ID history with completion events.
 
@@ -87,6 +87,10 @@ Regenerate the ICO in PowerShell:
 ```powershell
 .\script\generate_app_icon.ps1
 ```
+
+## Sound Assets
+
+Beacon, Chime, Pulse, Alert, Resolve, and Knock are short sounds generated deterministically by the author's project scripts; they do not come from a third-party sound pack. Windows reuses the same 44.1 kHz mono 16-bit PCM WAV files as macOS, and the Release build copies them to `Resources/Sounds`.
 
 ## Privacy
 

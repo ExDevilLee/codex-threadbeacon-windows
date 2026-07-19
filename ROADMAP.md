@@ -43,7 +43,8 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Notify only for new completions observed by automatic refresh.
 - [x] Prevent startup, manual refresh, and monitoring resume from replaying history.
 - [x] Coalesce multiple completions in one refresh batch into one sound.
-- [x] Bundle the macOS-aligned Beacon, Chime, and Pulse tones.
+- [x] Bundle the macOS-aligned Beacon, Chime, Pulse, Alert, Resolve, and Knock tones.
+- [x] Default new settings to Chime for completion and Alert for 429/503 incidents while preserving existing selections.
 - [x] Persist sound preferences and bounded derived event history locally.
 
 ## Phase 4: HTTP 429/503 Service Incidents
