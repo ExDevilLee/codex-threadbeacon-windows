@@ -20,17 +20,20 @@ The middle header button temporarily pauses or resumes the 2-second automatic mo
 
 The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
 
+The speaker button configures task-completion sounds and provides the same Beacon, Chime, and Pulse built-in tones as the macOS version, including preview playback. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
+
 The first POC is deliberately limited to:
 
 - Reading the 8 most recent unarchived primary threads and excluding subagents.
 - Using the latest renamed title from `session_index.jsonl`.
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.
+- Playing a configurable built-in sound for new task completions observed by automatic refresh.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 
-Sounds, task pin/ignore rules, subagent expansion, HTTP 429/503 incidents, and the system tray remain deferred.
+Failure/warning incident sounds, task pin/ignore rules, subagent expansion, HTTP 429/503 incidents, and the system tray remain deferred.
 
 ## Technology
 

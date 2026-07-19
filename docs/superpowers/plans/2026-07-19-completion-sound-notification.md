@@ -462,14 +462,14 @@ git commit -m "feat(sound): add completion sound controls"
 - Modify: `README-EN.md`
 - Modify: `ROADMAP.md`
 
-- [ ] **Step 1: Document the completed scope**
+- [x] **Step 1: Document the completed scope**
 
 Add task-completion sound and selectable built-in tones to both READMEs. State that
 startup, manual refresh, and resume do not replay historical completions. Mark only
 the reliable completion-sound milestone complete in ROADMAP; leave warning/failure,
 tray, and service-status sounds unclaimed.
 
-- [ ] **Step 2: Run final verification from a clean process**
+- [x] **Step 2: Run final verification from a clean process**
 
 Close any old app instance, then run:
 
@@ -482,21 +482,21 @@ dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive
 Expected: all tests pass, Release build has zero errors, and no vulnerable packages
 are reported.
 
-- [ ] **Step 3: Perform the mandatory pre-push security review**
+- [x] **Step 3: Perform the mandatory pre-push security review**
 
 Inspect `git status`, the full branch diff against `origin/main`, and tracked files.
 Search added text for private keys, access tokens, credentials, machine-specific
 absolute paths, temporary files, Codex task content, and local settings. Confirm WAV
 files are the three intended author-owned assets and settings contain no user data.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```powershell
 git add README.md README-EN.md ROADMAP.md
 git commit -m "docs: document completion sound notifications"
 ```
 
-- [ ] **Step 5: Push and verify the remote**
+- [x] **Step 5: Push and verify the remote**
 
 ```powershell
 git push origin main

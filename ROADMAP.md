@@ -34,9 +34,18 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Persist the always-on-top selection and restore it after restart.
 - [x] Pause and resume automatic monitoring while keeping manual refresh available.
 
+## Phase 3: Completion Sounds
+
+- [x] Detect reliable task completion events without reading conversation bodies.
+- [x] Notify only for new completions observed by automatic refresh.
+- [x] Prevent startup, manual refresh, and monitoring resume from replaying history.
+- [x] Coalesce multiple completions in one refresh batch into one sound.
+- [x] Bundle the macOS-aligned Beacon, Chime, and Pulse tones.
+- [x] Persist sound preferences and bounded derived event history locally.
+
 ## Deferred
 
-- Completion and incident sounds.
+- Failure, warning, attention, and service-incident sounds.
 - Thread pin and ignore rules.
 - Subagent expansion.
 - HTTP 429/503 incident monitoring.
