@@ -201,6 +201,12 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         }
     }
 
+    public void MarkSubagentLoadFailed()
+    {
+        SetSubagentSourceStatus(ThreadRepositoryStatus.Unavailable);
+        SetSubagentExpanded(isExpanded: true, isLoading: false);
+    }
+
     private void ReconcileSubagents(IReadOnlyList<SubagentSnapshot> snapshots, DateTimeOffset now)
     {
         int previousCount = Subagents.Count;

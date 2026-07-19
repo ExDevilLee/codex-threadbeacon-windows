@@ -172,6 +172,34 @@ public sealed class MainWindowViewModelTests
         Assert.Equal(1, repository.SubagentLoadCount);
     }
 
+    [Fact]
+    public async Task ToggleSubagentsAsync_LoaderExceptionStopsLoadingAndShowsFailure()
+    {
+        var repository = new ExpandableThreadRepository();
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["parent"] = ThreadStatus.Running,
+                ["child"] = ThreadStatus.Idle,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState());
+        await viewModel.RefreshAsync();
+        repository.ThrowOnLoadRecent = true;
+
+        await viewModel.ToggleSubagentsAsync("parent");
+
+        ThreadRowViewModel parent = Assert.Single(viewModel.Threads);
+        Assert.True(parent.IsSubagentExpanded);
+        Assert.False(parent.IsSubagentLoading);
+        Assert.Equal("Subagent 读取失败", parent.SubagentPlaceholderText);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,
@@ -252,14 +280,23 @@ public sealed class MainWindowViewModelTests
 
     private sealed class ExpandableThreadRepository : IThreadRepository
     {
+        public bool ThrowOnLoadRecent { get; set; }
+
         public IReadOnlySet<string>? LastRequestedParentIds { get; private set; }
 
         public int SubagentLoadCount { get; private set; }
 
-        public ThreadLoadResult LoadRecent(int limit = 8) =>
-            new(
+        public ThreadLoadResult LoadRecent(int limit = 8)
+        {
+            if (ThrowOnLoadRecent)
+            {
+                throw new IOException("Unexpected fixture failure.");
+            }
+
+            return new(
                 ThreadRepositoryStatus.Healthy,
                 [new ThreadRecord("parent", "Parent", "parent", Now, 0, 1)]);
+        }
 
         public SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
         {

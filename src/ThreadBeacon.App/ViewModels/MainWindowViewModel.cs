@@ -131,6 +131,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
         catch
         {
+            foreach (ThreadRowViewModel row in Threads.Where(
+                row => expandedThreadIds.Contains(row.Id)))
+            {
+                row.MarkSubagentLoadFailed();
+            }
+
             sourceStatusText = "刷新失败";
             hasSourceError = true;
             OnPropertyChanged(nameof(StatusText));
