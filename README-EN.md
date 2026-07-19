@@ -16,6 +16,8 @@ The WPF App is connected to real local task data. A Win11 read-only concurrent-t
 
 The first window enhancement is complete: the pin button in the top-right keeps ThreadBeacon above other normal windows. The selection is stored locally and restored after restart.
 
+Right-click a primary task to pin or ignore it. Status priority always outranks task pinning, while pinned tasks lead within the same status; a normal ignore rule clears automatically when the task starts a newer turn. When ignored tasks exist, a header button restores one task or all tasks. These local rules store only task IDs, ignore timestamps, and the rule type, never titles, and do not modify Codex data. Task pinning is independent of window always-on-top.
+
 The middle header button temporarily pauses or resumes the 2-second automatic monitoring cycle. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
 
 The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
@@ -38,11 +40,12 @@ The first POC is deliberately limited to:
 - Detecting HTTP 429/503 retries and terminal failures for visible primary tasks from read-only local logs.
 - Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
+- Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 
-Other failure/warning sounds, task pin/ignore rules, Subagent alerts and Token aggregation, and the system tray remain deferred.
+Other failure/warning sounds, Subagent alerts and Token aggregation, and the system tray remain deferred.
 
 ## Technology
 

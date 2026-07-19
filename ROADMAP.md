@@ -57,10 +57,17 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Play one independently configurable warning sound per incident episode.
 - [x] Degrade to normal task monitoring when the log database is unavailable or incompatible.
 
+## Phase 5: Task Pin and Ignore Controls
+
+- [x] Right-click a primary task to pin/unpin or temporarily ignore it.
+- [x] Keep status priority above task pinning and prioritize pins only within the same status.
+- [x] Restore temporary ignores automatically after a newer turn starts.
+- [x] Restore one ignored task or all ignored tasks from the conditional header control.
+- [x] Persist only task IDs, ignore timestamps, and rule types without modifying Codex data.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
-- Thread pin and ignore rules.
 - Subagent alerts, reliable active-child counts, and parent-child Token aggregation.
 - System tray integration.
 - Packaging, signing, and automatic updates.

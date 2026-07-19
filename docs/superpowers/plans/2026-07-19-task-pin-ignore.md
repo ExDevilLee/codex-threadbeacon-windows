@@ -95,7 +95,7 @@ Assert.Equal(["recent", "pinned", "ignored"], result.Threads.Select(x => x.Id));
 - Modify: `ROADMAP.md`
 - Modify: `docs/superpowers/plans/2026-07-19-task-pin-ignore.md`
 
-- [ ] Document task-level pinning, temporary ignore, automatic next-turn restore, recovery controls, stored fields, and the distinction from window always-on-top. Remove the feature from deferred lists without introducing later macOS scope.
-- [ ] Run `dotnet test ThreadBeacon.slnx --configuration Release`, `dotnet build ThreadBeacon.slnx --configuration Release --no-restore`, and `dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive`; require zero failures, warnings, errors, or known vulnerabilities.
+- [x] Document task-level pinning, temporary ignore, automatic next-turn restore, recovery controls, stored fields, and the distinction from window always-on-top. Remove the feature from deferred lists without introducing later macOS scope.
+- [x] Run `dotnet test ThreadBeacon.slnx --configuration Release`, `dotnet build ThreadBeacon.slnx --configuration Release --no-restore`, and `dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive`; require zero failures, warnings, errors, or known vulnerabilities.
 - [ ] Run mandatory tracked-file audits for private keys/tokens, sensitive extensions, personal absolute paths, network APIs, writable SQLite modes, Core write APIs, unexpected binaries, and `git diff --check origin/main...HEAD`.
 - [ ] Commit documentation, repeat the security audit after the final commit, push `main`, fetch the remote, verify `HEAD == origin/main`, and leave the verified Release App running.
