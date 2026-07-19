@@ -8,18 +8,20 @@ ThreadBeacon 只在本机读取以下 Codex 数据：
 - 用户展开主任务时，该主任务直接 Subagent 的标题、昵称、角色、模型、Reasoning effort、更新时间、累计 Token 和 rollout 路径；
 - `session_index.jsonl` 中与当前主任务或已展开直接 Subagent ID 对应的最新 rename 名称；
 - 对应 rollout JSONL 文件尾部最多 2 MiB 中的事件类型、时间戳和 Token 数字字段，用于推导状态和显示 Token 概览。
+- `logs_2.sqlite` 中仅限当前可见主任务 ID、且目标为 `codex_http_client::default_client`、`codex_core::responses_retry` 或 `codex_core::session::turn` 的 HTTP 200/429/503、重试进度和最终 Turn error 日志，用于识别 429/503 episode。
 
-App 不提取用户消息、助手回答正文、reasoning summary、命令、工具输出、文件内容或完整请求，也不读取第二层及更深的子任务。
+App 不提取用户消息、助手回答正文、reasoning summary、命令、工具输出、文件内容或完整请求，也不读取第二层及更深的子任务。`codex_http_client::transport` 明确不在日志白名单中，因为它可能包含完整请求上下文。
 
 ## 数据处理
 
 - SQLite 使用短生命周期、无连接池、只读连接，并启用 `query_only`。
+- 日志正文只在单次刷新查询和解析期间短暂存在；任务快照仅保留 episode ID、429/503 状态码、重试次数/上限、阶段和时间，不保留原始日志正文。
 - 数据只在当前进程内存中用于生成界面状态。
 - App 不上传数据、不启动网络服务、不写入或修改 Codex 数据。
 - 只有当前可见且已展开的主任务会读取直接 Subagent；收起后停止请求这些记录。
 - Subagent 展开状态和子任务元数据不会写入设置或其他持久化文件。
-- App 仅在本地保存窗口置顶状态、提示音设置和最多 256 个派生完成事件 ID；不保存任务标题、正文、Token 详情或 Codex 路径。
+- App 仅在本地保存窗口置顶状态、提示音设置和最多 256 个派生完成/异常事件 ID；不保存任务标题、正文、Token 详情或 Codex 路径。
 
 ## 已知边界
 
-Codex 本地文件格式不是稳定的公开 API，未来版本可能改变表、字段或路径。数据缺失、数据库繁忙或格式不兼容时，ThreadBeacon 会显示降级状态或空结果，不会尝试修复或改写源数据。
+Codex 本地文件格式不是稳定的公开 API，未来版本可能改变表、字段、日志格式或路径。数据缺失、数据库繁忙或格式不兼容时，ThreadBeacon 会显示降级状态或空结果；日志源故障只会暂时停用异常识别，不会让主任务列表失败，也不会尝试修复或改写源数据。

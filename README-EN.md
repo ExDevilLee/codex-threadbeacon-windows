@@ -22,6 +22,8 @@ The info button beside cumulative Token usage shows session total, input, cached
 
 The speaker button configures task-completion sounds and provides the same Beacon, Chime, and Pulse built-in tones as the macOS version, including preview playback. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
 
+The App now also monitors HTTP 429/503 service incidents for currently visible primary tasks. Active retries appear as a yellow “Service incident” with the HTTP status and retry progress; exhausted retries become a red “Service failure.” A later HTTP 200 in the same turn or a newer rollout lifecycle event clears the stale incident. Each incident episode can play one independently configurable warning sound and shares the baseline and 256-entry local derived-ID history with completion events.
+
 A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. Clicking the count expands direct children inline with `Agent alias | title`, derived status, recent activity, and cumulative Token usage. The detail button shows role, model, reasoning effort, and numeric Token fields. Child records and rollout tails are read only for visible expanded parents; collapsing stops those reads. Conversation bodies and deeper descendants are never read or displayed.
 
 The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. Only primary snapshots with the derived `Running` status contribute to the numerator, and the denominator matches the primary snapshots currently displayed. Pausing preserves the last successful count; manual refresh or monitoring resume recalculates it.
@@ -33,13 +35,14 @@ The first POC is deliberately limited to:
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
+- Detecting HTTP 429/503 retries and terminal failures for visible primary tasks from read-only local logs.
 - Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 
-Failure/warning incident sounds, task pin/ignore rules, Subagent alerts and Token aggregation, HTTP 429/503 incidents, and the system tray remain deferred.
+Other failure/warning sounds, task pin/ignore rules, Subagent alerts and Token aggregation, and the system tray remain deferred.
 
 ## Technology
 
@@ -86,6 +89,8 @@ Regenerate the ICO in PowerShell:
 ```
 
 ## Privacy
+
+Service-incident monitoring transiently parses only three allow-listed log targets and retains only the turn episode ID, HTTP status, retry progress, phase, and timestamp. It explicitly excludes transport logs that may contain request context. Conversation messages, responses, reasoning summaries, and complete requests are never read or displayed.
 
 See [PRIVACY.md](PRIVACY.md) for the exact local data scope and processing boundaries.
 

@@ -46,11 +46,20 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Bundle the macOS-aligned Beacon, Chime, and Pulse tones.
 - [x] Persist sound preferences and bounded derived event history locally.
 
+## Phase 4: HTTP 429/503 Service Incidents
+
+- [x] Query only visible primary task IDs from `logs_2.sqlite` with a strict target and event allow-list.
+- [x] Parse retry episodes without retaining raw log bodies in task snapshots.
+- [x] Show active retries as warnings and exhausted retries as failures with HTTP/retry detail.
+- [x] Clear stale incidents after same-turn recovery or newer rollout lifecycle evidence.
+- [x] Suppress misleading completion sounds while an incident is active.
+- [x] Play one independently configurable warning sound per incident episode.
+- [x] Degrade to normal task monitoring when the log database is unavailable or incompatible.
+
 ## Deferred
 
-- Failure, warning, attention, and service-incident sounds.
+- Other failure, warning, and attention sounds.
 - Thread pin and ignore rules.
 - Subagent alerts, reliable active-child counts, and parent-child Token aggregation.
-- HTTP 429/503 incident monitoring.
 - System tray integration.
 - Packaging, signing, and automatic updates.
