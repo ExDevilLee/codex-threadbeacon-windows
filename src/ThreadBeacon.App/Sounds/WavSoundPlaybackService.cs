@@ -20,6 +20,9 @@ public sealed class WavSoundPlaybackService : ISoundPlaybackService, IDisposable
             CompletionSound.Beacon => "Done-Beacon.wav",
             CompletionSound.Chime => "Done-Chime.wav",
             CompletionSound.Pulse => "Done-Pulse.wav",
+            CompletionSound.Alert => "Done-Alert.wav",
+            CompletionSound.Resolve => "Done-Resolve.wav",
+            CompletionSound.Knock => "Done-Knock.wav",
             _ => throw new ArgumentOutOfRangeException(nameof(sound)),
         };
 

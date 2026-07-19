@@ -12,6 +12,9 @@ public sealed class WavSoundPlaybackServiceTests : IDisposable
     [InlineData(CompletionSound.Beacon, "Done-Beacon.wav")]
     [InlineData(CompletionSound.Chime, "Done-Chime.wav")]
     [InlineData(CompletionSound.Pulse, "Done-Pulse.wav")]
+    [InlineData(CompletionSound.Alert, "Done-Alert.wav")]
+    [InlineData(CompletionSound.Resolve, "Done-Resolve.wav")]
+    [InlineData(CompletionSound.Knock, "Done-Knock.wav")]
     public void GetSoundPath_MapsBundledSoundFile(
         CompletionSound sound,
         string expectedFileName)
