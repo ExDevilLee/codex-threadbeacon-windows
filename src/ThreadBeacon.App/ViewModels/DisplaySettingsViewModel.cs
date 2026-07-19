@@ -5,22 +5,45 @@ using ThreadBeacon.App.Localization;
 
 namespace ThreadBeacon.App.ViewModels;
 
-public sealed record DisplaySettingOption(int Value, string DisplayName);
+public sealed class DisplaySettingOption : INotifyPropertyChanged
+{
+    private string displayName;
+
+    public DisplaySettingOption(int value, string displayName)
+    {
+        Value = value;
+        this.displayName = displayName;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public int Value { get; }
+
+    public string DisplayName
+    {
+        get => displayName;
+        private set
+        {
+            if (displayName == value)
+            {
+                return;
+            }
+
+            displayName = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+        }
+    }
+
+    internal void SetDisplayName(string value) => DisplayName = value;
+}
 public sealed record LanguageSettingOption(AppLanguage Value, string DisplayName);
 
 public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
 {
-    private static readonly IReadOnlyList<DisplaySettingOption> RefreshOptions =
-        DisplaySettings.SupportedRefreshIntervalSeconds
-            .Select(value => new DisplaySettingOption(value, $"{value} 秒"))
-            .ToArray();
-    private static readonly IReadOnlyList<DisplaySettingOption> TaskCountOptions =
-        DisplaySettings.SupportedMaximumTaskCounts
-            .Select(value => new DisplaySettingOption(value, $"{value} 个"))
-            .ToArray();
-
     private readonly IDisplaySettingsStore? settingsStore;
     private readonly AppLanguageState? languageState;
+    private readonly IReadOnlyList<DisplaySettingOption> refreshOptions;
+    private readonly IReadOnlyList<DisplaySettingOption> taskCountOptions;
     private DisplaySettings settings;
 
     public DisplaySettingsViewModel(
@@ -30,6 +53,13 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         this.settingsStore = settingsStore;
         this.languageState = languageState;
         settings = settingsStore?.Load() ?? new DisplaySettings();
+        refreshOptions = DisplaySettings.SupportedRefreshIntervalSeconds
+            .Select(value => new DisplaySettingOption(value, string.Empty))
+            .ToArray();
+        taskCountOptions = DisplaySettings.SupportedMaximumTaskCounts
+            .Select(value => new DisplaySettingOption(value, string.Empty))
+            .ToArray();
+        UpdateLocalizedOptionNames();
         if (languageState is not null)
         {
             languageState.Changed += OnLanguageChanged;
@@ -38,21 +68,9 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public IReadOnlyList<DisplaySettingOption> RefreshIntervalOptions =>
-        RefreshOptions.Select(option => option with
-        {
-            DisplayName = AppLanguageText.RefreshSeconds(
-                languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese,
-                option.Value),
-        }).ToArray();
+    public IReadOnlyList<DisplaySettingOption> RefreshIntervalOptions => refreshOptions;
 
-    public IReadOnlyList<DisplaySettingOption> MaximumTaskCountOptions =>
-        TaskCountOptions.Select(option => option with
-        {
-            DisplayName = AppLanguageText.TaskCount(
-                languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese,
-                option.Value),
-        }).ToArray();
+    public IReadOnlyList<DisplaySettingOption> MaximumTaskCountOptions => taskCountOptions;
 
     public IReadOnlyList<LanguageSettingOption> LanguageOptions =>
     [
@@ -131,9 +149,21 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
+        UpdateLocalizedOptionNames();
         OnPropertyChanged(nameof(Language));
-        OnPropertyChanged(nameof(LanguageOptions));
-        OnPropertyChanged(nameof(RefreshIntervalOptions));
-        OnPropertyChanged(nameof(MaximumTaskCountOptions));
+    }
+
+    private void UpdateLocalizedOptionNames()
+    {
+        AppLanguage language = languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese;
+        foreach (DisplaySettingOption option in refreshOptions)
+        {
+            option.SetDisplayName(AppLanguageText.RefreshSeconds(language, option.Value));
+        }
+
+        foreach (DisplaySettingOption option in taskCountOptions)
+        {
+            option.SetDisplayName(AppLanguageText.TaskCount(language, option.Value));
+        }
     }
 }

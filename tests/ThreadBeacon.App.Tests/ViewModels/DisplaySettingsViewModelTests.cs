@@ -60,6 +60,24 @@ public sealed class DisplaySettingsViewModelTests
     }
 
     [Fact]
+    public void LanguageChange_UpdatesExistingDisplayOptionInstances()
+    {
+        var state = new AppLanguageState(AppLanguage.SimplifiedChinese, "zh-CN");
+        var viewModel = new DisplaySettingsViewModel(
+            new MemoryDisplaySettingsStore(new DisplaySettings()),
+            state);
+        DisplaySettingOption refreshOption = viewModel.RefreshIntervalOptions[0];
+        DisplaySettingOption taskOption = viewModel.MaximumTaskCountOptions[0];
+
+        viewModel.Language = AppLanguage.English;
+
+        Assert.Same(refreshOption, viewModel.RefreshIntervalOptions[0]);
+        Assert.Same(taskOption, viewModel.MaximumTaskCountOptions[0]);
+        Assert.Equal("1 sec", refreshOption.DisplayName);
+        Assert.Equal("4 tasks", taskOption.DisplayName);
+    }
+
+    [Fact]
     public void Setter_WhenSaveFails_KeepsCurrentProcessValue()
     {
         var store = new MemoryDisplaySettingsStore(new DisplaySettings(), saveResult: false);
