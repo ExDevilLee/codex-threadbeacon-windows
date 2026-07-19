@@ -114,7 +114,7 @@ git commit -m "feat(subagent): expose count badge state"
 **Files:**
 - Modify: `src/ThreadBeacon.App/MainWindow.xaml`
 
-- [ ] **Step 1: Replace the title cell with a two-column layout**
+- [x] **Step 1: Replace the title cell with a two-column layout**
 
 Keep the outer task-row columns unchanged. In column 2 use:
 
@@ -151,7 +151,7 @@ Keep the outer task-row columns unchanged. In column 2 use:
 </Grid>
 ```
 
-- [ ] **Step 2: Run all tests and Release build**
+- [x] **Step 2: Run all tests and Release build**
 
 Close the running Release instance, then run:
 
@@ -163,14 +163,14 @@ dotnet build ThreadBeacon.slnx -c Release
 Expected: Core and application tests pass; Release build has zero warnings and zero
 errors.
 
-- [ ] **Step 3: Inspect runtime layout**
+- [x] **Step 3: Inspect runtime layout**
 
 Launch the Release executable and verify tasks with a positive direct count show the
 branch icon and exact number; zero-count tasks reserve no space; tooltip and
 accessibility name contain `N 个 Subagent`; long titles, count, Token info, and
 duration do not overlap at 620px or 480px.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/MainWindow.xaml

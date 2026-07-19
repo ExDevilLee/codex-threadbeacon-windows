@@ -217,13 +217,36 @@
                                            VerticalAlignment="Center"
                                            FontSize="12"
                                            Text="{Binding StatusLabel}" />
-                                <TextBlock Grid.Column="2"
-                                           Margin="0,0,12,0"
-                                           VerticalAlignment="Center"
-                                           FontSize="13"
-                                           Text="{Binding Title}"
-                                           TextTrimming="CharacterEllipsis"
-                                           ToolTip="{Binding Title}" />
+                                <Grid Grid.Column="2" Margin="0,0,12,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontSize="13"
+                                               Text="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Title}" />
+                                    <StackPanel Grid.Column="1"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                ToolTip="{Binding SubagentAccessibilityLabel}"
+                                                AutomationProperties.Name="{Binding SubagentAccessibilityLabel}"
+                                                Visibility="{Binding HasSubagents, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontFamily="Segoe Fluent Icons"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Text="&#xE8AC;" />
+                                        <TextBlock Margin="3,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="Cascadia Mono, Consolas"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Text="{Binding SubagentCountText}" />
+                                    </StackPanel>
+                                </Grid>
                                 <StackPanel Grid.Column="3"
                                             HorizontalAlignment="Right"
                                             VerticalAlignment="Center"
