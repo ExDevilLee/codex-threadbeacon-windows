@@ -113,7 +113,7 @@ git commit -m "feat(ui): format header thread count"
 - Modify: `src/ThreadBeacon.App/ViewModels/MainWindowViewModel.cs`
 - Modify: `src/ThreadBeacon.App/MainWindow.xaml`
 
-- [ ] **Step 1: Write failing view-model refresh tests**
+- [x] **Step 1: Write failing view-model refresh tests**
 
 Use a loader that returns two `Running` snapshots and one `Idle` snapshot. Assert:
 
@@ -129,7 +129,7 @@ Assert.Equal(
 Use a mutable repository that succeeds once, then throws. Assert the second refresh
 keeps the first successful label rather than clearing it.
 
-- [ ] **Step 2: Run focused tests and confirm failure**
+- [x] **Step 2: Run focused tests and confirm failure**
 
 ```powershell
 dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter MainWindowViewModelTests
@@ -137,7 +137,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 
 Expected: compilation fails because the count properties do not exist.
 
-- [ ] **Step 3: Update the label only after successful reconciliation**
+- [x] **Step 3: Update the label only after successful reconciliation**
 
 Initialize:
 
@@ -156,7 +156,7 @@ After `threadRows.Reconcile`, format `result.Threads.Select(thread => thread.Sta
 When the record changes, assign it and raise both property names. Do not change the
 label in the existing catch block.
 
-- [ ] **Step 4: Add the subtitle count**
+- [x] **Step 4: Add the subtitle count**
 
 Replace the subtitle `TextBlock` with:
 
@@ -175,7 +175,7 @@ Replace the subtitle `TextBlock` with:
 </StackPanel>
 ```
 
-- [ ] **Step 5: Run all tests and Release build**
+- [x] **Step 5: Run all tests and Release build**
 
 Close the running Release instance, then run:
 
@@ -187,13 +187,13 @@ dotnet build ThreadBeacon.slnx -c Release
 Expected: Core and application tests pass; build reports zero warnings and zero
 errors.
 
-- [ ] **Step 6: Inspect runtime behavior**
+- [x] **Step 6: Inspect runtime behavior**
 
 Launch the Release executable. Verify the count matches visible running rows, remains
 stable while paused, updates after resume/manual refresh, exposes the explanation in
 the accessibility tree, and does not overlap controls at 620px or 480px.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/ViewModels/MainWindowViewModel.cs src/ThreadBeacon.App/MainWindow.xaml tests/ThreadBeacon.App.Tests/ViewModels/MainWindowViewModelTests.cs

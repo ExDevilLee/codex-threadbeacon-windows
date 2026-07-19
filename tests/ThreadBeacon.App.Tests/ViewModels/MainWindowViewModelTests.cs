@@ -9,6 +9,8 @@ namespace ThreadBeacon.App.Tests.ViewModels;
 
 public sealed class MainWindowViewModelTests
 {
+    private static readonly DateTimeOffset Now = new(2026, 7, 19, 12, 0, 0, TimeSpan.Zero);
+
     [Fact]
     public async Task MonitoringPause_ShowsLastUpdateWithoutBlockingManualRefresh()
     {
@@ -71,6 +73,54 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task RefreshAsync_UpdatesHeaderThreadCountAfterSuccessfulLoad()
+    {
+        var repository = new MutableThreadRepository(
+            [Record("running-1"), Record("running-2"), Record("idle")]);
+        MainWindowViewModel viewModel = CreateCountViewModel(
+            repository,
+            new Dictionary<string, ThreadStatus>
+            {
+                ["running-1"] = ThreadStatus.Running,
+                ["running-2"] = ThreadStatus.Running,
+                ["idle"] = ThreadStatus.Idle,
+            });
+
+        Assert.Equal("0/0", viewModel.ThreadCountText);
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal("2/3", viewModel.ThreadCountText);
+        Assert.Equal(
+            "2 个任务正在运行，共显示 3 个任务",
+            viewModel.ThreadCountAccessibilityLabel);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_FailurePreservesLastSuccessfulHeaderThreadCount()
+    {
+        var repository = new MutableThreadRepository(
+            [Record("running"), Record("idle")]);
+        MainWindowViewModel viewModel = CreateCountViewModel(
+            repository,
+            new Dictionary<string, ThreadStatus>
+            {
+                ["running"] = ThreadStatus.Running,
+                ["idle"] = ThreadStatus.Idle,
+            });
+
+        await viewModel.RefreshAsync();
+        repository.ThrowOnLoad = true;
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal("1/2", viewModel.ThreadCountText);
+        Assert.Equal(
+            "1 个任务正在运行，共显示 2 个任务",
+            viewModel.ThreadCountAccessibilityLabel);
+    }
+
+    [Fact]
     public async Task RefreshAsync_LoaderFailureDoesNotInvokeNotificationObserver()
     {
         var observer = new RecordingCompletionObserver();
@@ -102,6 +152,24 @@ public sealed class MainWindowViewModelTests
         return new MainWindowViewModel(loader, windowPin, monitoring, observer);
     }
 
+    private static MainWindowViewModel CreateCountViewModel(
+        MutableThreadRepository repository,
+        IReadOnlyDictionary<string, ThreadStatus> statuses)
+    {
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(statuses),
+            new FixedTimeProvider(Now));
+        return new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState());
+    }
+
+    private static ThreadRecord Record(string id) =>
+        new(id, id, id, Now, 0, 0);
+
     private sealed class FakeThreadRepository(ThreadRepositoryStatus status)
         : IThreadRepository
     {
@@ -131,6 +199,39 @@ public sealed class MainWindowViewModelTests
     {
         public ThreadLoadResult LoadRecent(int limit = 8) =>
             throw new IOException("Database unavailable.");
+    }
+
+    private sealed class MutableThreadRepository(IReadOnlyList<ThreadRecord> records)
+        : IThreadRepository
+    {
+        public bool ThrowOnLoad { get; set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8)
+        {
+            if (ThrowOnLoad)
+            {
+                throw new IOException("Database unavailable.");
+            }
+
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+    }
+
+    private sealed class StatusRolloutParser(
+        IReadOnlyDictionary<string, ThreadStatus> statuses) : IRolloutTailParser
+    {
+        public RolloutLoadResult Parse(string filePath)
+        {
+            ThreadStatus status = statuses[filePath];
+            return new RolloutLoadResult(
+                RolloutSourceStatus.Healthy,
+                new RolloutObservation(status, Now, Now, null, null, null));
+        }
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 
     private sealed class RecordingCompletionObserver : ICompletionNotificationObserver

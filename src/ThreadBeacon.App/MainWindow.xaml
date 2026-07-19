@@ -41,10 +41,18 @@
 
             <StackPanel Grid.Column="2">
                 <TextBlock FontSize="20" FontWeight="SemiBold" Text="ThreadBeacon" />
-                <TextBlock Margin="0,2,0,0"
-                           FontSize="12"
-                           Foreground="{StaticResource SecondaryTextBrush}"
-                           Text="Codex 任务状态" />
+                <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
+                    <TextBlock FontSize="12"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Text="Codex 任务状态" />
+                    <TextBlock Margin="6,0,0,0"
+                               FontFamily="Cascadia Mono, Consolas"
+                               FontSize="11"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Text="{Binding ThreadCountText}"
+                               ToolTip="{Binding ThreadCountAccessibilityLabel}"
+                               AutomationProperties.Name="{Binding ThreadCountAccessibilityLabel}" />
+                </StackPanel>
             </StackPanel>
 
             <StackPanel Grid.Column="3" Orientation="Horizontal">

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using ThreadBeacon.App.Commands;
+using ThreadBeacon.App.Formatting;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.Core.Models;
 using ThreadBeacon.Core.Notifications;
@@ -17,6 +18,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly ICompletionNotificationObserver? completionObserver;
     private readonly AsyncRelayCommand refreshCommand;
+    private ThreadCountLabel threadCountLabel = ThreadCountFormatter.Format([]);
     private bool isRefreshing;
     private string sourceStatusText = "准备监听";
     private string updatedText = string.Empty;
@@ -52,6 +54,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public MonitoringState Monitoring { get; }
 
     public AsyncRelayCommand RefreshCommand => refreshCommand;
+
+    public string ThreadCountText => threadCountLabel.DisplayText;
+
+    public string ThreadCountAccessibilityLabel => threadCountLabel.AccessibilityLabel;
 
     public bool IsRefreshing
     {
@@ -135,9 +141,23 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void ReplaceThreads(ThreadSnapshotLoadResult result)
     {
         threadRows.Reconcile(result.Threads, result.RefreshedAt);
+        SetThreadCountLabel(ThreadCountFormatter.Format(
+            result.Threads.Select(thread => thread.Status)));
 
         OnPropertyChanged(nameof(EmptyVisibility));
         OnPropertyChanged(nameof(ListVisibility));
+    }
+
+    private void SetThreadCountLabel(ThreadCountLabel value)
+    {
+        if (threadCountLabel == value)
+        {
+            return;
+        }
+
+        threadCountLabel = value;
+        OnPropertyChanged(nameof(ThreadCountText));
+        OnPropertyChanged(nameof(ThreadCountAccessibilityLabel));
     }
 
     private static string GetStatusText(ThreadSnapshotLoadResult result)
