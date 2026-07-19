@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 using ThreadBeacon.App.Settings;
@@ -21,8 +22,10 @@ public partial class MainWindow : Window
             new SessionIndexTitleRepository(paths.SessionIndex),
             new RolloutTailParser());
         var windowPin = new WindowPinState(JsonAppSettingsStore.CreateDefault());
-        viewModel = new MainWindowViewModel(loader, windowPin);
+        var monitoring = new MonitoringState();
+        viewModel = new MainWindowViewModel(loader, windowPin, monitoring);
         DataContext = viewModel;
+        monitoring.PropertyChanged += OnMonitoringPropertyChanged;
 
         refreshTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
@@ -36,17 +39,44 @@ public partial class MainWindow : Window
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         await viewModel.RefreshAsync();
-        refreshTimer.Start();
+        if (viewModel.Monitoring.ShouldAutoRefresh)
+        {
+            refreshTimer.Start();
+        }
     }
 
     private async void OnRefreshTimerTick(object? sender, EventArgs e)
     {
+        if (viewModel.Monitoring.ShouldAutoRefresh)
+        {
+            await viewModel.RefreshAsync();
+        }
+    }
+
+    private async void OnMonitoringPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not nameof(MonitoringState.IsPaused))
+        {
+            return;
+        }
+
+        if (viewModel.Monitoring.IsPaused)
+        {
+            refreshTimer.Stop();
+            return;
+        }
+
         await viewModel.RefreshAsync();
+        if (viewModel.Monitoring.ShouldAutoRefresh)
+        {
+            refreshTimer.Start();
+        }
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         refreshTimer.Stop();
+        viewModel.Monitoring.PropertyChanged -= OnMonitoringPropertyChanged;
     }
 }
 

@@ -86,6 +86,42 @@
 
                 <Button Width="32"
                         Height="32"
+                        Margin="0,0,8,0"
+                        Padding="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Command="{Binding Monitoring.ToggleCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="ToolTip" Value="暂停监听" />
+                            <Setter Property="AutomationProperties.Name" Value="暂停监听" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Monitoring.IsPaused}" Value="True">
+                                    <Setter Property="ToolTip" Value="恢复监听" />
+                                    <Setter Property="AutomationProperties.Name" Value="恢复监听" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <TextBlock FontFamily="Segoe Fluent Icons" FontSize="15">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="&#xE769;" />
+                                <Setter Property="Foreground"
+                                        Value="{StaticResource SecondaryTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Monitoring.IsPaused}" Value="True">
+                                        <Setter Property="Text" Value="&#xE768;" />
+                                        <Setter Property="Foreground" Value="#0067C0" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Button>
+
+                <Button Width="32"
+                        Height="32"
                         Padding="0"
                         Background="{StaticResource SurfaceBrush}"
                         BorderBrush="{StaticResource ControlBorderBrush}"
