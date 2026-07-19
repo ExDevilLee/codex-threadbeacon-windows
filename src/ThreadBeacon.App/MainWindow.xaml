@@ -9,6 +9,7 @@
         MinWidth="480"
         MinHeight="340"
         Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}"
         TextOptions.TextFormattingMode="Display"
         Topmost="{Binding WindowPin.IsPinned}"
         WindowStartupLocation="CenterScreen">
@@ -254,8 +255,9 @@
         </Grid>
 
         <Grid Grid.Row="3">
-            <ListBox ItemsSource="{Binding Threads}"
-                     Visibility="{Binding ListVisibility}"
+        <ListBox ItemsSource="{Binding Threads}"
+                 Foreground="{DynamicResource PrimaryTextBrush}"
+                 Visibility="{Binding ListVisibility}"
                      Background="{DynamicResource SurfaceBrush}"
                      BorderBrush="{DynamicResource ControlBorderBrush}"
                      BorderThickness="1"

@@ -50,6 +50,40 @@ public sealed class ThemeResourceTests
         }
     }
 
+    [Fact]
+    public void UserInterfaceRoots_InheritTheThemePrimaryForeground()
+    {
+        string[] files =
+        [
+            "MainWindow.xaml",
+            "SettingsWindow.xaml",
+            Path.Combine("Controls", "DataSourceHealthControl.xaml"),
+            Path.Combine("Controls", "SubagentInfoControl.xaml"),
+            Path.Combine("Controls", "TokenInfoControl.xaml"),
+        ];
+
+        foreach (string file in files)
+        {
+            XDocument document = XDocument.Load(Path.Combine(AppRoot, file));
+            Assert.Equal(
+                "{DynamicResource PrimaryTextBrush}",
+                (string?)document.Root!.Attribute("Foreground"));
+        }
+    }
+
+    [Fact]
+    public void MainTaskList_InheritsTheThemePrimaryForeground()
+    {
+        XDocument document = XDocument.Load(Path.Combine(AppRoot, "MainWindow.xaml"));
+        XElement listView = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "ListBox");
+
+        Assert.Equal(
+            "{DynamicResource PrimaryTextBrush}",
+            (string?)listView.Attribute("Foreground"));
+    }
+
     private static string[] ResourceKeys(params string[] path)
     {
         XDocument document = XDocument.Load(Path.Combine([AppRoot, .. path]));

@@ -4,6 +4,7 @@
              x:Name="Root"
              Width="16"
              Height="16"
+             Foreground="{DynamicResource PrimaryTextBrush}"
              Focusable="False"
              Unloaded="OnUnloaded">
     <Grid>
