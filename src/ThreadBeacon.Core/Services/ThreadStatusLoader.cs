@@ -73,7 +73,8 @@ public sealed class ThreadStatusLoader
         var activeVisibleIds = new HashSet<string>(
             records.Where(record => !record.IsArchived).Select(record => record.Id),
             StringComparer.Ordinal);
-        IReadOnlyDictionary<string, ServiceIncident> incidents = LoadIncidents(activeVisibleIds);
+        ServiceLogLoadResult incidentResult = LoadIncidents(activeVisibleIds);
+        IReadOnlyDictionary<string, ServiceIncident> incidents = incidentResult.Incidents;
         var requestedParentIds = new HashSet<string>(StringComparer.Ordinal);
         requestedParentIds.UnionWith(request.ExpandedThreadIds.Where(activeVisibleIds.Contains));
 
@@ -100,11 +101,24 @@ public sealed class ThreadStatusLoader
             .ThenBy(snapshot => snapshot.Id, StringComparer.Ordinal)
             .ToArray();
 
+        DataSourceHealthReport health = CreateHealthReport(
+            recentResult.Status,
+            includedResult.Status,
+            request.IncludedThreadIds.Count > 0,
+            favoriteResult.Status,
+            favoriteThreadIds.Count > 0,
+            subagentResult.Status,
+            requestedParentIds.Count > 0,
+            titleResult.Status,
+            snapshots,
+            incidentResult.Status);
+
         return new ThreadSnapshotLoadResult(
             threadStatus,
             titleResult.Status,
             snapshots,
-            now);
+            now,
+            health);
     }
 
     private ThreadSnapshot CreateSnapshot(
@@ -177,23 +191,139 @@ public sealed class ThreadStatusLoader
             record.IsArchived);
     }
 
-    private IReadOnlyDictionary<string, ServiceIncident> LoadIncidents(
+    private ServiceLogLoadResult LoadIncidents(
         IReadOnlySet<string> visibleIds)
     {
         if (logEventRepository is null || visibleIds.Count == 0)
         {
-            return new Dictionary<string, ServiceIncident>(StringComparer.Ordinal);
+            return EmptyServiceLogResult(ServiceLogSourceStatus.NotUsed);
         }
 
         try
         {
-            return logEventRepository.LoadLatestIncidents(visibleIds).Incidents;
+            return logEventRepository.LoadLatestIncidents(visibleIds);
         }
         catch (Exception)
         {
-            return new Dictionary<string, ServiceIncident>(StringComparer.Ordinal);
+            return EmptyServiceLogResult(ServiceLogSourceStatus.Unavailable);
         }
     }
+
+    private static DataSourceHealthReport CreateHealthReport(
+        ThreadRepositoryStatus recentStatus,
+        ThreadRepositoryStatus includedStatus,
+        bool includedWasUsed,
+        ThreadRepositoryStatus favoriteStatus,
+        bool favoriteWasUsed,
+        ThreadRepositoryStatus subagentStatus,
+        bool subagentWasUsed,
+        SessionIndexStatus titleStatus,
+        IReadOnlyList<ThreadSnapshot> snapshots,
+        ServiceLogSourceStatus serviceLogStatus)
+    {
+        RolloutSourceStatus[] rolloutStatuses = snapshots
+            .SelectMany(snapshot => snapshot.Subagents
+                .Select(subagent => subagent.RolloutSourceStatus)
+                .Prepend(snapshot.RolloutSourceStatus))
+            .ToArray();
+        int rolloutSuccessCount = rolloutStatuses.Count(
+            status => status is RolloutSourceStatus.Healthy);
+        int rolloutFailureCount = rolloutStatuses.Length - rolloutSuccessCount;
+
+        return new DataSourceHealthReport(
+            TaskDatabaseHealth(
+                recentStatus,
+                includedStatus,
+                includedWasUsed,
+                favoriteStatus,
+                favoriteWasUsed,
+                subagentStatus,
+                subagentWasUsed),
+            RenameHealth(titleStatus),
+            RolloutHealth(rolloutSuccessCount, rolloutFailureCount),
+            ServiceLogHealth(serviceLogStatus),
+            rolloutSuccessCount,
+            rolloutFailureCount,
+            null);
+    }
+
+    private static DataSourceHealthStatus TaskDatabaseHealth(
+        ThreadRepositoryStatus recentStatus,
+        ThreadRepositoryStatus includedStatus,
+        bool includedWasUsed,
+        ThreadRepositoryStatus favoriteStatus,
+        bool favoriteWasUsed,
+        ThreadRepositoryStatus subagentStatus,
+        bool subagentWasUsed)
+    {
+        if (recentStatus is not ThreadRepositoryStatus.Healthy)
+        {
+            return DataSourceHealthStatus.Unavailable(ThreadRepositoryDetail(recentStatus));
+        }
+
+        ThreadRepositoryStatus[] usedSupplementalStatuses =
+        [
+            includedWasUsed ? includedStatus : ThreadRepositoryStatus.Healthy,
+            favoriteWasUsed ? favoriteStatus : ThreadRepositoryStatus.Healthy,
+            subagentWasUsed ? subagentStatus : ThreadRepositoryStatus.Healthy,
+        ];
+        ThreadRepositoryStatus supplementalFailure = FirstUnhealthyStatus(
+            usedSupplementalStatuses);
+        return supplementalFailure is ThreadRepositoryStatus.Healthy
+            ? DataSourceHealthStatus.Healthy
+            : DataSourceHealthStatus.Degraded(ThreadRepositoryDetail(supplementalFailure));
+    }
+
+    private static string ThreadRepositoryDetail(ThreadRepositoryStatus status) => status switch
+    {
+        ThreadRepositoryStatus.Missing => "未找到 Codex 任务数据库",
+        ThreadRepositoryStatus.Busy => "Codex 任务数据库正忙",
+        ThreadRepositoryStatus.Incompatible => "Codex 任务数据库格式暂不兼容",
+        ThreadRepositoryStatus.Unavailable => "Codex 任务数据库暂不可用",
+        _ => "Codex 任务数据库正常",
+    };
+
+    private static DataSourceHealthStatus RenameHealth(SessionIndexStatus status) => status switch
+    {
+        SessionIndexStatus.Healthy => DataSourceHealthStatus.Healthy,
+        SessionIndexStatus.Missing => DataSourceHealthStatus.Unavailable("未找到 Rename 索引"),
+        SessionIndexStatus.Incompatible =>
+            DataSourceHealthStatus.Unavailable("Rename 索引格式暂不兼容"),
+        _ => DataSourceHealthStatus.Unavailable("Rename 索引暂不可用"),
+    };
+
+    private static DataSourceHealthStatus RolloutHealth(int successCount, int failureCount)
+    {
+        if (successCount == 0 && failureCount == 0)
+        {
+            return DataSourceHealthStatus.NotUsed;
+        }
+
+        if (failureCount == 0)
+        {
+            return DataSourceHealthStatus.Healthy;
+        }
+
+        return successCount == 0
+            ? DataSourceHealthStatus.Unavailable("Rollout 数据不可用")
+            : DataSourceHealthStatus.Degraded("部分 Rollout 无法读取");
+    }
+
+    private static DataSourceHealthStatus ServiceLogHealth(
+        ServiceLogSourceStatus status) => status switch
+    {
+        ServiceLogSourceStatus.Healthy => DataSourceHealthStatus.Healthy,
+        ServiceLogSourceStatus.NotUsed => DataSourceHealthStatus.NotUsed,
+        ServiceLogSourceStatus.Missing =>
+            DataSourceHealthStatus.Unavailable("未找到服务日志数据库"),
+        ServiceLogSourceStatus.Busy => DataSourceHealthStatus.Degraded("服务日志数据库正忙"),
+        ServiceLogSourceStatus.Incompatible =>
+            DataSourceHealthStatus.Unavailable("服务日志数据库格式暂不兼容"),
+        _ => DataSourceHealthStatus.Unavailable("服务日志数据库暂不可用"),
+    };
+
+    private static ServiceLogLoadResult EmptyServiceLogResult(ServiceLogSourceStatus status) =>
+        new(status, new Dictionary<string, ServiceIncident>(StringComparer.Ordinal));
 
     private static ServiceIncident? ClearResolvedIncident(
         ServiceIncident? incident,

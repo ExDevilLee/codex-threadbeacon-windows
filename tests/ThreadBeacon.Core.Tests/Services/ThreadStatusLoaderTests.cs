@@ -358,6 +358,143 @@ public sealed class ThreadStatusLoaderTests
         Assert.Empty(snapshot.Subagents);
     }
 
+    [Fact]
+    public void Load_ReportsOptionalFailuresAndAccurateRolloutCounts()
+    {
+        ThreadRecord[] records =
+        [
+            Record("healthy", "Healthy"),
+            Record("missing", "Missing"),
+        ];
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                records)),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Missing,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["healthy"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+                ["missing"] = new(RolloutSourceStatus.Missing, RolloutObservation.Empty),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: new StatusLogEventRepository(ServiceLogSourceStatus.Missing));
+
+        ThreadSnapshotLoadResult result = loader.Load();
+
+        Assert.Equal(OverallDataSourceHealth.Degraded, result.Health.OverallStatus);
+        Assert.Equal(DataSourceHealthLevel.Unavailable, result.Health.RenameIndex.Level);
+        Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.Rollout.Level);
+        Assert.Equal(1, result.Health.RolloutSuccessCount);
+        Assert.Equal(1, result.Health.RolloutFailureCount);
+        Assert.Equal(DataSourceHealthLevel.Unavailable, result.Health.ServiceLogs.Level);
+        Assert.Equal(2, result.Threads.Count);
+    }
+
+    [Fact]
+    public void Load_ReportsCoreTaskDatabaseUnavailable()
+    {
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Missing,
+                [])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>()),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load();
+
+        Assert.Equal(OverallDataSourceHealth.Unavailable, result.Health.OverallStatus);
+        Assert.Equal(DataSourceHealthLevel.Unavailable, result.Health.TaskDatabase.Level);
+        Assert.Equal("未找到 Codex 任务数据库", result.Health.TaskDatabase.DetailText);
+    }
+
+    [Fact]
+    public void Load_ReportsSupplementalTaskQueryFailureAsDegraded()
+    {
+        ThreadRecord recent = Record("recent", "Recent");
+        var loader = new ThreadStatusLoader(
+            new StatusThreadRepository(
+                new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [recent]),
+                new ThreadLoadResult(ThreadRepositoryStatus.Busy, [])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["recent"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(StringComparer.Ordinal) { "included" },
+            new HashSet<string>(StringComparer.Ordinal)));
+
+        Assert.Equal(OverallDataSourceHealth.Degraded, result.Health.OverallStatus);
+        Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.TaskDatabase.Level);
+        Assert.Equal("recent", Assert.Single(result.Threads).Id);
+    }
+
+    [Fact]
+    public void Load_ReportsUnusedOptionalSourcesWithoutCallingThem()
+    {
+        var serviceLogs = new StatusLogEventRepository(ServiceLogSourceStatus.Healthy);
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>()),
+            new FixedTimeProvider(Now),
+            logEventRepository: serviceLogs);
+
+        ThreadSnapshotLoadResult result = loader.Load();
+
+        Assert.Equal(DataSourceHealthLevel.NotUsed, result.Health.Rollout.Level);
+        Assert.Equal(DataSourceHealthLevel.NotUsed, result.Health.ServiceLogs.Level);
+        Assert.Equal(0, serviceLogs.LoadCount);
+    }
+
+    [Fact]
+    public void Load_CountsExpandedSubagentRolloutReads()
+    {
+        ThreadRecord parent = new("parent", "Parent", "parent", Now, 0, 1);
+        SubagentRecord child = new(
+            "child", "parent", "Child", "child", Now, 0, null, null, null, null);
+        var repository = new TrackingThreadRepository(
+            new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [parent]),
+            new SubagentLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal)
+                {
+                    ["parent"] = [child],
+                }));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["parent"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+                ["child"] = new(RolloutSourceStatus.Missing, RolloutObservation.Empty),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(
+            expandedThreadIds: new HashSet<string>(StringComparer.Ordinal) { "parent" });
+
+        Assert.Equal(1, result.Health.RolloutSuccessCount);
+        Assert.Equal(1, result.Health.RolloutFailureCount);
+        Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.Rollout.Level);
+    }
+
     private static ThreadStatusLoader CreateLoader(
         IReadOnlyList<ThreadRecord> records,
         IReadOnlyDictionary<string, string> titles,
@@ -454,6 +591,15 @@ public sealed class ThreadStatusLoaderTests
         }
     }
 
+    private sealed class StatusThreadRepository(
+        ThreadLoadResult recent,
+        ThreadLoadResult included) : IThreadRepository
+    {
+        public ThreadLoadResult LoadRecent(int limit = 8) => recent;
+
+        public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds) => included;
+    }
+
     private sealed class FavoriteThreadRepository(
         IReadOnlyList<ThreadRecord> recent,
         IReadOnlyList<ThreadRecord> favorites) : IThreadRepository
@@ -499,6 +645,20 @@ public sealed class ThreadStatusLoaderTests
         public ServiceLogLoadResult LoadLatestIncidents(
             IReadOnlySet<string> threadIds) =>
             throw new IOException("Synthetic log read failure.");
+    }
+
+    private sealed class StatusLogEventRepository(ServiceLogSourceStatus status)
+        : ILogEventRepository
+    {
+        public int LoadCount { get; private set; }
+
+        public ServiceLogLoadResult LoadLatestIncidents(IReadOnlySet<string> threadIds)
+        {
+            LoadCount++;
+            return new ServiceLogLoadResult(
+                status,
+                new Dictionary<string, ServiceIncident>(StringComparer.Ordinal));
+        }
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
