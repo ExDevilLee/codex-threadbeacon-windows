@@ -57,4 +57,30 @@ public sealed class MainWindowXamlTests
         Assert.Contains("EmptyStateTitle", markup, StringComparison.Ordinal);
         Assert.Contains("EmptyStateSubtitle", markup, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Footer_PlacesStableHealthControlBeforeUpdatedTime()
+    {
+        XDocument document = LoadDocument();
+        XElement footer = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "Grid"
+                && element.Elements().Any(child =>
+                    (string?)child.Attribute("Text") == "{Binding StatusText}"));
+        XElement[] columns = footer.Elements()
+            .Single(element => element.Name.LocalName == "Grid.ColumnDefinitions")
+            .Elements()
+            .ToArray();
+        XElement health = Assert.Single(
+            footer.Descendants(),
+            element => element.Name.LocalName == "DataSourceHealthControl");
+        XElement updated = Assert.Single(
+            footer.Descendants(),
+            element => (string?)element.Attribute("Text") == "{Binding UpdatedText}");
+
+        Assert.Equal(3, columns.Length);
+        Assert.Equal("1", (string?)health.Attribute("Grid.Column"));
+        Assert.Equal("{Binding DataSourceHealth}", (string?)health.Attribute("Details"));
+        Assert.Equal("2", (string?)updated.Attribute("Grid.Column"));
+    }
 }

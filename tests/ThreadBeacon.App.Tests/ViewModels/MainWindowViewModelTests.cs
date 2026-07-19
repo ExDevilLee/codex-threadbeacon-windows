@@ -121,6 +121,79 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task RefreshAsync_CoreUnavailablePreservesRowsHealthTimeAndNotifications()
+    {
+        var repository = new MutableThreadRepository([Record("running")]);
+        var observer = new RecordingCompletionObserver();
+        var timeProvider = new MutableTimeProvider(Now);
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["running"] = ThreadStatus.Running,
+            }),
+            timeProvider);
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            observer,
+            timeProvider: timeProvider);
+
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+        ThreadRowViewModel row = Assert.Single(viewModel.Threads);
+        DataSourceHealthViewModel health = viewModel.DataSourceHealth;
+        Assert.Equal(Now, health.Report.LastSuccessfulRefreshAt);
+        Assert.Equal(1, observer.ObservationCount);
+
+        timeProvider.Now = Now.AddSeconds(2);
+        repository.Status = ThreadRepositoryStatus.Missing;
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+
+        Assert.Same(row, Assert.Single(viewModel.Threads));
+        Assert.Same(health, viewModel.DataSourceHealth);
+        Assert.Equal(OverallDataSourceHealth.Unavailable, health.OverallStatus);
+        Assert.Equal(Now, health.Report.LastSuccessfulRefreshAt);
+        Assert.Equal(1, observer.ObservationCount);
+
+        timeProvider.Now = Now.AddSeconds(4);
+        repository.Status = ThreadRepositoryStatus.Healthy;
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+
+        Assert.Same(health, viewModel.DataSourceHealth);
+        Assert.Equal(Now.AddSeconds(4), health.Report.LastSuccessfulRefreshAt);
+        Assert.Equal(2, observer.ObservationCount);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_SupplementalTaskFailureShowsDegradedSummary()
+    {
+        ThreadRecord recent = Record("recent");
+        var preferences = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            pinnedThreadIds: ["included"]));
+        var loader = new ThreadStatusLoader(
+            new SupplementalFailureThreadRepository(recent),
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["recent"] = ThreadStatus.Running,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            preferenceStore: preferences,
+            timeProvider: new FixedTimeProvider(Now));
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal("监听中 · 1 个任务 · 部分数据降级", viewModel.StatusText);
+        Assert.Equal(OverallDataSourceHealth.Degraded, viewModel.DataSourceHealth.OverallStatus);
+    }
+
+    [Fact]
     public async Task RefreshAsync_LoaderFailureDoesNotInvokeNotificationObserver()
     {
         var observer = new RecordingCompletionObserver();
@@ -523,6 +596,8 @@ public sealed class MainWindowViewModelTests
     {
         public bool ThrowOnLoad { get; set; }
 
+        public ThreadRepositoryStatus Status { get; set; } = ThreadRepositoryStatus.Healthy;
+
         public ThreadLoadResult LoadRecent(int limit = 8)
         {
             if (ThrowOnLoad)
@@ -530,7 +605,9 @@ public sealed class MainWindowViewModelTests
                 throw new IOException("Database unavailable.");
             }
 
-            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+            return new ThreadLoadResult(
+                Status,
+                Status is ThreadRepositoryStatus.Healthy ? records : []);
         }
     }
 
@@ -562,6 +639,16 @@ public sealed class MainWindowViewModelTests
                 ThreadRepositoryStatus.Healthy,
                 records.Where(record => threadIds.Contains(record.Id)).ToArray());
         }
+    }
+
+    private sealed class SupplementalFailureThreadRepository(ThreadRecord recent)
+        : IThreadRepository
+    {
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, [recent]);
+
+        public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds) =>
+            new(ThreadRepositoryStatus.Busy, []);
     }
 
     private sealed class FavoriteOnlyThreadRepository(
@@ -665,6 +752,13 @@ public sealed class MainWindowViewModelTests
         public override DateTimeOffset GetUtcNow() => now;
     }
 
+    private sealed class MutableTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public DateTimeOffset Now { get; set; } = now;
+
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+
     private sealed class MemoryThreadListPreferenceStore(ThreadListPreferences initial)
         : IThreadListPreferenceStore
     {
@@ -685,10 +779,13 @@ public sealed class MainWindowViewModelTests
 
         public RefreshNotificationPolicy? LastPolicy { get; private set; }
 
+        public int ObservationCount { get; private set; }
+
         public void Observe(
             IReadOnlyList<ThreadSnapshot> snapshots,
             RefreshNotificationPolicy policy)
         {
+            ObservationCount++;
             LastSnapshots = snapshots;
             LastPolicy = policy;
         }

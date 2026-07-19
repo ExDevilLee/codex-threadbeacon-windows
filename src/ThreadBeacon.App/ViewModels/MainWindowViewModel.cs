@@ -81,6 +81,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public MonitoringState Monitoring { get; }
 
+    public DataSourceHealthViewModel DataSourceHealth { get; } = new();
+
     public AsyncRelayCommand RefreshCommand => refreshCommand;
 
     public RelayCommand ToggleFavoritesOnlyCommand => toggleFavoritesOnlyCommand;
@@ -171,10 +173,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                     includedIds,
                     requestedExpandedIds,
                     favoriteIds)));
+            if (result.Health.OverallStatus is OverallDataSourceHealth.Unavailable)
+            {
+                DataSourceHealth.Update(PreserveLastSuccessfulRefresh(result.Health));
+                sourceStatusText = GetStatusText(result);
+                hasSourceError = true;
+                OnPropertyChanged(nameof(StatusText));
+                return;
+            }
+
             ThreadSnapshotLoadResult visibleResult = ApplyCandidates(result);
+            DataSourceHealthReport successfulHealth =
+                visibleResult.Health.WithLastSuccessfulRefresh(visibleResult.RefreshedAt);
+            DataSourceHealth.Update(successfulHealth);
             completionObserver?.Observe(visibleResult.Threads, policy);
             sourceStatusText = GetStatusText(visibleResult);
-            hasSourceError = visibleResult.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy;
+            hasSourceError = false;
             updatedText = visibleResult.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
             OnPropertyChanged(nameof(StatusText));
             OnPropertyChanged(nameof(UpdatedText));
@@ -189,6 +203,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
             sourceStatusText = "刷新失败";
             hasSourceError = true;
+            DataSourceHealth.Update(CreateUnexpectedFailureHealth());
             OnPropertyChanged(nameof(StatusText));
         }
         finally
@@ -316,7 +331,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             result.ThreadSourceStatus,
             result.TitleSourceStatus,
             list.VisibleSnapshots,
-            result.RefreshedAt);
+            result.RefreshedAt,
+            result.Health);
     }
 
     private ThreadListResult ApplyListPolicy(DateTimeOffset now)
@@ -364,7 +380,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             lastThreadSourceStatus,
             lastTitleSourceStatus,
             list.VisibleSnapshots,
-            now));
+            now,
+            DataSourceHealth.Report));
         OnPropertyChanged(nameof(StatusText));
     }
 
@@ -393,7 +410,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private static string GetStatusText(ThreadSnapshotLoadResult result)
     {
-        if (result.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy)
+        if (result.Health.OverallStatus is OverallDataSourceHealth.Unavailable)
         {
             return result.ThreadSourceStatus switch
             {
@@ -406,6 +423,25 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         string summary = $"监听中 · {result.Threads.Count} 个任务";
         return result.IsHealthy ? summary : $"{summary} · 部分数据降级";
+    }
+
+    private DataSourceHealthReport PreserveLastSuccessfulRefresh(
+        DataSourceHealthReport report) =>
+        DataSourceHealth.Report.LastSuccessfulRefreshAt is DateTimeOffset refreshedAt
+            ? report.WithLastSuccessfulRefresh(refreshedAt)
+            : report;
+
+    private DataSourceHealthReport CreateUnexpectedFailureHealth()
+    {
+        var report = new DataSourceHealthReport(
+            DataSourceHealthStatus.Unavailable("Codex 任务数据库暂不可用"),
+            DataSourceHealthStatus.NotUsed,
+            DataSourceHealthStatus.NotUsed,
+            DataSourceHealthStatus.NotUsed,
+            0,
+            0,
+            null);
+        return PreserveLastSuccessfulRefresh(report);
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

@@ -548,11 +548,15 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
                        Text="{Binding StatusText}" />
-            <TextBlock Grid.Column="1"
+            <controls:DataSourceHealthControl Grid.Column="1"
+                                              Margin="8,-3,8,-3"
+                                              Details="{Binding DataSourceHealth}" />
+            <TextBlock Grid.Column="2"
                        FontSize="11"
                        Foreground="{StaticResource SecondaryTextBrush}"
                        Text="{Binding UpdatedText}" />

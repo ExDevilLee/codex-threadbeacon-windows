@@ -8,6 +8,7 @@ using ThreadBeacon.Core.Models;
 
 namespace ThreadBeacon.App.Tests.Controls;
 
+[Collection(WpfControlTestCollection.Name)]
 public sealed class TokenInfoControlTests
 {
     [Fact]
