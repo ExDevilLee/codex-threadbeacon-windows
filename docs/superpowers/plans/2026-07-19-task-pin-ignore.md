@@ -18,7 +18,7 @@
 - Create: `src/ThreadBeacon.Core/Services/ThreadListPolicy.cs`
 - Create: `tests/ThreadBeacon.Core.Tests/Services/ThreadListPolicyTests.cs`
 
-- [ ] Add failing tests proving automatic restore uses strict `LatestTaskStartedAt > IgnoredAt`, ignored candidates are partitioned, visible rows are limited to eight, status outranks pinning, pinning outranks recency within one status, and task ID is the final deterministic tie-breaker.
+- [x] Add failing tests proving automatic restore uses strict `LatestTaskStartedAt > IgnoredAt`, ignored candidates are partitioned, visible rows are limited to eight, status outranks pinning, pinning outranks recency within one status, and task ID is the final deterministic tie-breaker.
 
 ```csharp
 ThreadListResult result = ThreadListPolicy.Evaluate(
@@ -29,10 +29,10 @@ Assert.Equal(["running", "pinned-idle"], result.VisibleSnapshots.Select(x => x.I
 Assert.DoesNotContain("resumed", result.Preferences.IgnoredRules.Keys);
 ```
 
-- [ ] Run `dotnet test tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj --configuration Release --filter FullyQualifiedName~ThreadListPolicyTests`; expect compilation failures because the policy types do not exist.
-- [ ] Implement immutable `IgnoredThreadRule`, `ThreadIgnoreMode.UntilNextTurn`, cloneable `ThreadListPreferences`, `ThreadListResult`, and pure `ThreadListPolicy.Evaluate`. Use `StringComparer.Ordinal` collections and do not reference WPF.
-- [ ] Re-run the focused tests; expect all policy tests to pass, then run the full Core test project with zero failures.
-- [ ] Commit `feat(tasks): add task list preference policy`.
+- [x] Run `dotnet test tests/ThreadBeacon.Core.Tests/ThreadBeacon.Core.Tests.csproj --configuration Release --filter FullyQualifiedName~ThreadListPolicyTests`; expect compilation failures because the policy types do not exist.
+- [x] Implement immutable `IgnoredThreadRule`, `ThreadIgnoreMode.UntilNextTurn`, cloneable `ThreadListPreferences`, `ThreadListResult`, and pure `ThreadListPolicy.Evaluate`. Use `StringComparer.Ordinal` collections and do not reference WPF.
+- [x] Re-run the focused tests; expect all policy tests to pass, then run the full Core test project with zero failures.
+- [x] Commit `feat(tasks): add task list preference policy`.
 
 ### Task 2: Read-only candidate loading and preference persistence
 
