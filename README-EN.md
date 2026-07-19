@@ -12,16 +12,18 @@ The project is in its Windows POC stage. A Win11 probe has verified the core loc
 
 The first end-to-end POC is now implemented: short-lived, non-pooled, read-only SQLite connections load the 8 most recent unarchived primary threads and exclude subagents; a shared read of `session_index.jsonl` selects the last valid renamed title; each rollout read is limited to the final 2 MiB and retains only event types, timestamps, and numeric Token fields to derive `running`, `justCompleted`, `idle`, and `unknown`. A unified loader merges these sources into snapshots, and the WPF window displays status lights, titles, cumulative Token usage, and status duration with 2-second automatic refresh and manual refresh. Each source degrades safely when unavailable or incompatible.
 
-The WPF App is connected to real local task data. The 30-minute concurrent-task stability acceptance run remains pending.
+The WPF App is connected to real local task data. A Win11 read-only concurrent-task soak ran for more than 30 minutes: 900 samples completed with no probe failures, source degradations, or App crashes, and Codex writes remained available. See the [Windows 30-minute soak record](docs/validation/2026-07-18-windows-30-minute-soak.md).
 
 The first window enhancement is complete: the pin button in the top-right keeps ThreadBeacon above other normal windows. The selection is stored locally and restored after restart.
+
+The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
 
 The first POC is deliberately limited to:
 
 - Reading the 8 most recent unarchived primary threads and excluding subagents.
 - Using the latest renamed title from `session_index.jsonl`.
 - Deriving task status from rollout JSONL tails.
-- Displaying cumulative token usage.
+- Displaying cumulative Token usage with a numeric-only detail popover.
 - Refreshing every 2 seconds with a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.

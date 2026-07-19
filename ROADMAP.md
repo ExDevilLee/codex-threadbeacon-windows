@@ -19,11 +19,14 @@
 - [x] Merge task, title, rollout, status, and Token data into unified snapshots.
 - [x] Display the derived task status in WPF.
 - [x] Display cumulative Token usage.
+- [x] Show a macOS-aligned Token detail popover with hover and click-to-pin behavior.
 - [x] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
-- [ ] Validate behavior while Codex is continuously writing.
+- [x] Validate read-only behavior for 30 minutes while Codex is continuously writing.
 
 Acceptance: with several concurrent Codex tasks, run for 30 minutes and verify task count, renamed titles, status transitions, and Token values against the real sessions without blocking Codex writes.
+
+Result: completed on Win11 with 900 samples, no probe failures, no source degradations, and no App crashes. See [the validation record](docs/validation/2026-07-18-windows-30-minute-soak.md).
 
 ## Phase 2: Window Controls
 
