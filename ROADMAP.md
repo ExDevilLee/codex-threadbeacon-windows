@@ -112,6 +112,14 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Add tests for parsing, fallback, persistence, change notifications, and XAML bindings.
 - [ ] Migrate remaining dynamic status, health, Token, and Subagent row labels through the same service.
 
+## Phase 11: Theme Preferences
+
+- [x] Persist `System`, `Light`, and `Dark` display preferences locally.
+- [x] Follow the Windows app appearance in `System` mode and react to system changes.
+- [x] Apply shared light and dark resource dictionaries immediately across open WPF surfaces.
+- [x] Keep theme state independent from language, refresh interval, and task-count settings.
+- [x] Document the supported modes and the default System behavior.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
