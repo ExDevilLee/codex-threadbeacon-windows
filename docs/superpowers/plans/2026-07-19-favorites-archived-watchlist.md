@@ -101,4 +101,4 @@ Assert.Null(archived.ServiceIncident);
 - [x] Document favorite/filter semantics, archived neutral behavior, notification suppression, stored fields, and read-only scope in Chinese and English. Remove only this feature from deferred scope.
 - [x] Run `dotnet test ThreadBeacon.slnx --configuration Release`, `dotnet build ThreadBeacon.slnx --configuration Release --no-restore`, and `dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive`; require zero failures, warnings, errors, or known vulnerabilities.
 - [x] Run mandatory tracked-file audits for private keys/tokens, sensitive extensions, personal absolute paths, network APIs, writable SQLite modes, Core write APIs, unexpected binaries, and `git diff --check origin/main...HEAD`.
-- [ ] Commit documentation, repeat the security audit after the final commit, push `main`, fetch the remote, verify `HEAD == origin/main`, and leave the verified Release App running.
+- [x] Commit documentation, repeat the security audit after the final commit, push `main`, fetch the remote, verify `HEAD == origin/main`, and leave the verified Release App running.
