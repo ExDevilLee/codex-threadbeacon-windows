@@ -127,7 +127,7 @@ git commit -m "feat(sound): track new completion events"
 - Create: `src/ThreadBeacon.App/Sounds/JsonSoundNotificationSettingsStore.cs`
 - Test: `tests/ThreadBeacon.App.Tests/Sounds/JsonSoundNotificationSettingsStoreTests.cs`
 
-- [ ] **Step 1: Write failing settings tests**
+- [x] **Step 1: Write failing settings tests**
 
 Assert missing and malformed files load these defaults:
 
@@ -145,7 +145,7 @@ Assert save/load round-trips disabled flags, `CompletionSound.Pulse`, and two ev
 IDs. Assert saving to a nested missing directory creates it. Assert an unavailable
 path returns `false` rather than throwing.
 
-- [ ] **Step 2: Run the settings tests and confirm failure**
+- [x] **Step 2: Run the settings tests and confirm failure**
 
 Run:
 
@@ -155,7 +155,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 
 Expected: compilation fails because the sound settings types do not exist.
 
-- [ ] **Step 3: Implement tolerant settings storage**
+- [x] **Step 3: Implement tolerant settings storage**
 
 Define:
 
@@ -177,7 +177,7 @@ The JSON store mirrors `JsonAppSettingsStore` error handling and writes to
 the file remains readable. Normalize a null `SeenEventIds` to an empty array after
 deserialization.
 
-- [ ] **Step 4: Run application settings tests**
+- [x] **Step 4: Run application settings tests**
 
 Run:
 
@@ -187,7 +187,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 
 Expected: all selected tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/Sounds tests/ThreadBeacon.App.Tests/Sounds
