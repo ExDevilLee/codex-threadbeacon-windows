@@ -92,6 +92,15 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Keep paused monitoring paused while preferences change.
 - [x] Persist display preferences separately from window pin and sound settings.
 
+## Phase 9: Main Window Placement
+
+- [x] Persist the main window's display identifier and normal-state pixel bounds locally.
+- [x] Restore position and size after the native main-window handle is created.
+- [x] Fall back to the primary display when the saved display is disconnected.
+- [x] Constrain off-screen and oversized geometry to the selected display working area.
+- [x] Keep centered startup when no valid placement exists and keep settings centered on its owner.
+- [x] Avoid saving minimized/maximized geometry or reacting to runtime display hot-plug changes.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
