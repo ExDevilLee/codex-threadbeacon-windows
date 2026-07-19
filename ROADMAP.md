@@ -20,6 +20,7 @@
 - [x] Display the derived task status in WPF.
 - [x] Display cumulative Token usage.
 - [x] Show a macOS-aligned Token detail popover with hover and click-to-pin behavior.
+- [x] Show a neutral direct-Subagent count beside the primary task title when non-zero.
 - [x] Refresh every 2 seconds and support manual refresh.
 - [x] Degrade safely when the state database is missing, locked, or schema-incompatible.
 - [x] Validate read-only behavior for 30 minutes while Codex is continuously writing.
@@ -47,7 +48,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 
 - Failure, warning, attention, and service-incident sounds.
 - Thread pin and ignore rules.
-- Subagent expansion.
+- Subagent inline expansion, child status, alerts, and Token aggregation.
 - HTTP 429/503 incident monitoring.
 - System tray integration.
 - Packaging, signing, and automatic updates.

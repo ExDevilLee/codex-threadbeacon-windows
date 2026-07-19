@@ -184,13 +184,13 @@ git commit -m "feat(subagent): show direct count badge"
 - Modify: `README-EN.md`
 - Modify: `ROADMAP.md`
 
-- [ ] **Step 1: Document exact semantics**
+- [x] **Step 1: Document exact semantics**
 
 State that positive primary-task rows show direct historical Subagent count, not a
 live running count. Mark the neutral count indicator complete while leaving inline
 expansion, child status, alerts, and Token aggregation deferred.
 
-- [ ] **Step 2: Run final verification**
+- [x] **Step 2: Run final verification**
 
 ```powershell
 dotnet test ThreadBeacon.slnx
@@ -201,21 +201,21 @@ dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive
 Expected: all tests pass, build has zero errors, and no vulnerable packages are
 reported.
 
-- [ ] **Step 3: Perform mandatory pre-push security review**
+- [x] **Step 3: Perform mandatory pre-push security review**
 
 Inspect the full diff against `origin/main`, tracked paths, and added text for keys,
 tokens, credentials, absolute user paths, local settings, Codex content, build output,
 and temporary files. Confirm this feature persists no new data and adds no network or
 write access.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```powershell
 git add README.md README-EN.md ROADMAP.md
 git commit -m "docs: document Subagent count badges"
 ```
 
-- [ ] **Step 5: Push and verify remote parity**
+- [x] **Step 5: Push and verify remote parity**
 
 ```powershell
 git push origin main
