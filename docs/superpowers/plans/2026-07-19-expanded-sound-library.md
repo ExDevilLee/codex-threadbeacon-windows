@@ -54,4 +54,4 @@
 - [x] Run the complete Release test/build suite and package vulnerability audit with zero failures, warnings, errors, or known vulnerabilities.
 - [x] Launch the Release App, open sound settings, inspect both six-item selectors, and preview Alert, Resolve, and Knock through the normal UI.
 - [x] Run the mandatory tracked-file secret, private-key, absolute-path, network/write API, binary asset, and diff audits.
-- [ ] Mark the plan complete, commit documentation, push `main`, verify `HEAD == origin/main`, and leave the Release App running.
+- [x] Mark the plan complete, commit documentation, push `main`, verify `HEAD == origin/main`, and leave the Release App running.
