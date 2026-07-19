@@ -14,7 +14,8 @@ namespace ThreadBeacon.App.ViewModels;
 public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly ThreadStatusLoader loader;
-    private readonly ThreadRowCollection threadRows = new();
+    private readonly ThreadRowCollection threadRows;
+    private readonly HashSet<string> expandedThreadIds = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly ICompletionNotificationObserver? completionObserver;
     private readonly AsyncRelayCommand refreshCommand;
@@ -39,6 +40,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
         Monitoring = monitoring ?? throw new ArgumentNullException(nameof(monitoring));
         this.completionObserver = completionObserver;
+        threadRows = new ThreadRowCollection(ToggleSubagentsAsync);
         refreshCommand = new AsyncRelayCommand(
             () => RefreshAsync(RefreshNotificationPolicy.Baseline),
             () => !IsRefreshing);
@@ -116,7 +118,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         IsRefreshing = true;
         try
         {
-            ThreadSnapshotLoadResult result = await Task.Run(() => loader.Load());
+            var requestedExpandedIds = new HashSet<string>(expandedThreadIds, StringComparer.Ordinal);
+            ThreadSnapshotLoadResult result = await Task.Run(
+                () => loader.Load(expandedThreadIds: requestedExpandedIds));
             ReplaceThreads(result);
             completionObserver?.Observe(result.Threads, policy);
             sourceStatusText = GetStatusText(result);
@@ -138,9 +142,31 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public async Task ToggleSubagentsAsync(string threadId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
+        ThreadRowViewModel? row = Threads.FirstOrDefault(
+            candidate => StringComparer.Ordinal.Equals(candidate.Id, threadId));
+        if (row is null || !row.HasSubagents)
+        {
+            return;
+        }
+
+        if (expandedThreadIds.Remove(threadId))
+        {
+            row.SetSubagentExpanded(isExpanded: false, isLoading: false);
+            return;
+        }
+
+        expandedThreadIds.Add(threadId);
+        row.SetSubagentExpanded(isExpanded: true, isLoading: true);
+        await RefreshAsync(RefreshNotificationPolicy.Baseline);
+    }
+
     private void ReplaceThreads(ThreadSnapshotLoadResult result)
     {
-        threadRows.Reconcile(result.Threads, result.RefreshedAt);
+        expandedThreadIds.IntersectWith(result.Threads.Select(thread => thread.Id));
+        threadRows.Reconcile(result.Threads, result.RefreshedAt, expandedThreadIds);
         SetThreadCountLabel(ThreadCountFormatter.Format(
             result.Threads.Select(thread => thread.Status)));
 

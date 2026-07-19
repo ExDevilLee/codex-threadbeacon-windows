@@ -1,7 +1,9 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using ThreadBeacon.App.Commands;
 using ThreadBeacon.App.Formatting;
 using ThreadBeacon.Core.Models;
 
@@ -23,18 +25,30 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private string tokenText = "—";
     private TokenDetailViewModel? tokenDetails;
     private int subagentCount;
+    private bool isSubagentExpanded;
+    private bool isSubagentLoading;
     private string durationText = string.Empty;
+    private readonly Func<string, Task> toggleSubagents;
 
-    public ThreadRowViewModel(ThreadSnapshot snapshot, DateTimeOffset now)
+    public ThreadRowViewModel(
+        ThreadSnapshot snapshot,
+        DateTimeOffset now,
+        Func<string, Task>? toggleSubagents = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
+        this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
+        ToggleSubagentsCommand = new AsyncRelayCommand(() => this.toggleSubagents(Id));
         Update(snapshot, now);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Id { get; }
+
+    public ObservableCollection<SubagentRowViewModel> Subagents { get; } = [];
+
+    public AsyncRelayCommand ToggleSubagentsCommand { get; }
 
     public string Title
     {
@@ -105,6 +119,28 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         ? $"{SubagentCountText} 个 Subagent"
         : string.Empty;
 
+    public bool IsSubagentExpanded
+    {
+        get => isSubagentExpanded;
+        private set
+        {
+            if (SetField(ref isSubagentExpanded, value))
+            {
+                OnPropertyChanged(nameof(SubagentToggleAccessibilityLabel));
+            }
+        }
+    }
+
+    public bool IsSubagentLoading
+    {
+        get => isSubagentLoading;
+        private set => SetField(ref isSubagentLoading, value);
+    }
+
+    public string SubagentToggleAccessibilityLabel => HasSubagents
+        ? $"{(IsSubagentExpanded ? "收起" : "展开")} {SubagentAccessibilityLabel}"
+        : string.Empty;
+
     public string DurationText
     {
         get => durationText;
@@ -128,7 +164,57 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             ? null
             : new TokenDetailViewModel(snapshot.TokenUsage);
         SubagentCount = snapshot.SubagentCount;
+        ReconcileSubagents(snapshot.Subagents, now);
         DurationText = FormatDuration(now - snapshot.StatusChangedAt);
+    }
+
+    public void SetSubagentExpanded(bool isExpanded, bool isLoading)
+    {
+        IsSubagentExpanded = isExpanded;
+        IsSubagentLoading = isExpanded && isLoading;
+        if (!isExpanded)
+        {
+            Subagents.Clear();
+        }
+    }
+
+    private void ReconcileSubagents(IReadOnlyList<SubagentSnapshot> snapshots, DateTimeOffset now)
+    {
+        for (int targetIndex = 0; targetIndex < snapshots.Count; targetIndex++)
+        {
+            SubagentSnapshot snapshot = snapshots[targetIndex];
+            int existingIndex = FindSubagentIndex(snapshot.Id, targetIndex);
+            if (existingIndex < 0)
+            {
+                Subagents.Insert(targetIndex, new SubagentRowViewModel(snapshot, now));
+                continue;
+            }
+
+            SubagentRowViewModel row = Subagents[existingIndex];
+            row.Update(snapshot, now);
+            if (existingIndex != targetIndex)
+            {
+                Subagents.Move(existingIndex, targetIndex);
+            }
+        }
+
+        while (Subagents.Count > snapshots.Count)
+        {
+            Subagents.RemoveAt(Subagents.Count - 1);
+        }
+    }
+
+    private int FindSubagentIndex(string id, int startIndex)
+    {
+        for (int index = startIndex; index < Subagents.Count; index++)
+        {
+            if (StringComparer.Ordinal.Equals(Subagents[index].Id, id))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     private static string GetStatusLabel(ThreadStatus status) => status switch

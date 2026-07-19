@@ -5,9 +5,19 @@ namespace ThreadBeacon.App.ViewModels;
 
 public sealed class ThreadRowCollection
 {
+    private readonly Func<string, Task> toggleSubagents;
+
+    public ThreadRowCollection(Func<string, Task>? toggleSubagents = null)
+    {
+        this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
+    }
+
     public ObservableCollection<ThreadRowViewModel> Items { get; } = [];
 
-    public void Reconcile(IReadOnlyList<ThreadSnapshot> snapshots, DateTimeOffset now)
+    public void Reconcile(
+        IReadOnlyList<ThreadSnapshot> snapshots,
+        DateTimeOffset now,
+        IReadOnlySet<string>? expandedThreadIds = null)
     {
         ArgumentNullException.ThrowIfNull(snapshots);
 
@@ -17,12 +27,19 @@ public sealed class ThreadRowCollection
             int existingIndex = FindIndex(snapshot.Id, targetIndex);
             if (existingIndex < 0)
             {
-                Items.Insert(targetIndex, new ThreadRowViewModel(snapshot, now));
+                var newRow = new ThreadRowViewModel(snapshot, now, toggleSubagents);
+                newRow.SetSubagentExpanded(
+                    expandedThreadIds?.Contains(snapshot.Id) is true,
+                    isLoading: false);
+                Items.Insert(targetIndex, newRow);
                 continue;
             }
 
             ThreadRowViewModel row = Items[existingIndex];
             row.Update(snapshot, now);
+            row.SetSubagentExpanded(
+                expandedThreadIds?.Contains(snapshot.Id) is true,
+                isLoading: false);
             if (existingIndex != targetIndex)
             {
                 Items.Move(existingIndex, targetIndex);

@@ -77,11 +77,34 @@ public sealed class ThreadRowCollectionTests
         Assert.Equal("4 个 Subagent", original.SubagentAccessibilityLabel);
     }
 
+    [Fact]
+    public void Reconcile_ExpandedThreadPreservesChildIdentityAndUpdatesValues()
+    {
+        var collection = new ThreadRowCollection();
+        collection.Reconcile(
+            [Snapshot("a", "Task", 100, 1, [Subagent("child", "Initial")])],
+            Now,
+            new HashSet<string>(StringComparer.Ordinal) { "a" });
+        ThreadRowViewModel parent = collection.Items.Single();
+        SubagentRowViewModel child = parent.Subagents.Single();
+
+        collection.Reconcile(
+            [Snapshot("a", "Task", 100, 1, [Subagent("child", "Renamed")])],
+            Now.AddSeconds(2),
+            new HashSet<string>(StringComparer.Ordinal) { "a" });
+
+        Assert.Same(parent, collection.Items.Single());
+        Assert.Same(child, parent.Subagents.Single());
+        Assert.Equal("Renamed", child.Title);
+        Assert.True(parent.IsSubagentExpanded);
+    }
+
     private static ThreadSnapshot Snapshot(
         string id,
         string title,
         long tokens,
-        int subagentCount = 0) =>
+        int subagentCount = 0,
+        IReadOnlyList<SubagentSnapshot>? subagents = null) =>
         new(
             id,
             title,
@@ -97,5 +120,21 @@ public sealed class ThreadRowCollectionTests
                 null,
                 Now),
             subagentCount,
+            RolloutSourceStatus.Healthy,
+            subagents);
+
+    private static SubagentSnapshot Subagent(string id, string title) =>
+        new(
+            id,
+            title,
+            ThreadStatus.Running,
+            Now.AddMinutes(-1),
+            Now,
+            Now,
+            new TokenUsageSnapshot(100, null, null, Now),
+            "worker",
+            "reviewer",
+            "gpt-test",
+            "high",
             RolloutSourceStatus.Healthy);
 }

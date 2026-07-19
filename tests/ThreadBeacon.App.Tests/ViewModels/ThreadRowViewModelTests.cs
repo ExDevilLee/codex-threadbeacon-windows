@@ -38,6 +38,31 @@ public sealed class ThreadRowViewModelTests
         Assert.False(viewModel.HasSubagents);
     }
 
+    [Fact]
+    public void ExpansionState_UpdatesTogglePresentationAndInvokesParentCallback()
+    {
+        string? toggledId = null;
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 3),
+            Now,
+            id =>
+            {
+                toggledId = id;
+                return Task.CompletedTask;
+            });
+
+        Assert.False(viewModel.IsSubagentExpanded);
+        Assert.Equal("展开 3 个 Subagent", viewModel.SubagentToggleAccessibilityLabel);
+
+        viewModel.SetSubagentExpanded(true, isLoading: true);
+        viewModel.ToggleSubagentsCommand.Execute(null);
+
+        Assert.True(viewModel.IsSubagentExpanded);
+        Assert.True(viewModel.IsSubagentLoading);
+        Assert.Equal("收起 3 个 Subagent", viewModel.SubagentToggleAccessibilityLabel);
+        Assert.Equal("thread-1", toggledId);
+    }
+
     private static ThreadSnapshot Snapshot(int subagentCount) =>
         new(
             "thread-1",

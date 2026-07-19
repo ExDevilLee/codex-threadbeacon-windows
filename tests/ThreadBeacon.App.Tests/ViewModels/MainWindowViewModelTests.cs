@@ -139,6 +139,39 @@ public sealed class MainWindowViewModelTests
         Assert.Null(observer.LastPolicy);
     }
 
+    [Fact]
+    public async Task ToggleSubagentsAsync_LoadsExpandedParentAndCollapsesImmediately()
+    {
+        var repository = new ExpandableThreadRepository();
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["parent"] = ThreadStatus.Running,
+                ["child"] = ThreadStatus.Idle,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState());
+        await viewModel.RefreshAsync();
+
+        await viewModel.ToggleSubagentsAsync("parent");
+
+        Assert.Equal(["parent"], repository.LastRequestedParentIds);
+        ThreadRowViewModel parent = Assert.Single(viewModel.Threads);
+        Assert.True(parent.IsSubagentExpanded);
+        Assert.Equal("child", Assert.Single(parent.Subagents).Id);
+
+        await viewModel.ToggleSubagentsAsync("parent");
+
+        Assert.False(parent.IsSubagentExpanded);
+        Assert.Empty(parent.Subagents);
+        Assert.Equal(1, repository.SubagentLoadCount);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,
@@ -214,6 +247,43 @@ public sealed class MainWindowViewModelTests
             }
 
             return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+    }
+
+    private sealed class ExpandableThreadRepository : IThreadRepository
+    {
+        public IReadOnlySet<string>? LastRequestedParentIds { get; private set; }
+
+        public int SubagentLoadCount { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(
+                ThreadRepositoryStatus.Healthy,
+                [new ThreadRecord("parent", "Parent", "parent", Now, 0, 1)]);
+
+        public SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
+        {
+            SubagentLoadCount++;
+            LastRequestedParentIds = new HashSet<string>(parentIds, StringComparer.Ordinal);
+            return new SubagentLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal)
+                {
+                    ["parent"] =
+                    [
+                        new SubagentRecord(
+                            "child",
+                            "parent",
+                            "Child",
+                            "child",
+                            Now,
+                            10,
+                            "worker",
+                            "reviewer",
+                            "gpt-test",
+                            "high"),
+                    ],
+                });
         }
     }
 

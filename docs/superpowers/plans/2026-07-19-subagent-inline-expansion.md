@@ -49,14 +49,14 @@
 
 ### Task 3: Expansion State And Stable Rows
 
-- [ ] Add failing App tests for toggle labels, transient expanded IDs, immediate
+- [x] Add failing App tests for toggle labels, transient expanded IDs, immediate
   collapse, refresh requests, and preservation of existing parent/child row instances.
-- [ ] Run the focused tests and confirm the new state and view models are absent.
-- [ ] Add expansion commands/state to `MainWindowViewModel` and pass a snapshot of
+- [x] Run the focused tests and confirm the new state and view models are absent.
+- [x] Add expansion commands/state to `MainWindowViewModel` and pass a snapshot of
   expanded IDs to background refreshes.
-- [ ] Add `SubagentRowViewModel` and reconcile children by ID under their existing
+- [x] Add `SubagentRowViewModel` and reconcile children by ID under their existing
   parent row so two-second refreshes do not replace detail owners.
-- [ ] Run focused and full App tests, then commit `feat(subagent): manage inline expansion`.
+- [x] Run focused and full App tests, then commit `feat(subagent): manage inline expansion`.
 
 ### Task 4: WPF Inline UI And Details
 
