@@ -63,7 +63,31 @@ public sealed class ThreadRowViewModelTests
         Assert.Equal("thread-1", toggledId);
     }
 
-    private static ThreadSnapshot Snapshot(int subagentCount) =>
+    [Fact]
+    public void ExpandedEmptyRegion_ReportsLoadingFailureAndEmptyStates()
+    {
+        var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 1), Now);
+
+        viewModel.SetSubagentExpanded(true, isLoading: true);
+        Assert.True(viewModel.ShowSubagentPlaceholder);
+        Assert.Equal("正在读取 Subagent", viewModel.SubagentPlaceholderText);
+
+        viewModel.Update(
+            Snapshot(
+                subagentCount: 1,
+                subagentSourceStatus: ThreadRepositoryStatus.Busy),
+            Now);
+        viewModel.SetSubagentExpanded(true, isLoading: false);
+        Assert.Equal("Subagent 读取失败", viewModel.SubagentPlaceholderText);
+
+        viewModel.Update(Snapshot(subagentCount: 1), Now);
+        viewModel.SetSubagentExpanded(true, isLoading: false);
+        Assert.Equal("暂无可读取的 Subagent", viewModel.SubagentPlaceholderText);
+    }
+
+    private static ThreadSnapshot Snapshot(
+        int subagentCount,
+        ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy) =>
         new(
             "thread-1",
             "Task",
@@ -75,5 +99,6 @@ public sealed class ThreadRowViewModelTests
             null,
             null,
             subagentCount,
-            RolloutSourceStatus.Healthy);
+            RolloutSourceStatus.Healthy,
+            subagentSourceStatus: subagentSourceStatus);
 }

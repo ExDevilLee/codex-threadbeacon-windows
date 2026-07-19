@@ -27,6 +27,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private int subagentCount;
     private bool isSubagentExpanded;
     private bool isSubagentLoading;
+    private ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy;
     private string durationText = string.Empty;
     private readonly Func<string, Task> toggleSubagents;
 
@@ -105,6 +106,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
                 OnPropertyChanged(nameof(HasSubagents));
                 OnPropertyChanged(nameof(SubagentCountText));
                 OnPropertyChanged(nameof(SubagentAccessibilityLabel));
+                OnPropertyChanged(nameof(SubagentToggleAccessibilityLabel));
             }
         }
     }
@@ -127,6 +129,8 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             if (SetField(ref isSubagentExpanded, value))
             {
                 OnPropertyChanged(nameof(SubagentToggleAccessibilityLabel));
+                OnPropertyChanged(nameof(ShowSubagentRows));
+                OnPropertyChanged(nameof(ShowSubagentPlaceholder));
             }
         }
     }
@@ -134,12 +138,30 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     public bool IsSubagentLoading
     {
         get => isSubagentLoading;
-        private set => SetField(ref isSubagentLoading, value);
+        private set
+        {
+            if (SetField(ref isSubagentLoading, value))
+            {
+                OnPropertyChanged(nameof(SubagentPlaceholderText));
+            }
+        }
     }
 
     public string SubagentToggleAccessibilityLabel => HasSubagents
         ? $"{(IsSubagentExpanded ? "收起" : "展开")} {SubagentAccessibilityLabel}"
         : string.Empty;
+
+    public bool HasSubagentRows => Subagents.Count > 0;
+
+    public bool ShowSubagentRows => IsSubagentExpanded && HasSubagentRows;
+
+    public bool ShowSubagentPlaceholder => IsSubagentExpanded && !HasSubagentRows;
+
+    public string SubagentPlaceholderText => IsSubagentLoading
+        ? "正在读取 Subagent"
+        : subagentSourceStatus is not ThreadRepositoryStatus.Healthy
+            ? "Subagent 读取失败"
+            : "暂无可读取的 Subagent";
 
     public string DurationText
     {
@@ -164,6 +186,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             ? null
             : new TokenDetailViewModel(snapshot.TokenUsage);
         SubagentCount = snapshot.SubagentCount;
+        SetSubagentSourceStatus(snapshot.SubagentSourceStatus);
         ReconcileSubagents(snapshot.Subagents, now);
         DurationText = FormatDuration(now - snapshot.StatusChangedAt);
     }
@@ -180,6 +203,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
     private void ReconcileSubagents(IReadOnlyList<SubagentSnapshot> snapshots, DateTimeOffset now)
     {
+        int previousCount = Subagents.Count;
         for (int targetIndex = 0; targetIndex < snapshots.Count; targetIndex++)
         {
             SubagentSnapshot snapshot = snapshots[targetIndex];
@@ -202,6 +226,24 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         {
             Subagents.RemoveAt(Subagents.Count - 1);
         }
+
+        if (previousCount != Subagents.Count)
+        {
+            OnPropertyChanged(nameof(HasSubagentRows));
+            OnPropertyChanged(nameof(ShowSubagentRows));
+            OnPropertyChanged(nameof(ShowSubagentPlaceholder));
+        }
+    }
+
+    private void SetSubagentSourceStatus(ThreadRepositoryStatus value)
+    {
+        if (subagentSourceStatus == value)
+        {
+            return;
+        }
+
+        subagentSourceStatus = value;
+        OnPropertyChanged(nameof(SubagentPlaceholderText));
     }
 
     private int FindSubagentIndex(string id, int startIndex)

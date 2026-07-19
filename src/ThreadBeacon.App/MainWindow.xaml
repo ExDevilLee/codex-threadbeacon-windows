@@ -204,77 +204,218 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Height="48"
-                                Padding="13,0"
-                                BorderBrush="#ECECEE"
-                                BorderThickness="0,0,0,1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="14" />
-                                    <ColumnDefinition Width="66" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="92" />
-                                    <ColumnDefinition Width="48" />
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Width="8"
-                                         Height="8"
-                                         HorizontalAlignment="Left"
-                                         Fill="{Binding StatusBrush}" />
-                                <TextBlock Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           FontSize="12"
-                                           Text="{Binding StatusLabel}" />
-                                <Grid Grid.Column="2" Margin="0,0,12,0">
+                        <StackPanel>
+                            <Border Height="48"
+                                    Padding="13,0"
+                                    BorderBrush="#ECECEE"
+                                    BorderThickness="0,0,0,1">
+                                <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="66" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="92" />
+                                        <ColumnDefinition Width="48" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock VerticalAlignment="Center"
-                                               FontSize="13"
-                                               Text="{Binding Title}"
-                                               TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding Title}" />
-                                    <StackPanel Grid.Column="1"
-                                                Margin="8,0,0,0"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal"
-                                                ToolTip="{Binding SubagentAccessibilityLabel}"
-                                                AutomationProperties.Name="{Binding SubagentAccessibilityLabel}"
-                                                Visibility="{Binding HasSubagents, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                                    <Ellipse Width="8"
+                                             Height="8"
+                                             HorizontalAlignment="Left"
+                                             Fill="{Binding StatusBrush}" />
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Text="{Binding StatusLabel}" />
+                                    <Grid Grid.Column="2" Margin="0,0,12,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
                                         <TextBlock VerticalAlignment="Center"
-                                                   FontFamily="Segoe Fluent Icons"
-                                                   FontSize="11"
-                                                   Foreground="{StaticResource SecondaryTextBrush}"
-                                                   Text="&#xE8AC;" />
-                                        <TextBlock Margin="3,0,0,0"
-                                                   VerticalAlignment="Center"
+                                                   FontSize="13"
+                                                   Text="{Binding Title}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTip="{Binding Title}" />
+                                        <Button Grid.Column="1"
+                                                Height="22"
+                                                Margin="6,0,0,0"
+                                                Padding="2,0"
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.Name="{Binding SubagentToggleAccessibilityLabel}"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
+                                                Command="{Binding ToggleSubagentsCommand}"
+                                                ToolTip="{Binding SubagentToggleAccessibilityLabel}"
+                                                Visibility="{Binding HasSubagents, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock VerticalAlignment="Center"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="9"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="&#xE70E;">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="LayoutTransform">
+                                                                <Setter.Value>
+                                                                    <RotateTransform Angle="0" />
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSubagentExpanded}" Value="True">
+                                                                    <Setter Property="LayoutTransform">
+                                                                        <Setter.Value>
+                                                                            <RotateTransform Angle="90" />
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Margin="3,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="&#xE8AC;" />
+                                                <TextBlock Margin="3,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="Cascadia Mono, Consolas"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="{Binding SubagentCountText}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                    <StackPanel Grid.Column="3"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <TextBlock VerticalAlignment="Center"
                                                    FontFamily="Cascadia Mono, Consolas"
                                                    FontSize="11"
-                                                   Foreground="{StaticResource SecondaryTextBrush}"
-                                                   Text="{Binding SubagentCountText}" />
+                                                   Text="{Binding TokenText}" />
+                                        <controls:TokenInfoControl Margin="4,0,0,0"
+                                                                   Details="{Binding TokenDetails}"
+                                                                   Visibility="{Binding HasTokenDetails, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     </StackPanel>
-                                </Grid>
-                                <StackPanel Grid.Column="3"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal">
-                                    <TextBlock VerticalAlignment="Center"
-                                               FontFamily="Cascadia Mono, Consolas"
+                                    <TextBlock Grid.Column="4"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
                                                FontSize="11"
-                                               Text="{Binding TokenText}" />
-                                    <controls:TokenInfoControl Margin="4,0,0,0"
-                                                               Details="{Binding TokenDetails}"
-                                                               Visibility="{Binding HasTokenDetails, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Text="{Binding DurationText}" />
+                                </Grid>
+                            </Border>
+
+                            <ItemsControl ItemsSource="{Binding Subagents}"
+                                          Visibility="{Binding ShowSubagentRows, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border MinHeight="52"
+                                                Padding="27,7,13,7"
+                                                Background="#08000000"
+                                                BorderBrush="#ECECEE"
+                                                BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="18" />
+                                                    <ColumnDefinition Width="10" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="72" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock VerticalAlignment="Top"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="&#xE72A;" />
+                                                <Ellipse Grid.Column="1"
+                                                         Width="6"
+                                                         Height="6"
+                                                         Margin="0,5,0,0"
+                                                         HorizontalAlignment="Left"
+                                                         VerticalAlignment="Top"
+                                                         Fill="{Binding StatusBrush}" />
+                                                <StackPanel Grid.Column="2" Margin="6,0,10,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock MaxWidth="86"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Text="{Binding Alias}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip="{Binding Alias}"
+                                                                   Visibility="{Binding HasAlias, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   Margin="4,0"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Text="|"
+                                                                   Visibility="{Binding HasAlias, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                        <TextBlock Grid.Column="2"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Text="{Binding Title}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip="{Binding Title}" />
+                                                    </Grid>
+                                                    <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                                        <TextBlock FontSize="10"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{Binding StatusBrush}"
+                                                                   Text="{Binding StatusLabel}" />
+                                                        <TextBlock Margin="5,0"
+                                                                   FontSize="10"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Text="·" />
+                                                        <TextBlock FontSize="10"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Text="{Binding ActivityText}"
+                                                                   ToolTip="{Binding ActivityTooltip}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="3"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Top"
+                                                            Orientation="Horizontal">
+                                                    <TextBlock VerticalAlignment="Center"
+                                                               FontFamily="Cascadia Mono, Consolas"
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                                               Text="{Binding TokenText}" />
+                                                    <controls:SubagentInfoControl Margin="4,0,0,0"
+                                                                                  Details="{Binding Details}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Height="38"
+                                    Padding="49,0,13,0"
+                                    Background="#08000000"
+                                    BorderBrush="#ECECEE"
+                                    BorderThickness="0,0,0,1"
+                                    Visibility="{Binding ShowSubagentPlaceholder, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock FontFamily="Segoe Fluent Icons"
+                                               FontSize="11"
+                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Text="&#xE895;" />
+                                    <TextBlock Margin="7,0,0,0"
+                                               FontSize="11"
+                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Text="{Binding SubagentPlaceholderText}" />
                                 </StackPanel>
-                                <TextBlock Grid.Column="4"
-                                           HorizontalAlignment="Right"
-                                           VerticalAlignment="Center"
-                                           FontSize="11"
-                                           Foreground="{StaticResource SecondaryTextBrush}"
-                                           Text="{Binding DurationText}" />
-                            </Grid>
-                        </Border>
+                            </Border>
+                        </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

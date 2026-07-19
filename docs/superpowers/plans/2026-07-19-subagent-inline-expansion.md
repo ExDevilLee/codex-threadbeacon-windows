@@ -60,16 +60,16 @@
 
 ### Task 4: WPF Inline UI And Details
 
-- [ ] Add failing formatter/detail tests for alias suppression, relative activity,
+- [x] Add failing formatter/detail tests for alias suppression, relative activity,
   optional metadata, and Token detail values.
-- [ ] Run focused tests and confirm the presentation helpers are absent.
-- [ ] Convert the count badge to a keyboard-accessible toggle button with expanded
+- [x] Run focused tests and confirm the presentation helpers are absent.
+- [x] Convert the count badge to a keyboard-accessible toggle button with expanded
   state, tooltip, and automation name.
-- [ ] Add indented child rows and a child detail popover using the existing hover plus
+- [x] Add indented child rows and a child detail popover using the existing hover plus
   click pinning behavior, including outside-click dismissal.
-- [ ] Add compact loading, empty, and degraded child-region states without resizing
+- [x] Add compact loading, empty, and degraded child-region states without resizing
   unrelated parent rows.
-- [ ] Run all tests and Release build, then commit `feat(ui): expand Subagents inline`.
+- [x] Run all tests and Release build, then commit `feat(ui): expand Subagents inline`.
 
 ### Task 5: Documentation, Verification, Security Audit, And Push
 
