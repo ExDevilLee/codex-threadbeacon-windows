@@ -100,6 +100,39 @@ public sealed class SQLiteThreadRepositoryTests
     }
 
     [Fact]
+    public void LoadByIds_ReturnsOnlyRequestedActivePrimaryThreads()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+        var repository = new SQLiteThreadRepository(database.Path);
+
+        ThreadLoadResult result = repository.LoadByIds(
+            new HashSet<string>(StringComparer.Ordinal)
+            {
+                "new-thread",
+                "archived-thread",
+                "subagent-thread",
+                "new-thread' OR 1=1 --",
+            });
+
+        ThreadRecord record = Assert.Single(result.Threads);
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Equal("new-thread", record.Id);
+        Assert.Equal(3, record.SubagentCount);
+    }
+
+    [Fact]
+    public void LoadByIds_EmptySetReturnsHealthyEmptyResult()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+
+        ThreadLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadByIds(new HashSet<string>(StringComparer.Ordinal));
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Empty(result.Threads);
+    }
+
+    [Fact]
     public void LoadDirectSubagents_ReturnsOnlyRequestedParentsInRecencyOrder()
     {
         using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();

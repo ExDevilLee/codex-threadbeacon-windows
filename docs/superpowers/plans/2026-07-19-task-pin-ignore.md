@@ -47,8 +47,8 @@ Assert.DoesNotContain("resumed", result.Preferences.IgnoredRules.Keys);
 - Modify: `tests/ThreadBeacon.Core.Tests/Services/ThreadStatusLoaderTests.cs`
 - Create: `tests/ThreadBeacon.App.Tests/Settings/JsonThreadListPreferenceStoreTests.cs`
 
-- [ ] Add failing tests for `LoadByIds`: de-duplicate IDs, exclude archived/Subagent rows, bind hostile text as data, return missing IDs harmlessly, and retain `Mode=ReadOnly` plus `PRAGMA query_only = ON`.
-- [ ] Add failing loader tests showing recent and explicitly included records merge by ordinal ID without duplicates, and included-task failure degrades without discarding healthy recent candidates.
+- [x] Add failing tests for `LoadByIds`: de-duplicate IDs, exclude archived/Subagent rows, bind hostile text as data, return missing IDs harmlessly, and retain `Mode=ReadOnly` plus `PRAGMA query_only = ON`.
+- [x] Add failing loader tests showing recent and explicitly included records merge by ordinal ID without duplicates, and included-task failure degrades without discarding healthy recent candidates.
 
 ```csharp
 ThreadSnapshotLoadResult result = loader.Load(new ThreadLoadRequest(
@@ -58,11 +58,11 @@ ThreadSnapshotLoadResult result = loader.Load(new ThreadLoadRequest(
 Assert.Equal(["recent", "pinned", "ignored"], result.Threads.Select(x => x.Id));
 ```
 
-- [ ] Add failing App tests showing missing/malformed JSON loads empty preferences, valid data round-trips IDs/timestamps/mode, and saved JSON contains no task titles.
-- [ ] Run the three focused test classes; expect missing API/type failures.
-- [ ] Implement parameterized `LoadByIds`, merge candidates in `ThreadStatusLoader`, and add the resilient versioned JSON preference store under the existing local application-data directory. All database connections must use the existing read-only opener.
-- [ ] Re-run focused tests, full Core tests, and full App tests; require zero failures.
-- [ ] Commit `feat(tasks): load and persist task preferences`.
+- [x] Add failing App tests showing missing/malformed JSON loads empty preferences, valid data round-trips IDs/timestamps/mode, and saved JSON contains no task titles.
+- [x] Run the three focused test classes; expect missing API/type failures.
+- [x] Implement parameterized `LoadByIds`, merge candidates in `ThreadStatusLoader`, and add the resilient versioned JSON preference store under the existing local application-data directory. All database connections must use the existing read-only opener.
+- [x] Re-run focused tests, full Core tests, and full App tests; require zero failures.
+- [x] Commit `feat(tasks): load and persist task preferences`.
 
 ### Task 3: ViewModel behavior and WPF controls
 

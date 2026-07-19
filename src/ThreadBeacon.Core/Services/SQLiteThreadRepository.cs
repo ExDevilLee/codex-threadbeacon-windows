@@ -68,6 +68,87 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         }
     }
 
+    public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
+    {
+        ArgumentNullException.ThrowIfNull(threadIds);
+        string[] requestedIds = threadIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (requestedIds.Length == 0)
+        {
+            return Result(ThreadRepositoryStatus.Healthy);
+        }
+
+        if (!File.Exists(databasePath))
+        {
+            return Result(ThreadRepositoryStatus.Missing);
+        }
+
+        try
+        {
+            using SqliteConnection connection = OpenReadOnlyConnection();
+            bool hasSpawnEdges = HasTable(connection, "thread_spawn_edges");
+            using SqliteCommand command = connection.CreateCommand();
+            string[] parameterNames = new string[requestedIds.Length];
+            for (int index = 0; index < requestedIds.Length; index++)
+            {
+                parameterNames[index] = $"$thread{index}";
+                command.Parameters.AddWithValue(parameterNames[index], requestedIds[index]);
+            }
+
+            string relationshipFilter = hasSpawnEdges
+                ? "AND NOT EXISTS (SELECT 1 FROM thread_spawn_edges AS edge WHERE edge.child_thread_id = t.id)"
+                : string.Empty;
+            string subagentCount = hasSpawnEdges
+                ? "(SELECT COUNT(*) FROM thread_spawn_edges AS child_edge WHERE child_edge.parent_thread_id = t.id)"
+                : "0";
+            command.CommandText = $"""
+                SELECT t.id,
+                       t.title,
+                       t.rollout_path,
+                       COALESCE(t.updated_at_ms, t.updated_at * 1000),
+                       COALESCE(t.tokens_used, 0),
+                       {subagentCount}
+                FROM threads AS t
+                WHERE t.id IN ({string.Join(", ", parameterNames)})
+                  AND t.archived = 0
+                  AND COALESCE(t.thread_source, '') <> 'subagent'
+                  {relationshipFilter}
+                ORDER BY t.recency_at_ms DESC, t.id DESC;
+                """;
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            var records = new List<ThreadRecord>(requestedIds.Length);
+            while (reader.Read())
+            {
+                records.Add(ReadRecord(reader));
+            }
+
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+        catch (SqliteException exception) when (
+            exception.SqliteErrorCode is SqliteBusy or SqliteLocked)
+        {
+            return Result(ThreadRepositoryStatus.Busy);
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode is SqliteSchemaError)
+        {
+            return Result(ThreadRepositoryStatus.Incompatible);
+        }
+        catch (Exception exception) when (
+            exception is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            return Result(ThreadRepositoryStatus.Unavailable);
+        }
+        catch (Exception exception) when (
+            exception is InvalidCastException or OverflowException or ArgumentOutOfRangeException)
+        {
+            return Result(ThreadRepositoryStatus.Incompatible);
+        }
+    }
+
     public SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
     {
         ArgumentNullException.ThrowIfNull(parentIds);

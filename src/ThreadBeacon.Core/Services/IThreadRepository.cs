@@ -6,6 +6,12 @@ public interface IThreadRepository
 {
     ThreadLoadResult LoadRecent(int limit = 8);
 
+    ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
+    {
+        ArgumentNullException.ThrowIfNull(threadIds);
+        return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, []);
+    }
+
     SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
     {
         ArgumentNullException.ThrowIfNull(parentIds);

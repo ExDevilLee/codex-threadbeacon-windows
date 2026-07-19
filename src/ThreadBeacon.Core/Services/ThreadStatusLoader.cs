@@ -34,19 +34,38 @@ public sealed class ThreadStatusLoader
         int limit = 8,
         IReadOnlySet<string>? expandedThreadIds = null)
     {
+        return Load(new ThreadLoadRequest(
+            limit,
+            new HashSet<string>(StringComparer.Ordinal),
+            expandedThreadIds ?? new HashSet<string>(StringComparer.Ordinal)));
+    }
+
+    public ThreadSnapshotLoadResult Load(ThreadLoadRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentOutOfRangeException.ThrowIfLessThan(request.RecentLimit, 1);
         DateTimeOffset now = timeProvider.GetUtcNow();
-        ThreadLoadResult threadResult = threadRepository.LoadRecent(limit);
+        ThreadLoadResult recentResult = threadRepository.LoadRecent(request.RecentLimit);
+        ThreadLoadResult includedResult = request.IncludedThreadIds.Count == 0
+            ? new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [])
+            : threadRepository.LoadByIds(request.IncludedThreadIds);
+        var recordsById = new Dictionary<string, ThreadRecord>(StringComparer.Ordinal);
+        foreach (ThreadRecord record in recentResult.Threads.Concat(includedResult.Threads))
+        {
+            recordsById[record.Id] = record;
+        }
+
+        ThreadRepositoryStatus threadStatus = recentResult.Status is ThreadRepositoryStatus.Healthy
+            ? includedResult.Status
+            : recentResult.Status;
         TitleLoadResult titleResult = titleRepository.LoadLatestTitles();
         IReadOnlyList<ThreadRecord> records = ThreadTitleResolver.Resolve(
-            threadResult.Threads,
+            recordsById.Values.ToArray(),
             titleResult.Titles);
         var visibleIds = new HashSet<string>(records.Select(record => record.Id), StringComparer.Ordinal);
         IReadOnlyDictionary<string, ServiceIncident> incidents = LoadIncidents(visibleIds);
         var requestedParentIds = new HashSet<string>(StringComparer.Ordinal);
-        if (expandedThreadIds is not null)
-        {
-            requestedParentIds.UnionWith(expandedThreadIds.Where(visibleIds.Contains));
-        }
+        requestedParentIds.UnionWith(request.ExpandedThreadIds.Where(visibleIds.Contains));
 
         SubagentLoadResult subagentResult = requestedParentIds.Count == 0
             ? new SubagentLoadResult(
@@ -72,7 +91,7 @@ public sealed class ThreadStatusLoader
             .ToArray();
 
         return new ThreadSnapshotLoadResult(
-            threadResult.Status,
+            threadStatus,
             titleResult.Status,
             snapshots,
             now);

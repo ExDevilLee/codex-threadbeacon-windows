@@ -72,6 +72,35 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_MergesExplicitlyIncludedThreadsWithoutDuplicates()
+    {
+        ThreadRecord recent = Record("recent", "Recent");
+        ThreadRecord included = Record("included", "Included");
+        var repository = new IncludingThreadRepository([recent], [recent, included]);
+        var observations = new Dictionary<string, RolloutLoadResult>(StringComparer.Ordinal)
+        {
+            ["recent"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+            ["included"] = HealthyObservation(ThreadStatus.Idle, Now, Now.AddSeconds(-1)),
+        };
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(observations),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(StringComparer.Ordinal) { "included", "recent" },
+            new HashSet<string>(StringComparer.Ordinal)));
+
+        Assert.Equal(["included", "recent"], repository.RequestedIds);
+        Assert.Equal(["recent", "included"], result.Threads.Select(thread => thread.Id));
+        Assert.Equal(2, result.Threads.Count);
+    }
+
+    [Fact]
     public void Load_PropagatesDataSourceHealthWithoutDroppingThreads()
     {
         var threadRepository = new StubThreadRepository(new ThreadLoadResult(
@@ -348,6 +377,22 @@ public sealed class ThreadStatusLoaderTests
         {
             RequestedParentIds = new HashSet<string>(parentIds, StringComparer.Ordinal);
             return subagentResult;
+        }
+    }
+
+    private sealed class IncludingThreadRepository(
+        IReadOnlyList<ThreadRecord> recent,
+        IReadOnlyList<ThreadRecord> included) : IThreadRepository
+    {
+        public IReadOnlySet<string>? RequestedIds { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, recent);
+
+        public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
+        {
+            RequestedIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, included);
         }
     }
 
