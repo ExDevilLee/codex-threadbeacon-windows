@@ -10,7 +10,7 @@ This repository is the independent Windows implementation of [ThreadBeacon for m
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
 
-The first end-to-end POC is now implemented: short-lived, non-pooled, read-only SQLite connections load the 8 most recent unarchived primary threads and exclude subagents; a shared read of `session_index.jsonl` selects the last valid renamed title; each rollout read is limited to the final 2 MiB and retains only event types, timestamps, and numeric Token fields to derive `running`, `justCompleted`, `idle`, and `unknown`. A unified loader merges these sources into snapshots, and the WPF window displays status lights, titles, cumulative Token usage, and status duration with 2-second automatic refresh and manual refresh. Each source degrades safely when unavailable or incompatible.
+The first end-to-end POC is now implemented: short-lived, non-pooled, read-only SQLite connections load recent unarchived primary threads and exclude subagents; a shared read of `session_index.jsonl` selects the last valid renamed title; each rollout read is limited to the final 2 MiB and retains only event types, timestamps, and numeric Token fields to derive `running`, `justCompleted`, `idle`, and `unknown`. A unified loader merges these sources into snapshots, and the WPF window displays status lights, titles, cumulative Token usage, and status duration. It defaults to 8 tasks and a 2-second automatic refresh interval, with manual refresh also available. Each source degrades safely when unavailable or incompatible.
 
 The WPF App is connected to real local task data. A Win11 read-only concurrent-task soak ran for more than 30 minutes: 900 samples completed with no probe failures, source degradations, or App crashes, and Codex writes remained available. See the [Windows 30-minute soak record](docs/validation/2026-07-18-windows-30-minute-soak.md).
 
@@ -22,11 +22,11 @@ Right-click a primary task to pin or ignore it. Status priority always outranks 
 
 Right-clicking also favorites a primary task independently of pin and ignore. The header star switches between all tasks and favorites only, and persists the filter with the favorite task IDs locally. Favorites do not alter the existing status, pin, or recency order. If Codex archives a favorite, it remains in the watchlist with a neutral `Archived` state while retaining any available renamed title and Token data. Archived favorites do not query 429/503 logs or emit completion or incident sounds.
 
-The middle header button temporarily pauses or resumes the 2-second automatic monitoring cycle. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
+The middle header button temporarily pauses or resumes automatic monitoring. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
 
-The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
+The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across automatic task refreshes.
 
-The speaker button configures notification sounds and provides the same Beacon, Chime, Pulse, Alert, Resolve, and Knock built-in tones as the macOS version, including preview playback. New installations default to Chime for task completion and Alert for 429/503 incidents; either notification can independently use any of the six sounds. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, and monitoring resume establish a baseline and never replay historical completions. Sound preferences and at most 256 derived event IDs are stored locally without task titles, conversation bodies, Token details, or Codex paths.
+The gear button opens a separate settings window. Its General tab offers 1, 2, 5, or 10-second refresh intervals and maximum task counts of 4, 8, 12, or 20; changes are saved and applied immediately without altering the paused state. The Sounds tab provides the same Beacon, Chime, Pulse, Alert, Resolve, and Knock built-in tones as the macOS version, including preview playback. New installations default to Chime for task completion and Alert for 429/503 incidents; either notification can independently use any of the six sounds. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, monitoring resume, and task-count changes establish a baseline and never replay historical completions. Display preferences are stored in `%LOCALAPPDATA%\ThreadBeacon\display-settings.json`; sound preferences and at most 256 derived event IDs also stay local. These files contain no task titles, conversation bodies, Token details, or Codex paths.
 
 The App now also monitors HTTP 429/503 service incidents for currently visible primary tasks. Active retries appear as a yellow “Service incident” with the HTTP status and retry progress; exhausted retries become a red “Service failure.” A later HTTP 200 in the same turn or a newer rollout lifecycle event clears the stale incident. Each incident episode can play one independently configurable warning sound and shares the baseline and 256-entry local derived-ID history with completion events.
 
@@ -36,7 +36,7 @@ The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. 
 
 The first POC is deliberately limited to:
 
-- Reading the 8 most recent unarchived primary threads and excluding subagents.
+- Reading 8 recent unarchived primary threads by default, with configurable limits of 4, 8, 12, or 20, and excluding subagents.
 - Using the latest renamed title from `session_index.jsonl`.
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.
@@ -47,7 +47,7 @@ The first POC is deliberately limited to:
 - Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.
 - Favoriting independently, filtering to favorites, and watching archived favorites.
 - Showing four local data-source states, aggregate rollout read counts, and the last successful refresh time.
-- Refreshing every 2 seconds with a manual refresh option.
+- Refreshing every 2 seconds by default, with configurable 1, 2, 5, or 10-second intervals and a manual refresh option.
 - Opening SQLite databases in read-only mode.
 - Never reading conversation bodies, accessing the network, or modifying Codex data.
 

@@ -83,6 +83,15 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Keep the health popover open while the two-second refresh updates its contents in place.
 - [x] Expose an always-visible, accessible footer entry aligned with the macOS behavior.
 
+## Phase 8: Settings Window
+
+- [x] Replace the sound-only popover with a single-instance, non-modal settings window.
+- [x] Provide macOS-aligned General and Sounds tabs through native WPF controls.
+- [x] Configure 1, 2, 5, or 10-second refresh intervals and apply changes immediately.
+- [x] Configure maximum visible task counts of 4, 8, 12, or 20 without replaying notifications.
+- [x] Keep paused monitoring paused while preferences change.
+- [x] Persist display preferences separately from window pin and sound settings.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
