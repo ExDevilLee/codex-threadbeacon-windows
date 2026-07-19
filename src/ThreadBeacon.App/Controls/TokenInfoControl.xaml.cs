@@ -111,6 +111,12 @@ public partial class TokenInfoControl : UserControl
     private void OnDismissTimerTick(object? sender, EventArgs e)
     {
         dismissTimer.Stop();
+        if (!state.IsPinned && (IsPointerOver(InfoButton) || IsPointerOver(PopupContent)))
+        {
+            dismissTimer.Start();
+            return;
+        }
+
         state.RequestHoverDismiss();
         ApplyState();
     }
@@ -161,5 +167,14 @@ public partial class TokenInfoControl : UserControl
     {
         openTimer.Stop();
         dismissTimer.Stop();
+    }
+
+    private static bool IsPointerOver(FrameworkElement element)
+    {
+        Point position = Mouse.GetPosition(element);
+        return position.X >= 0
+            && position.Y >= 0
+            && position.X <= element.ActualWidth
+            && position.Y <= element.ActualHeight;
     }
 }

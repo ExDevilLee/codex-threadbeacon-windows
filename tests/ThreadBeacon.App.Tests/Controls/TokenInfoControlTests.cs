@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using ThreadBeacon.App.Controls;
 using ThreadBeacon.App.ViewModels;
@@ -9,7 +11,7 @@ namespace ThreadBeacon.App.Tests.Controls;
 public sealed class TokenInfoControlTests
 {
     [Fact]
-    public void Measure_WithTokenDetails_DoesNotThrowXamlParseException()
+    public void Construct_WithTokenDetails_LoadsWithoutCompetingTooltip()
     {
         Exception? failure = null;
         var thread = new Thread(() =>
@@ -29,6 +31,11 @@ public sealed class TokenInfoControlTests
 
                 control.Measure(new Size(16, 16));
                 control.ApplyTemplate();
+
+                var button = Assert.IsType<Button>(control.FindName("InfoButton"));
+                var popup = Assert.IsType<Popup>(control.FindName("DetailsPopup"));
+                Assert.Null(button.ToolTip);
+                Assert.False(popup.StaysOpen);
             }
             catch (Exception exception)
             {
