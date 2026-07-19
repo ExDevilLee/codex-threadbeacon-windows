@@ -20,10 +20,22 @@
                 Click="OnHealthButtonClick"
                 KeyDown="OnHealthButtonKeyDown"
                 ToolTip="{Binding Details.AccessibilityLabel, ElementName=Root}">
-            <TextBlock FontFamily="Segoe Fluent Icons"
-                       FontSize="13"
-                       Foreground="{Binding Details.OverallBrush, ElementName=Root}"
-                       Text="{Binding Details.OverallGlyph, ElementName=Root}" />
+            <Grid Width="16" Height="16">
+                <TextBlock x:Name="HealthButtonBaseGlyph"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontFamily="Segoe Fluent Icons"
+                           FontSize="16"
+                           Foreground="{Binding Details.OverallBrush, ElementName=Root}"
+                           Text="{Binding Details.HealthButtonBaseGlyph, ElementName=Root}" />
+                <TextBlock x:Name="HealthButtonOverlayGlyph"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontFamily="Segoe Fluent Icons"
+                           FontSize="9"
+                           Foreground="{Binding Details.OverallBrush, ElementName=Root}"
+                           Text="{Binding Details.HealthButtonOverlayGlyph, ElementName=Root}" />
+            </Grid>
         </Button>
 
         <Popup x:Name="DetailsPopup"

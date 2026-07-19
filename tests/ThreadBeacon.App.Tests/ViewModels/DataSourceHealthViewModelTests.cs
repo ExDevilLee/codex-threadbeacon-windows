@@ -58,4 +58,37 @@ public sealed class DataSourceHealthViewModelTests
             viewModel.Sources,
             source => Assert.Equal(DataSourceHealthLevel.NotUsed, source.Level));
     }
+
+    [Fact]
+    public void HealthButtonGlyphs_MatchMacOsOverallStateMapping()
+    {
+        var viewModel = new DataSourceHealthViewModel();
+
+        Assert.Equal("\uEA18", viewModel.HealthButtonBaseGlyph);
+        Assert.Equal("\uE73E", viewModel.HealthButtonOverlayGlyph);
+
+        viewModel.Update(new DataSourceHealthReport(
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Degraded("Rename unavailable"),
+            DataSourceHealthStatus.Healthy,
+            DataSourceHealthStatus.Healthy,
+            1,
+            0,
+            DateTimeOffset.Now));
+
+        Assert.Equal("\uE7BA", viewModel.HealthButtonBaseGlyph);
+        Assert.Equal(string.Empty, viewModel.HealthButtonOverlayGlyph);
+
+        viewModel.Update(new DataSourceHealthReport(
+            DataSourceHealthStatus.Unavailable("Database unavailable"),
+            DataSourceHealthStatus.NotUsed,
+            DataSourceHealthStatus.NotUsed,
+            DataSourceHealthStatus.NotUsed,
+            0,
+            0,
+            null));
+
+        Assert.Equal("\uEA39", viewModel.HealthButtonBaseGlyph);
+        Assert.Equal(string.Empty, viewModel.HealthButtonOverlayGlyph);
+    }
 }

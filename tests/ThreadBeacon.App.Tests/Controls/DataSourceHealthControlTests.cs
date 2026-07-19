@@ -42,6 +42,14 @@ public sealed class DataSourceHealthControlTests
                     control.ApplyTemplate();
                     var button = Assert.IsType<Button>(control.FindName("HealthButton"));
                     var popup = Assert.IsType<Popup>(control.FindName("DetailsPopup"));
+                    var baseGlyph = Assert.IsType<TextBlock>(
+                        control.FindName("HealthButtonBaseGlyph"));
+                    var overlayGlyph = Assert.IsType<TextBlock>(
+                        control.FindName("HealthButtonOverlayGlyph"));
+                    Assert.Equal("\uEA18", baseGlyph.Text);
+                    Assert.Equal("\uE73E", overlayGlyph.Text);
+                    Assert.Equal(16d, baseGlyph.FontSize);
+                    Assert.Equal(9d, overlayGlyph.FontSize);
                     Assert.Equal(details.AccessibilityLabel, button.ToolTip);
                     Assert.False(popup.StaysOpen);
 

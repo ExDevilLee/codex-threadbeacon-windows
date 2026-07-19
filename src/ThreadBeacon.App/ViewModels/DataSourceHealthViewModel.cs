@@ -49,6 +49,18 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
         _ => string.Empty,
     };
 
+    public string HealthButtonBaseGlyph => OverallStatus switch
+    {
+        OverallDataSourceHealth.Healthy => "\uEA18",
+        OverallDataSourceHealth.Degraded => "\uE7BA",
+        OverallDataSourceHealth.Unavailable => "\uEA39",
+        _ => string.Empty,
+    };
+
+    public string HealthButtonOverlayGlyph => OverallStatus is OverallDataSourceHealth.Healthy
+        ? "\uE73E"
+        : string.Empty;
+
     public Brush OverallBrush => HealthBrush(OverallStatus switch
     {
         OverallDataSourceHealth.Healthy => DataSourceHealthLevel.Healthy,
@@ -80,6 +92,8 @@ public sealed class DataSourceHealthViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Summary));
         OnPropertyChanged(nameof(AccessibilityLabel));
         OnPropertyChanged(nameof(OverallGlyph));
+        OnPropertyChanged(nameof(HealthButtonBaseGlyph));
+        OnPropertyChanged(nameof(HealthButtonOverlayGlyph));
         OnPropertyChanged(nameof(OverallBrush));
         OnPropertyChanged(nameof(LastSuccessfulRefreshText));
         OnPropertyChanged(nameof(RolloutCountsText));
