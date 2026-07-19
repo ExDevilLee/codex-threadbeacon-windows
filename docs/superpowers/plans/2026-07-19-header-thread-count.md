@@ -25,7 +25,7 @@
 - Create: `tests/ThreadBeacon.App.Tests/Formatting/ThreadCountFormatterTests.cs`
 - Create: `src/ThreadBeacon.App/Formatting/ThreadCountFormatter.cs`
 
-- [ ] **Step 1: Write failing formatter tests**
+- [x] **Step 1: Write failing formatter tests**
 
 Assert the exact macOS-aligned contract:
 
@@ -49,7 +49,7 @@ Assert.Equal("3 个任务正在运行，共显示 8 个任务", mixed.Accessibil
 Add an empty-input case expecting `0/0` and its exact Chinese explanation. Add a null
 case expecting `ArgumentNullException`.
 
-- [ ] **Step 2: Run focused tests and confirm failure**
+- [x] **Step 2: Run focused tests and confirm failure**
 
 ```powershell
 dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter ThreadCountFormatterTests
@@ -58,7 +58,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 Expected: compilation fails because `ThreadCountFormatter` and `ThreadCountLabel` do
 not exist.
 
-- [ ] **Step 3: Implement the formatter**
+- [x] **Step 3: Implement the formatter**
 
 Create:
 
@@ -90,7 +90,7 @@ public static class ThreadCountFormatter
 }
 ```
 
-- [ ] **Step 4: Run focused and application tests**
+- [x] **Step 4: Run focused and application tests**
 
 ```powershell
 dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter ThreadCountFormatterTests
@@ -99,7 +99,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj
 
 Expected: formatter tests and the complete application test suite pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/Formatting/ThreadCountFormatter.cs tests/ThreadBeacon.App.Tests/Formatting/ThreadCountFormatterTests.cs
