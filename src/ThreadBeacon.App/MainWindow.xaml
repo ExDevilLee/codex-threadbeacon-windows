@@ -92,6 +92,23 @@
                     </TextBlock>
                 </Button>
 
+                <Button x:Name="IgnoredTasksButton"
+                        Width="32"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        Padding="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Click="OnIgnoredTasksButtonClick"
+                        ToolTip="管理已忽略任务"
+                        AutomationProperties.Name="管理已忽略任务"
+                        Visibility="{Binding HasIgnoredThreads, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock FontFamily="Segoe Fluent Icons"
+                               FontSize="15"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               Text="&#xED1A;" />
+                </Button>
+
                 <Button x:Name="SoundButton"
                         Width="32"
                         Height="32"
@@ -209,6 +226,15 @@
                                     Padding="13,0"
                                     BorderBrush="#ECECEE"
                                     BorderThickness="0,0,0,1">
+                                <Border.ContextMenu>
+                                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Header="{Binding PinCommandLabel}"
+                                                  Command="{Binding TogglePinCommand}" />
+                                        <Separator />
+                                        <MenuItem Header="忽略此任务"
+                                                  Command="{Binding IgnoreCommand}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="14" />
@@ -232,10 +258,20 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock FontSize="13"
-                                                       Text="{Binding Title}"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       ToolTip="{Binding Title}" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Margin="0,0,5,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="&#xE718;"
+                                                           ToolTip="已置顶"
+                                                           Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                <TextBlock FontSize="13"
+                                                           Text="{Binding Title}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTip="{Binding Title}" />
+                                            </StackPanel>
                                             <TextBlock Margin="0,2,0,0"
                                                        FontSize="10"
                                                        Foreground="{StaticResource SecondaryTextBrush}"
@@ -528,6 +564,66 @@
                                     Content="试听" />
                         </Grid>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup x:Name="IgnoredTasksPopup"
+               AllowsTransparency="True"
+               HorizontalOffset="-248"
+               Placement="Bottom"
+               PlacementTarget="{Binding ElementName=IgnoredTasksButton}"
+               StaysOpen="False"
+               VerticalOffset="6">
+            <Border Width="280"
+                    Padding="14"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel>
+                    <TextBlock Margin="0,0,0,10"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Text="已忽略任务" />
+                    <ItemsControl ItemsSource="{Binding IgnoredThreads}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid MinHeight="32">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="32" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center"
+                                               Text="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Title}" />
+                                    <Button Grid.Column="1"
+                                            Width="28"
+                                            Height="28"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Command="{Binding RestoreCommand}"
+                                            ToolTip="恢复任务"
+                                            AutomationProperties.Name="恢复任务">
+                                        <TextBlock FontFamily="Segoe Fluent Icons"
+                                                   FontSize="14"
+                                                   Text="&#xE777;" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Separator Margin="0,8"
+                               Visibility="{Binding ShowRestoreAllIgnored, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <Button HorizontalAlignment="Left"
+                            Padding="8,4"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            Command="{Binding RestoreAllIgnoredCommand}"
+                            Content="全部恢复"
+                            Visibility="{Binding ShowRestoreAllIgnored, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </Border>
         </Popup>

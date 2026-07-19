@@ -77,14 +77,14 @@ Assert.Equal(["recent", "pinned", "ignored"], result.Threads.Select(x => x.Id));
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/ThreadRowCollectionTests.cs`
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/ThreadRowViewModelTests.cs`
 
-- [ ] Add failing ViewModel tests proving refresh requests include pinned/ignored IDs and `8 + ignored count`, a pin immediately reorders only within status, ignore immediately removes the row and its pin/expansion, notifications receive visible rows only, new-turn refresh clears and persists the rule, and one/all restore commands repopulate rows.
-- [ ] Add failing row tests for `IsPinned`, pin/unpin label, and commands. Add a XAML structure test or direct control assertions for the conditional eye-slash button, row context menu, pin glyph, restore-one, and restore-all controls.
-- [ ] Run focused App tests; expect missing members and controls.
-- [ ] Implement ViewModel candidate state and commands. Persist only when preferences change, prune stale pins after a healthy successful candidate load, and preserve refresh baseline semantics for command-triggered refreshes.
-- [ ] Add the row context menu (`置顶任务`/`取消置顶`, `忽略此任务`), subtle Fluent pin glyph, conditional ignored-task toolbar button, and a focus-dismissable popup. Show in-memory titles with an eight-character ID fallback and close after the last restore.
-- [ ] Re-run focused App tests and the full solution tests; require zero failures.
-- [ ] Build Release and launch the App. Verify right-click pin/unpin, status-first ordering, immediate ignore, one/all restore, popup focus dismissal, next-turn auto-restore, two-second refresh stability, and no sound from ignored rows.
-- [ ] Commit `feat(tasks): add pin and ignore controls`.
+- [x] Add failing ViewModel tests proving refresh requests include pinned/ignored IDs and `8 + ignored count`, a pin immediately reorders only within status, ignore immediately removes the row and its pin/expansion, notifications receive visible rows only, new-turn refresh clears and persists the rule, and one/all restore commands repopulate rows.
+- [x] Add failing row tests for `IsPinned`, pin/unpin label, and commands. Add a XAML structure test or direct control assertions for the conditional eye-slash button, row context menu, pin glyph, restore-one, and restore-all controls.
+- [x] Run focused App tests; expect missing members and controls.
+- [x] Implement ViewModel candidate state and commands. Persist only when preferences change, prune stale pins after a healthy successful candidate load, and preserve refresh baseline semantics for command-triggered refreshes.
+- [x] Add the row context menu (`置顶任务`/`取消置顶`, `忽略此任务`), subtle Fluent pin glyph, conditional ignored-task toolbar button, and a focus-dismissable popup. Show in-memory titles with an eight-character ID fallback and close after the last restore.
+- [x] Re-run focused App tests and the full solution tests; require zero failures.
+- [x] Build Release and launch the App. Verify right-click pin/unpin, status-first ordering, immediate ignore, one/all restore, popup focus dismissal, next-turn auto-restore, two-second refresh stability, and no sound from ignored rows.
+- [x] Commit `feat(tasks): add pin and ignore controls`.
 
 ### Task 4: Documentation, security audit, and delivery
 

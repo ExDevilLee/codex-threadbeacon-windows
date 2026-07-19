@@ -38,10 +38,12 @@ public partial class MainWindow : Window
             loader,
             windowPin,
             monitoring,
-            completionNotifications);
+            completionNotifications,
+            JsonThreadListPreferenceStore.CreateDefault());
         DataContext = viewModel;
         SoundSettingsPanel.DataContext = soundSettings;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         refreshTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
@@ -93,10 +95,23 @@ public partial class MainWindow : Window
     {
         refreshTimer.Stop();
         viewModel.Monitoring.PropertyChanged -= OnMonitoringPropertyChanged;
+        viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         soundPlayer.Dispose();
     }
 
     private void OnSoundButtonClick(object sender, RoutedEventArgs e) =>
         SoundSettingsPopup.IsOpen = !SoundSettingsPopup.IsOpen;
+
+    private void OnIgnoredTasksButtonClick(object sender, RoutedEventArgs e) =>
+        IgnoredTasksPopup.IsOpen = !IgnoredTasksPopup.IsOpen;
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(MainWindowViewModel.HasIgnoredThreads)
+            && !viewModel.HasIgnoredThreads)
+        {
+            IgnoredTasksPopup.IsOpen = false;
+        }
+    }
 }
 

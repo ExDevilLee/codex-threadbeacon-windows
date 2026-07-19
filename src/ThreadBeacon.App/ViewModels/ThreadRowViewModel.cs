@@ -31,16 +31,21 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy;
     private string durationText = string.Empty;
     private readonly Func<string, Task> toggleSubagents;
+    private bool isPinned;
 
     public ThreadRowViewModel(
         ThreadSnapshot snapshot,
         DateTimeOffset now,
-        Func<string, Task>? toggleSubagents = null)
+        Func<string, Task>? toggleSubagents = null,
+        Action<string>? togglePin = null,
+        Action<string>? ignore = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
         this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
         ToggleSubagentsCommand = new AsyncRelayCommand(() => this.toggleSubagents(Id));
+        TogglePinCommand = new RelayCommand(() => togglePin?.Invoke(Id));
+        IgnoreCommand = new RelayCommand(() => ignore?.Invoke(Id));
         Update(snapshot, now);
     }
 
@@ -51,6 +56,24 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     public ObservableCollection<SubagentRowViewModel> Subagents { get; } = [];
 
     public AsyncRelayCommand ToggleSubagentsCommand { get; }
+
+    public RelayCommand TogglePinCommand { get; }
+
+    public RelayCommand IgnoreCommand { get; }
+
+    public bool IsPinned
+    {
+        get => isPinned;
+        private set
+        {
+            if (SetField(ref isPinned, value))
+            {
+                OnPropertyChanged(nameof(PinCommandLabel));
+            }
+        }
+    }
+
+    public string PinCommandLabel => IsPinned ? "取消置顶" : "置顶任务";
 
     public string Title
     {
@@ -216,6 +239,8 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             Subagents.Clear();
         }
     }
+
+    public void SetPinned(bool value) => IsPinned = value;
 
     public void MarkSubagentLoadFailed()
     {

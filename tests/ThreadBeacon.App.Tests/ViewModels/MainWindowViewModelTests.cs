@@ -200,6 +200,86 @@ public sealed class MainWindowViewModelTests
         Assert.Equal("Subagent 读取失败", parent.SubagentPlaceholderText);
     }
 
+    [Fact]
+    public async Task RefreshAsync_AppliesPinnedAndIgnoredPreferencesBeforeNotifications()
+    {
+        ThreadRecord[] records = [Record("recent"), Record("pinned"), Record("ignored")];
+        var repository = new PreferenceThreadRepository(records);
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            pinnedThreadIds: ["pinned"],
+            ignoredRules: new Dictionary<string, IgnoredThreadRule>(StringComparer.Ordinal)
+            {
+                ["ignored"] = new("ignored", Now, ThreadIgnoreMode.UntilNextTurn),
+            }));
+        var observer = new RecordingCompletionObserver();
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(records.ToDictionary(
+                record => record.Id,
+                _ => ThreadStatus.Running,
+                StringComparer.Ordinal)),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            observer,
+            preferenceStore,
+            new FixedTimeProvider(Now));
+
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(9, repository.LastRecentLimit);
+        Assert.True(repository.LastIncludedIds!.SetEquals(["ignored", "pinned"]));
+        Assert.Equal(["pinned", "recent"], viewModel.Threads.Select(row => row.Id));
+        Assert.Equal(["pinned", "recent"], observer.LastSnapshots!.Select(row => row.Id));
+        Assert.True(viewModel.HasIgnoredThreads);
+        Assert.Equal("ignored", Assert.Single(viewModel.IgnoredThreads).Id);
+    }
+
+    [Fact]
+    public async Task IgnoreAndRestore_UpdateRowsAndPersistImmediately()
+    {
+        ThreadRecord[] records = [Record("task")];
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences());
+        MainWindowViewModel viewModel = CreatePreferenceViewModel(records, preferenceStore);
+        await viewModel.RefreshAsync();
+
+        viewModel.IgnoreThread("task");
+
+        Assert.Empty(viewModel.Threads);
+        Assert.True(viewModel.HasIgnoredThreads);
+        Assert.Contains("task", preferenceStore.LastSaved!.IgnoredRules.Keys);
+        Assert.Contains("0", viewModel.StatusText);
+
+        viewModel.RestoreIgnoredThread("task");
+
+        Assert.Equal("task", Assert.Single(viewModel.Threads).Id);
+        Assert.False(viewModel.HasIgnoredThreads);
+        Assert.Contains("1", viewModel.StatusText);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_KeepsRecoveryEntryForMissingIgnoredCandidate()
+    {
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            ignoredRules: new Dictionary<string, IgnoredThreadRule>(StringComparer.Ordinal)
+            {
+                ["missing-task-id"] = new(
+                    "missing-task-id",
+                    Now,
+                    ThreadIgnoreMode.UntilNextTurn),
+            }));
+        MainWindowViewModel viewModel = CreatePreferenceViewModel([], preferenceStore);
+
+        await viewModel.RefreshAsync();
+
+        IgnoredThreadRowViewModel row = Assert.Single(viewModel.IgnoredThreads);
+        Assert.Equal("missing-task-id", row.Id);
+        Assert.Equal("任务 missing-", row.Title);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,
@@ -230,6 +310,26 @@ public sealed class MainWindowViewModelTests
 
     private static ThreadRecord Record(string id) =>
         new(id, id, id, Now, 0, 0);
+
+    private static MainWindowViewModel CreatePreferenceViewModel(
+        IReadOnlyList<ThreadRecord> records,
+        IThreadListPreferenceStore preferenceStore)
+    {
+        var loader = new ThreadStatusLoader(
+            new PreferenceThreadRepository(records),
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(records.ToDictionary(
+                record => record.Id,
+                _ => ThreadStatus.Running,
+                StringComparer.Ordinal)),
+            new FixedTimeProvider(Now));
+        return new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            preferenceStore: preferenceStore,
+            timeProvider: new FixedTimeProvider(Now));
+    }
 
     private sealed class FakeThreadRepository(ThreadRepositoryStatus status)
         : IThreadRepository
@@ -274,6 +374,26 @@ public sealed class MainWindowViewModelTests
                 throw new IOException("Database unavailable.");
             }
 
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+    }
+
+    private sealed class PreferenceThreadRepository(IReadOnlyList<ThreadRecord> records)
+        : IThreadRepository
+    {
+        public int LastRecentLimit { get; private set; }
+
+        public IReadOnlySet<string>? LastIncludedIds { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8)
+        {
+            LastRecentLimit = limit;
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+
+        public ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
+        {
+            LastIncludedIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
             return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
         }
     }
@@ -339,6 +459,20 @@ public sealed class MainWindowViewModelTests
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    private sealed class MemoryThreadListPreferenceStore(ThreadListPreferences initial)
+        : IThreadListPreferenceStore
+    {
+        public ThreadListPreferences? LastSaved { get; private set; }
+
+        public ThreadListPreferences Load() => initial.Clone();
+
+        public bool Save(ThreadListPreferences preferences)
+        {
+            LastSaved = preferences.Clone();
+            return true;
+        }
     }
 
     private sealed class RecordingCompletionObserver : ICompletionNotificationObserver

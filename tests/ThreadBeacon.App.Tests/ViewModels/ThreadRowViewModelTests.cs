@@ -135,6 +135,27 @@ public sealed class ThreadRowViewModelTests
         Assert.False(viewModel.HasIncidentDetail);
     }
 
+    [Fact]
+    public void TaskPreferenceCommands_ExposePinStateAndForwardTaskId()
+    {
+        string? pinnedId = null;
+        string? ignoredId = null;
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 0),
+            Now,
+            togglePin: id => pinnedId = id,
+            ignore: id => ignoredId = id);
+
+        viewModel.SetPinned(true);
+        viewModel.TogglePinCommand.Execute(null);
+        viewModel.IgnoreCommand.Execute(null);
+
+        Assert.True(viewModel.IsPinned);
+        Assert.Equal("取消置顶", viewModel.PinCommandLabel);
+        Assert.Equal("thread-1", pinnedId);
+        Assert.Equal("thread-1", ignoredId);
+    }
+
     private static ThreadSnapshot Snapshot(
         int subagentCount,
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,

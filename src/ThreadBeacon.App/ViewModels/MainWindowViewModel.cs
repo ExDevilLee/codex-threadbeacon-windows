@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using ThreadBeacon.App.Commands;
 using ThreadBeacon.App.Formatting;
+using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.Core.Models;
 using ThreadBeacon.Core.Notifications;
@@ -18,7 +19,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly HashSet<string> expandedThreadIds = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly ICompletionNotificationObserver? completionObserver;
+    private readonly IThreadListPreferenceStore? preferenceStore;
+    private readonly TimeProvider timeProvider;
     private readonly AsyncRelayCommand refreshCommand;
+    private ThreadListPreferences preferences;
+    private IReadOnlyList<ThreadSnapshot> candidateSnapshots = [];
+    private ThreadRepositoryStatus lastThreadSourceStatus = ThreadRepositoryStatus.Healthy;
+    private SessionIndexStatus lastTitleSourceStatus = SessionIndexStatus.Healthy;
     private ThreadCountLabel threadCountLabel = ThreadCountFormatter.Format([]);
     private bool isRefreshing;
     private string sourceStatusText = "准备监听";
@@ -34,13 +41,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ThreadStatusLoader loader,
         WindowPinState windowPin,
         MonitoringState monitoring,
-        ICompletionNotificationObserver? completionObserver = null)
+        ICompletionNotificationObserver? completionObserver = null,
+        IThreadListPreferenceStore? preferenceStore = null,
+        TimeProvider? timeProvider = null)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
         Monitoring = monitoring ?? throw new ArgumentNullException(nameof(monitoring));
         this.completionObserver = completionObserver;
-        threadRows = new ThreadRowCollection(ToggleSubagentsAsync);
+        this.preferenceStore = preferenceStore;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        preferences = preferenceStore?.Load() ?? new ThreadListPreferences();
+        threadRows = new ThreadRowCollection(ToggleSubagentsAsync, TogglePin, IgnoreThread);
         refreshCommand = new AsyncRelayCommand(
             () => RefreshAsync(RefreshNotificationPolicy.Baseline),
             () => !IsRefreshing);
@@ -50,6 +62,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<ThreadRowViewModel> Threads => threadRows.Items;
+
+    public ObservableCollection<IgnoredThreadRowViewModel> IgnoredThreads { get; } = [];
+
+    public bool HasIgnoredThreads => IgnoredThreads.Count > 0;
+
+    public bool ShowRestoreAllIgnored => IgnoredThreads.Count > 1;
+
+    public RelayCommand RestoreAllIgnoredCommand => new(RestoreAllIgnored);
 
     public WindowPinState WindowPin { get; }
 
@@ -119,13 +139,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         try
         {
             var requestedExpandedIds = new HashSet<string>(expandedThreadIds, StringComparer.Ordinal);
+            var includedIds = new HashSet<string>(preferences.PinnedThreadIds, StringComparer.Ordinal);
+            includedIds.UnionWith(preferences.IgnoredRules.Keys);
+            int recentLimit = Math.Min(int.MaxValue, 8 + preferences.IgnoredRules.Count);
             ThreadSnapshotLoadResult result = await Task.Run(
-                () => loader.Load(expandedThreadIds: requestedExpandedIds));
-            ReplaceThreads(result);
-            completionObserver?.Observe(result.Threads, policy);
-            sourceStatusText = GetStatusText(result);
-            hasSourceError = result.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy;
-            updatedText = result.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
+                () => loader.Load(new ThreadLoadRequest(recentLimit, includedIds, requestedExpandedIds)));
+            ThreadSnapshotLoadResult visibleResult = ApplyCandidates(result);
+            completionObserver?.Observe(visibleResult.Threads, policy);
+            sourceStatusText = GetStatusText(visibleResult);
+            hasSourceError = visibleResult.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy;
+            updatedText = visibleResult.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
             OnPropertyChanged(nameof(StatusText));
             OnPropertyChanged(nameof(UpdatedText));
         }
@@ -169,16 +192,129 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         await RefreshAsync(RefreshNotificationPolicy.Baseline);
     }
 
-    private void ReplaceThreads(ThreadSnapshotLoadResult result)
+    public void TogglePin(string threadId)
     {
-        expandedThreadIds.IntersectWith(result.Threads.Select(thread => thread.Id));
-        threadRows.Reconcile(result.Threads, result.RefreshedAt, expandedThreadIds);
+        ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
+        if (!preferences.PinnedThreadIds.Remove(threadId))
+        {
+            preferences.PinnedThreadIds.Add(threadId);
+        }
+
+        SaveAndReapplyPreferences();
+    }
+
+    public void IgnoreThread(string threadId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
+        preferences.PinnedThreadIds.Remove(threadId);
+        preferences.IgnoredRules[threadId] = new IgnoredThreadRule(
+            threadId,
+            timeProvider.GetUtcNow(),
+            ThreadIgnoreMode.UntilNextTurn);
+        expandedThreadIds.Remove(threadId);
+        SaveAndReapplyPreferences();
+    }
+
+    public void RestoreIgnoredThread(string threadId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
+        if (preferences.IgnoredRules.Remove(threadId))
+        {
+            SaveAndReapplyPreferences();
+        }
+    }
+
+    public void RestoreAllIgnored()
+    {
+        if (preferences.IgnoredRules.Count == 0)
+        {
+            return;
+        }
+
+        preferences.IgnoredRules.Clear();
+        SaveAndReapplyPreferences();
+    }
+
+    private ThreadSnapshotLoadResult ApplyCandidates(ThreadSnapshotLoadResult result)
+    {
+        candidateSnapshots = result.Threads;
+        lastThreadSourceStatus = result.ThreadSourceStatus;
+        lastTitleSourceStatus = result.TitleSourceStatus;
+        ThreadListPreferences before = preferences.Clone();
+        if (result.ThreadSourceStatus is ThreadRepositoryStatus.Healthy)
+        {
+            preferences.PinnedThreadIds.IntersectWith(candidateSnapshots.Select(thread => thread.Id));
+        }
+
+        ThreadListResult list = ApplyListPolicy(result.RefreshedAt);
+        if (!PreferencesEqual(before, preferences))
+        {
+            preferenceStore?.Save(preferences);
+        }
+
+        return new ThreadSnapshotLoadResult(
+            result.ThreadSourceStatus,
+            result.TitleSourceStatus,
+            list.VisibleSnapshots,
+            result.RefreshedAt);
+    }
+
+    private ThreadListResult ApplyListPolicy(DateTimeOffset now)
+    {
+        ThreadListResult list = ThreadListPolicy.Evaluate(candidateSnapshots, preferences, 8);
+        preferences = list.Preferences;
+        expandedThreadIds.IntersectWith(list.VisibleSnapshots.Select(thread => thread.Id));
+        threadRows.Reconcile(
+            list.VisibleSnapshots,
+            now,
+            expandedThreadIds,
+            preferences.PinnedThreadIds);
+        ReconcileIgnored();
         SetThreadCountLabel(ThreadCountFormatter.Format(
-            result.Threads.Select(thread => thread.Status)));
+            list.VisibleSnapshots.Select(thread => thread.Status)));
 
         OnPropertyChanged(nameof(EmptyVisibility));
         OnPropertyChanged(nameof(ListVisibility));
+        OnPropertyChanged(nameof(HasIgnoredThreads));
+        OnPropertyChanged(nameof(ShowRestoreAllIgnored));
+        return list;
     }
+
+    private void ReconcileIgnored()
+    {
+        IgnoredThreads.Clear();
+        foreach (string threadId in preferences.IgnoredRules.Keys.Order(StringComparer.Ordinal))
+        {
+            string title = candidateSnapshots.FirstOrDefault(snapshot => snapshot.Id == threadId)?.Title
+                ?? string.Empty;
+            IgnoredThreads.Add(new IgnoredThreadRowViewModel(
+                threadId,
+                title,
+                RestoreIgnoredThread));
+        }
+    }
+
+    private void SaveAndReapplyPreferences()
+    {
+        preferenceStore?.Save(preferences);
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        ThreadListResult list = ApplyListPolicy(now);
+        sourceStatusText = GetStatusText(new ThreadSnapshotLoadResult(
+            lastThreadSourceStatus,
+            lastTitleSourceStatus,
+            list.VisibleSnapshots,
+            now));
+        OnPropertyChanged(nameof(StatusText));
+    }
+
+    private static bool PreferencesEqual(
+        ThreadListPreferences left,
+        ThreadListPreferences right) =>
+        left.PinnedThreadIds.SetEquals(right.PinnedThreadIds)
+        && left.IgnoredRules.Count == right.IgnoredRules.Count
+        && left.IgnoredRules.All(pair =>
+            right.IgnoredRules.TryGetValue(pair.Key, out IgnoredThreadRule? rule)
+            && rule == pair.Value);
 
     private void SetThreadCountLabel(ThreadCountLabel value)
     {
