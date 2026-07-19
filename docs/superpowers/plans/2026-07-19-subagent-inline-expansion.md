@@ -83,5 +83,5 @@
   absolute user paths, local settings, Codex content, build output, or network/write
   access.
 - [x] Commit documentation as `docs: document Subagent inline expansion`.
-- [ ] Push `main`, fetch, confirm a clean worktree and `HEAD == origin/main`, then
+- [x] Push `main`, fetch, confirm a clean worktree and `HEAD == origin/main`, then
   leave the verified Release build running for stage acceptance.
