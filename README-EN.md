@@ -16,6 +16,8 @@ The WPF App is connected to real local task data. A Win11 read-only concurrent-t
 
 The first window enhancement is complete: the pin button in the top-right keeps ThreadBeacon above other normal windows. The selection is stored locally and restored after restart.
 
+The middle header button temporarily pauses or resumes the 2-second automatic monitoring cycle. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
+
 The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across the 2-second task refresh cycle.
 
 The first POC is deliberately limited to:

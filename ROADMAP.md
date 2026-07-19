@@ -32,6 +32,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 
 - [x] Keep the ThreadBeacon window above normal windows with a header pin button.
 - [x] Persist the always-on-top selection and restore it after restart.
+- [x] Pause and resume automatic monitoring while keeping manual refresh available.
 
 ## Deferred
 
