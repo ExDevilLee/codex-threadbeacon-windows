@@ -80,14 +80,14 @@ Assert.Null(archived.ServiceIncident);
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/ThreadRowCollectionTests.cs`
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/ThreadRowViewModelTests.cs`
 
-- [ ] Add failing ViewModel tests proving refresh forwards every favorite ID, toggle-favorite persists without reordering all mode, toggle-filter immediately changes rows and persists, a missing favorite is not pruned, and notifications receive sanitized visible snapshots.
-- [ ] Add failing row tests for favorite/archive state, context-menu label, commands, neutral archived label, and collection reconciliation. Add XAML structure assertions for toolbar star state, menu order, favorite/archive glyphs, and favorites empty state.
-- [ ] Run focused App tests; expect missing commands/properties/controls.
-- [ ] Implement favorite/filter commands and request wiring. Keep favorites independent of pins and ignores; recompute rows and header/status counts immediately after each action.
-- [ ] Add the toolbar star before window pin, context favorite action before pin, gold row star, neutral archive glyph/status, and filtered empty-state text. Tooltips and automation names switch between `仅显示收藏` and `显示全部任务`.
-- [ ] Re-run focused tests, full solution tests, and Release build; require zero failures, warnings, or errors.
-- [ ] Launch Release and verify favorite/unfavorite, all/favorites filter, persistence across restart, pin/ignore coexistence, two-second refresh stability, and archived presentation when local archived favorite data is available.
-- [ ] Commit `feat(favorites): add archived task watchlist`.
+- [x] Add failing ViewModel tests proving refresh forwards every favorite ID, toggle-favorite persists without reordering all mode, toggle-filter immediately changes rows and persists, a missing favorite is not pruned, and notifications receive sanitized visible snapshots.
+- [x] Add failing row tests for favorite/archive state, context-menu label, commands, neutral archived label, and collection reconciliation. Add XAML structure assertions for toolbar star state, menu order, favorite/archive glyphs, and favorites empty state.
+- [x] Run focused App tests; expect missing commands/properties/controls.
+- [x] Implement favorite/filter commands and request wiring. Keep favorites independent of pins and ignores; recompute rows and header/status counts immediately after each action.
+- [x] Add the toolbar star before window pin, context favorite action before pin, gold row star, neutral archive glyph/status, and filtered empty-state text. Tooltips and automation names switch between `仅显示收藏` and `显示全部任务`.
+- [x] Re-run focused tests, full solution tests, and Release build; require zero failures, warnings, or errors.
+- [x] Launch Release and verify favorite/unfavorite, all/favorites filter, persistence across restart, pin/ignore coexistence, two-second refresh stability, and archived presentation when local archived favorite data is available.
+- [x] Commit `feat(favorites): add archived task watchlist`.
 
 ### Task 4: Documentation, security audit, and delivery
 
@@ -98,7 +98,7 @@ Assert.Null(archived.ServiceIncident);
 - Modify: `ROADMAP.md`
 - Modify: `docs/superpowers/plans/2026-07-19-favorites-archived-watchlist.md`
 
-- [ ] Document favorite/filter semantics, archived neutral behavior, notification suppression, stored fields, and read-only scope in Chinese and English. Remove only this feature from deferred scope.
+- [x] Document favorite/filter semantics, archived neutral behavior, notification suppression, stored fields, and read-only scope in Chinese and English. Remove only this feature from deferred scope.
 - [ ] Run `dotnet test ThreadBeacon.slnx --configuration Release`, `dotnet build ThreadBeacon.slnx --configuration Release --no-restore`, and `dotnet list ThreadBeacon.slnx package --vulnerable --include-transitive`; require zero failures, warnings, errors, or known vulnerabilities.
 - [ ] Run mandatory tracked-file audits for private keys/tokens, sensitive extensions, personal absolute paths, network APIs, writable SQLite modes, Core write APIs, unexpected binaries, and `git diff --check origin/main...HEAD`.
 - [ ] Commit documentation, repeat the security audit after the final commit, push `main`, fetch the remote, verify `HEAD == origin/main`, and leave the verified Release App running.

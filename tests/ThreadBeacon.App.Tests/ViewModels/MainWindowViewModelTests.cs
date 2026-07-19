@@ -280,6 +280,94 @@ public sealed class MainWindowViewModelTests
         Assert.Equal("任务 missing-", row.Title);
     }
 
+    [Fact]
+    public async Task RefreshAsync_ForwardsFavoriteIdsThroughArchivedCapableRequest()
+    {
+        ThreadRecord[] records = [Record("favorite"), Record("other")];
+        var repository = new PreferenceThreadRepository(records);
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            favoriteThreadIds: ["favorite", "missing"]));
+        MainWindowViewModel viewModel = CreatePreferenceViewModel(records, preferenceStore, repository);
+
+        await viewModel.RefreshAsync();
+
+        Assert.True(repository.LastFavoriteIds!.SetEquals(["favorite", "missing"]));
+    }
+
+    [Fact]
+    public async Task ToggleFavorite_PersistsWithoutChangingAllTasksOrder()
+    {
+        ThreadRecord[] records = [Record("b"), Record("a")];
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences());
+        MainWindowViewModel viewModel = CreatePreferenceViewModel(records, preferenceStore);
+        await viewModel.RefreshAsync();
+        string[] before = viewModel.Threads.Select(row => row.Id).ToArray();
+
+        viewModel.ToggleFavorite("b");
+
+        Assert.Equal(before, viewModel.Threads.Select(row => row.Id));
+        Assert.True(viewModel.Threads.Single(row => row.Id == "b").IsFavorite);
+        Assert.Contains("b", preferenceStore.LastSaved!.FavoriteThreadIds);
+    }
+
+    [Fact]
+    public async Task ToggleFavoritesOnly_ImmediatelyFiltersRowsAndKeepsMissingFavorite()
+    {
+        ThreadRecord[] records = [Record("favorite"), Record("other")];
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            favoriteThreadIds: ["favorite", "missing"]));
+        MainWindowViewModel viewModel = CreatePreferenceViewModel(records, preferenceStore);
+        await viewModel.RefreshAsync();
+
+        viewModel.ToggleFavoritesOnly();
+
+        Assert.True(viewModel.ShowsFavoritesOnly);
+        Assert.Equal("显示全部任务", viewModel.FavoritesFilterTooltip);
+        Assert.Equal("favorite", Assert.Single(viewModel.Threads).Id);
+        Assert.True(preferenceStore.LastSaved!.FavoriteThreadIds.SetEquals(["favorite", "missing"]));
+
+        viewModel.ToggleFavoritesOnlyCommand.Execute(null);
+
+        Assert.False(viewModel.ShowsFavoritesOnly);
+        Assert.Equal("仅显示收藏", viewModel.FavoritesFilterTooltip);
+        Assert.Equal(["favorite", "other"], viewModel.Threads.Select(row => row.Id));
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ArchivedFavoriteIsSanitizedBeforeNotificationObservation()
+    {
+        ThreadRecord active = Record("active");
+        ThreadRecord archived = new("archived", "Archived", "archived", Now, 50, 0, true);
+        var repository = new FavoriteOnlyThreadRepository([active], [archived]);
+        var preferenceStore = new MemoryThreadListPreferenceStore(new ThreadListPreferences(
+            favoriteThreadIds: ["archived"]));
+        var observer = new RecordingCompletionObserver();
+        var loader = new ThreadStatusLoader(
+            repository,
+            new HealthyTitleRepository(),
+            new StatusRolloutParser(new Dictionary<string, ThreadStatus>
+            {
+                ["active"] = ThreadStatus.Running,
+                ["archived"] = ThreadStatus.JustCompleted,
+            }),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            observer,
+            preferenceStore,
+            new FixedTimeProvider(Now));
+
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+
+        ThreadSnapshot observed = Assert.Single(observer.LastSnapshots!, item => item.Id == "archived");
+        Assert.True(observed.IsArchived);
+        Assert.Equal(ThreadStatus.Idle, observed.Status);
+        Assert.Null(observed.CompletionEventAt);
+        Assert.Null(observed.ServiceIncident);
+    }
+
     private static MainWindowViewModel CreateViewModel(
         MonitoringState monitoring,
         ThreadRepositoryStatus repositoryStatus,
@@ -313,10 +401,12 @@ public sealed class MainWindowViewModelTests
 
     private static MainWindowViewModel CreatePreferenceViewModel(
         IReadOnlyList<ThreadRecord> records,
-        IThreadListPreferenceStore preferenceStore)
+        IThreadListPreferenceStore preferenceStore,
+        PreferenceThreadRepository? repository = null)
     {
+        repository ??= new PreferenceThreadRepository(records);
         var loader = new ThreadStatusLoader(
-            new PreferenceThreadRepository(records),
+            repository,
             new HealthyTitleRepository(),
             new StatusRolloutParser(records.ToDictionary(
                 record => record.Id,
@@ -385,6 +475,8 @@ public sealed class MainWindowViewModelTests
 
         public IReadOnlySet<string>? LastIncludedIds { get; private set; }
 
+        public IReadOnlySet<string>? LastFavoriteIds { get; private set; }
+
         public ThreadLoadResult LoadRecent(int limit = 8)
         {
             LastRecentLimit = limit;
@@ -396,6 +488,27 @@ public sealed class MainWindowViewModelTests
             LastIncludedIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
             return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
         }
+
+        public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds)
+        {
+            LastFavoriteIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
+            return new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                records.Where(record => threadIds.Contains(record.Id)).ToArray());
+        }
+    }
+
+    private sealed class FavoriteOnlyThreadRepository(
+        IReadOnlyList<ThreadRecord> recent,
+        IReadOnlyList<ThreadRecord> favorites) : IThreadRepository
+    {
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, recent);
+
+        public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds) =>
+            new(
+                ThreadRepositoryStatus.Healthy,
+                favorites.Where(record => threadIds.Contains(record.Id)).ToArray());
     }
 
     private sealed class ExpandableThreadRepository : IThreadRepository

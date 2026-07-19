@@ -32,13 +32,16 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private string durationText = string.Empty;
     private readonly Func<string, Task> toggleSubagents;
     private bool isPinned;
+    private bool isFavorite;
+    private bool isArchived;
 
     public ThreadRowViewModel(
         ThreadSnapshot snapshot,
         DateTimeOffset now,
         Func<string, Task>? toggleSubagents = null,
         Action<string>? togglePin = null,
-        Action<string>? ignore = null)
+        Action<string>? ignore = null,
+        Action<string>? toggleFavorite = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         Id = snapshot.Id;
@@ -46,6 +49,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         ToggleSubagentsCommand = new AsyncRelayCommand(() => this.toggleSubagents(Id));
         TogglePinCommand = new RelayCommand(() => togglePin?.Invoke(Id));
         IgnoreCommand = new RelayCommand(() => ignore?.Invoke(Id));
+        ToggleFavoriteCommand = new RelayCommand(() => toggleFavorite?.Invoke(Id));
         Update(snapshot, now);
     }
 
@@ -61,6 +65,8 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
     public RelayCommand IgnoreCommand { get; }
 
+    public RelayCommand ToggleFavoriteCommand { get; }
+
     public bool IsPinned
     {
         get => isPinned;
@@ -74,6 +80,26 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     }
 
     public string PinCommandLabel => IsPinned ? "取消置顶" : "置顶任务";
+
+    public bool IsFavorite
+    {
+        get => isFavorite;
+        private set
+        {
+            if (SetField(ref isFavorite, value))
+            {
+                OnPropertyChanged(nameof(FavoriteCommandLabel));
+            }
+        }
+    }
+
+    public string FavoriteCommandLabel => IsFavorite ? "取消收藏" : "收藏任务";
+
+    public bool IsArchived
+    {
+        get => isArchived;
+        private set => SetField(ref isArchived, value);
+    }
 
     public string Title
     {
@@ -217,9 +243,10 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
         Title = snapshot.Title;
         Status = snapshot.Status;
-        StatusLabel = GetStatusLabel(snapshot.Status, snapshot.ServiceIncident);
-        StatusBrush = GetStatusBrush(snapshot.Status);
-        IncidentDetailText = GetIncidentDetail(snapshot.ServiceIncident);
+        IsArchived = snapshot.IsArchived;
+        StatusLabel = IsArchived ? "已归档" : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident);
+        StatusBrush = IsArchived ? IdleBrush : GetStatusBrush(snapshot.Status);
+        IncidentDetailText = IsArchived ? string.Empty : GetIncidentDetail(snapshot.ServiceIncident);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         TokenDetails = snapshot.TokenUsage is null
             ? null
@@ -241,6 +268,8 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     }
 
     public void SetPinned(bool value) => IsPinned = value;
+
+    public void SetFavorite(bool value) => IsFavorite = value;
 
     public void MarkSubagentLoadFailed()
     {

@@ -8,15 +8,18 @@ public sealed class ThreadRowCollection
     private readonly Func<string, Task> toggleSubagents;
     private readonly Action<string> togglePin;
     private readonly Action<string> ignore;
+    private readonly Action<string> toggleFavorite;
 
     public ThreadRowCollection(
         Func<string, Task>? toggleSubagents = null,
         Action<string>? togglePin = null,
-        Action<string>? ignore = null)
+        Action<string>? ignore = null,
+        Action<string>? toggleFavorite = null)
     {
         this.toggleSubagents = toggleSubagents ?? (_ => Task.CompletedTask);
         this.togglePin = togglePin ?? (_ => { });
         this.ignore = ignore ?? (_ => { });
+        this.toggleFavorite = toggleFavorite ?? (_ => { });
     }
 
     public ObservableCollection<ThreadRowViewModel> Items { get; } = [];
@@ -25,7 +28,8 @@ public sealed class ThreadRowCollection
         IReadOnlyList<ThreadSnapshot> snapshots,
         DateTimeOffset now,
         IReadOnlySet<string>? expandedThreadIds = null,
-        IReadOnlySet<string>? pinnedThreadIds = null)
+        IReadOnlySet<string>? pinnedThreadIds = null,
+        IReadOnlySet<string>? favoriteThreadIds = null)
     {
         ArgumentNullException.ThrowIfNull(snapshots);
 
@@ -40,11 +44,13 @@ public sealed class ThreadRowCollection
                     now,
                     toggleSubagents,
                     togglePin,
-                    ignore);
+                    ignore,
+                    toggleFavorite);
                 newRow.SetSubagentExpanded(
                     expandedThreadIds?.Contains(snapshot.Id) is true,
                     isLoading: false);
                 newRow.SetPinned(pinnedThreadIds?.Contains(snapshot.Id) is true);
+                newRow.SetFavorite(favoriteThreadIds?.Contains(snapshot.Id) is true);
                 Items.Insert(targetIndex, newRow);
                 continue;
             }
@@ -55,6 +61,7 @@ public sealed class ThreadRowCollection
                 expandedThreadIds?.Contains(snapshot.Id) is true,
                 isLoading: false);
             row.SetPinned(pinnedThreadIds?.Contains(snapshot.Id) is true);
+            row.SetFavorite(favoriteThreadIds?.Contains(snapshot.Id) is true);
             if (existingIndex != targetIndex)
             {
                 Items.Move(existingIndex, targetIndex);

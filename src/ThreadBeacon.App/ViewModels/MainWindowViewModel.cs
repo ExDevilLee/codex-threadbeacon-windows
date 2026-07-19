@@ -22,6 +22,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly IThreadListPreferenceStore? preferenceStore;
     private readonly TimeProvider timeProvider;
     private readonly AsyncRelayCommand refreshCommand;
+    private readonly RelayCommand toggleFavoritesOnlyCommand;
     private ThreadListPreferences preferences;
     private IReadOnlyList<ThreadSnapshot> candidateSnapshots = [];
     private ThreadRepositoryStatus lastThreadSourceStatus = ThreadRepositoryStatus.Healthy;
@@ -52,10 +53,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         this.preferenceStore = preferenceStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         preferences = preferenceStore?.Load() ?? new ThreadListPreferences();
-        threadRows = new ThreadRowCollection(ToggleSubagentsAsync, TogglePin, IgnoreThread);
+        threadRows = new ThreadRowCollection(
+            ToggleSubagentsAsync,
+            TogglePin,
+            IgnoreThread,
+            ToggleFavorite);
         refreshCommand = new AsyncRelayCommand(
             () => RefreshAsync(RefreshNotificationPolicy.Baseline),
             () => !IsRefreshing);
+        toggleFavoritesOnlyCommand = new RelayCommand(ToggleFavoritesOnly);
         Monitoring.PropertyChanged += OnMonitoringPropertyChanged;
     }
 
@@ -76,6 +82,20 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public MonitoringState Monitoring { get; }
 
     public AsyncRelayCommand RefreshCommand => refreshCommand;
+
+    public RelayCommand ToggleFavoritesOnlyCommand => toggleFavoritesOnlyCommand;
+
+    public bool ShowsFavoritesOnly => preferences.ShowsFavoritesOnly;
+
+    public string FavoritesFilterTooltip => ShowsFavoritesOnly
+        ? "显示全部任务"
+        : "仅显示收藏";
+
+    public string EmptyStateIcon => ShowsFavoritesOnly ? "\uE734" : string.Empty;
+
+    public string EmptyStateTitle => ShowsFavoritesOnly ? "暂无收藏任务" : "暂无任务数据";
+
+    public string EmptyStateSubtitle => ShowsFavoritesOnly ? string.Empty : "等待 Codex 任务";
 
     public string ThreadCountText => threadCountLabel.DisplayText;
 
@@ -141,9 +161,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             var requestedExpandedIds = new HashSet<string>(expandedThreadIds, StringComparer.Ordinal);
             var includedIds = new HashSet<string>(preferences.PinnedThreadIds, StringComparer.Ordinal);
             includedIds.UnionWith(preferences.IgnoredRules.Keys);
+            var favoriteIds = new HashSet<string>(
+                preferences.FavoriteThreadIds,
+                StringComparer.Ordinal);
             int recentLimit = Math.Min(int.MaxValue, 8 + preferences.IgnoredRules.Count);
             ThreadSnapshotLoadResult result = await Task.Run(
-                () => loader.Load(new ThreadLoadRequest(recentLimit, includedIds, requestedExpandedIds)));
+                () => loader.Load(new ThreadLoadRequest(
+                    recentLimit,
+                    includedIds,
+                    requestedExpandedIds,
+                    favoriteIds)));
             ThreadSnapshotLoadResult visibleResult = ApplyCandidates(result);
             completionObserver?.Observe(visibleResult.Threads, policy);
             sourceStatusText = GetStatusText(visibleResult);
@@ -200,6 +227,28 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             preferences.PinnedThreadIds.Add(threadId);
         }
 
+        SaveAndReapplyPreferences();
+    }
+
+    public void ToggleFavorite(string threadId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(threadId);
+        if (!preferences.FavoriteThreadIds.Remove(threadId))
+        {
+            preferences.FavoriteThreadIds.Add(threadId);
+        }
+
+        SaveAndReapplyPreferences();
+    }
+
+    public void ToggleFavoritesOnly()
+    {
+        preferences.ShowsFavoritesOnly = !preferences.ShowsFavoritesOnly;
+        OnPropertyChanged(nameof(ShowsFavoritesOnly));
+        OnPropertyChanged(nameof(FavoritesFilterTooltip));
+        OnPropertyChanged(nameof(EmptyStateIcon));
+        OnPropertyChanged(nameof(EmptyStateTitle));
+        OnPropertyChanged(nameof(EmptyStateSubtitle));
         SaveAndReapplyPreferences();
     }
 
@@ -268,7 +317,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             list.VisibleSnapshots,
             now,
             expandedThreadIds,
-            preferences.PinnedThreadIds);
+            preferences.PinnedThreadIds,
+            preferences.FavoriteThreadIds);
         ReconcileIgnored();
         SetThreadCountLabel(ThreadCountFormatter.Format(
             list.VisibleSnapshots.Select(thread => thread.Status)));
@@ -311,6 +361,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ThreadListPreferences left,
         ThreadListPreferences right) =>
         left.PinnedThreadIds.SetEquals(right.PinnedThreadIds)
+        && left.FavoriteThreadIds.SetEquals(right.FavoriteThreadIds)
+        && left.ShowsFavoritesOnly == right.ShowsFavoritesOnly
         && left.IgnoredRules.Count == right.IgnoredRules.Count
         && left.IgnoredRules.All(pair =>
             right.IgnoredRules.TryGetValue(pair.Key, out IgnoredThreadRule? rule)

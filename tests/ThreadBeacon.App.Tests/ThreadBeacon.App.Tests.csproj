@@ -22,4 +22,10 @@
     <ProjectReference Include="..\..\src\ThreadBeacon.App\ThreadBeacon.App.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\src\ThreadBeacon.App\MainWindow.xaml"
+          Link="Fixtures\MainWindow.xaml"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

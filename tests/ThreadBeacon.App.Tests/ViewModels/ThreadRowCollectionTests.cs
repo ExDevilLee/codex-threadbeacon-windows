@@ -99,12 +99,31 @@ public sealed class ThreadRowCollectionTests
         Assert.True(parent.IsSubagentExpanded);
     }
 
+    [Fact]
+    public void Reconcile_UpdatesFavoriteAndArchivedStateOnRetainedRow()
+    {
+        var collection = new ThreadRowCollection();
+        collection.Reconcile([Snapshot("a", "Task", 100)], Now);
+        ThreadRowViewModel row = Assert.Single(collection.Items);
+
+        collection.Reconcile(
+            [Snapshot("a", "Task", 100, isArchived: true)],
+            Now.AddSeconds(2),
+            favoriteThreadIds: new HashSet<string>(StringComparer.Ordinal) { "a" });
+
+        Assert.Same(row, Assert.Single(collection.Items));
+        Assert.True(row.IsFavorite);
+        Assert.True(row.IsArchived);
+        Assert.Equal("已归档", row.StatusLabel);
+    }
+
     private static ThreadSnapshot Snapshot(
         string id,
         string title,
         long tokens,
         int subagentCount = 0,
-        IReadOnlyList<SubagentSnapshot>? subagents = null) =>
+        IReadOnlyList<SubagentSnapshot>? subagents = null,
+        bool isArchived = false) =>
         new(
             id,
             title,
@@ -121,7 +140,8 @@ public sealed class ThreadRowCollectionTests
                 Now),
             subagentCount,
             RolloutSourceStatus.Healthy,
-            subagents);
+            subagents,
+            isArchived: isArchived);
 
     private static SubagentSnapshot Subagent(string id, string title) =>
         new(

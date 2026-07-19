@@ -56,6 +56,43 @@
             </StackPanel>
 
             <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button x:Name="FavoritesFilterButton"
+                        Width="32"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        Padding="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource ControlBorderBrush}"
+                        Command="{Binding ToggleFavoritesOnlyCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="ToolTip" Value="仅显示收藏" />
+                            <Setter Property="AutomationProperties.Name" Value="仅显示收藏" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShowsFavoritesOnly}" Value="True">
+                                    <Setter Property="ToolTip" Value="显示全部任务" />
+                                    <Setter Property="AutomationProperties.Name" Value="显示全部任务" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <TextBlock FontFamily="Segoe Fluent Icons" FontSize="15">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="&#xE734;" />
+                                <Setter Property="Foreground"
+                                        Value="{StaticResource SecondaryTextBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowsFavoritesOnly}" Value="True">
+                                        <Setter Property="Text" Value="&#xE735;" />
+                                        <Setter Property="Foreground" Value="#C98B00" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Button>
+
                 <Button Width="32"
                         Height="32"
                         Margin="0,0,8,0"
@@ -228,6 +265,8 @@
                                     BorderThickness="0,0,0,1">
                                 <Border.ContextMenu>
                                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Header="{Binding FavoriteCommandLabel}"
+                                                  Command="{Binding ToggleFavoriteCommand}" />
                                         <MenuItem Header="{Binding PinCommandLabel}"
                                                   Command="{Binding TogglePinCommand}" />
                                         <Separator />
@@ -259,14 +298,30 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Margin="0,0,5,0"
+                                                 <TextBlock Margin="0,0,5,0"
                                                            VerticalAlignment="Center"
                                                            FontFamily="Segoe Fluent Icons"
                                                            FontSize="10"
                                                            Foreground="{StaticResource SecondaryTextBrush}"
                                                            Text="&#xE718;"
-                                                           ToolTip="已置顶"
-                                                           Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                            ToolTip="已置顶"
+                                                            Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                <TextBlock Margin="0,0,5,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="10"
+                                                           Foreground="#C98B00"
+                                                           Text="&#xE735;"
+                                                           ToolTip="已收藏"
+                                                           Visibility="{Binding IsFavorite, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                <TextBlock Margin="0,0,5,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="Segoe Fluent Icons"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Text="&#xF03F;"
+                                                           ToolTip="已归档"
+                                                           Visibility="{Binding IsArchived, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 <TextBlock FontSize="13"
                                                            Text="{Binding Title}"
                                                            TextTrimming="CharacterEllipsis"
@@ -470,15 +525,21 @@
                     BorderThickness="1"
                     CornerRadius="6">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Margin="0,0,0,8"
+                               HorizontalAlignment="Center"
+                               FontFamily="Segoe Fluent Icons"
+                               FontSize="20"
+                               Foreground="#C98B00"
+                               Text="{Binding EmptyStateIcon}" />
                     <TextBlock HorizontalAlignment="Center"
                                FontSize="15"
                                FontWeight="SemiBold"
-                               Text="暂无任务数据" />
+                               Text="{Binding EmptyStateTitle}" />
                     <TextBlock Margin="0,6,0,0"
                                HorizontalAlignment="Center"
                                FontSize="12"
                                Foreground="{StaticResource SecondaryTextBrush}"
-                               Text="等待 Codex 任务" />
+                               Text="{Binding EmptyStateSubtitle}" />
                 </StackPanel>
             </Border>
         </Grid>

@@ -156,10 +156,40 @@ public sealed class ThreadRowViewModelTests
         Assert.Equal("thread-1", ignoredId);
     }
 
+    [Fact]
+    public void FavoriteCommand_ExposesStateLabelAndForwardsTaskId()
+    {
+        string? favoriteId = null;
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 0),
+            Now,
+            toggleFavorite: id => favoriteId = id);
+
+        viewModel.SetFavorite(true);
+        viewModel.ToggleFavoriteCommand.Execute(null);
+
+        Assert.True(viewModel.IsFavorite);
+        Assert.Equal("取消收藏", viewModel.FavoriteCommandLabel);
+        Assert.Equal("thread-1", favoriteId);
+    }
+
+    [Fact]
+    public void ArchivedSnapshot_UsesNeutralArchivedPresentation()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 0, isArchived: true),
+            Now);
+
+        Assert.True(viewModel.IsArchived);
+        Assert.Equal("已归档", viewModel.StatusLabel);
+        Assert.Equal("#FF8E8E93", viewModel.StatusBrush.ToString());
+    }
+
     private static ThreadSnapshot Snapshot(
         int subagentCount,
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
-        ServiceIncident? serviceIncident = null) =>
+        ServiceIncident? serviceIncident = null,
+        bool isArchived = false) =>
         new(
             "thread-1",
             "Task",
@@ -173,5 +203,6 @@ public sealed class ThreadRowViewModelTests
             subagentCount,
             RolloutSourceStatus.Healthy,
             subagentSourceStatus: subagentSourceStatus,
-            serviceIncident: serviceIncident);
+            serviceIncident: serviceIncident,
+            isArchived: isArchived);
 }
