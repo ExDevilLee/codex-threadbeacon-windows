@@ -3,7 +3,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using ThreadBeacon.App.Commands;
+using ThreadBeacon.App.Sounds;
 using ThreadBeacon.Core.Models;
+using ThreadBeacon.Core.Notifications;
 using ThreadBeacon.Core.Services;
 
 namespace ThreadBeacon.App.ViewModels;
@@ -13,6 +15,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly ThreadStatusLoader loader;
     private readonly ThreadRowCollection threadRows = new();
     private readonly SemaphoreSlim refreshGate = new(1, 1);
+    private readonly ICompletionNotificationObserver? completionObserver;
     private readonly AsyncRelayCommand refreshCommand;
     private bool isRefreshing;
     private string sourceStatusText = "准备监听";
@@ -27,12 +30,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public MainWindowViewModel(
         ThreadStatusLoader loader,
         WindowPinState windowPin,
-        MonitoringState monitoring)
+        MonitoringState monitoring,
+        ICompletionNotificationObserver? completionObserver = null)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
         Monitoring = monitoring ?? throw new ArgumentNullException(nameof(monitoring));
-        refreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsRefreshing);
+        this.completionObserver = completionObserver;
+        refreshCommand = new AsyncRelayCommand(
+            () => RefreshAsync(RefreshNotificationPolicy.Baseline),
+            () => !IsRefreshing);
         Monitoring.PropertyChanged += OnMonitoringPropertyChanged;
     }
 
@@ -92,7 +99,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ? Visibility.Visible
         : Visibility.Collapsed;
 
-    public async Task RefreshAsync()
+    public async Task RefreshAsync(
+        RefreshNotificationPolicy policy = RefreshNotificationPolicy.Baseline)
     {
         if (!await refreshGate.WaitAsync(0))
         {
@@ -104,6 +112,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             ThreadSnapshotLoadResult result = await Task.Run(() => loader.Load());
             ReplaceThreads(result);
+            completionObserver?.Observe(result.Threads, policy);
             sourceStatusText = GetStatusText(result);
             hasSourceError = result.ThreadSourceStatus is not ThreadRepositoryStatus.Healthy;
             updatedText = result.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");

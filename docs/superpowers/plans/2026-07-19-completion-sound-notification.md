@@ -206,7 +206,7 @@ git commit -m "feat(sound): persist sound preferences"
 - Modify: `src/ThreadBeacon.App/ViewModels/MainWindowViewModel.cs`
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/MainWindowViewModelTests.cs`
 
-- [ ] **Step 1: Write failing coordinator and view-model tests**
+- [x] **Step 1: Write failing coordinator and view-model tests**
 
 Use in-memory settings and a recording player. Cover:
 
@@ -224,7 +224,7 @@ recording IDs; batch completions play once; a throwing player does not escape;
 property changes save immediately; and Preview plays the selected sound regardless
 of completion history but respects the global enable toggle.
 
-- [ ] **Step 2: Write a failing refresh-policy forwarding test**
+- [x] **Step 2: Write a failing refresh-policy forwarding test**
 
 Inject a recording `ICompletionNotificationObserver` into `MainWindowViewModel`, call:
 
@@ -235,7 +235,7 @@ Assert.Equal(RefreshNotificationPolicy.Notify, observer.LastPolicy);
 
 Assert loader failure does not invoke the observer.
 
-- [ ] **Step 3: Run the focused tests and confirm failure**
+- [x] **Step 3: Run the focused tests and confirm failure**
 
 Run:
 
@@ -246,7 +246,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 Expected: compilation fails because the coordinator contracts and policy-aware
 refresh overload do not exist.
 
-- [ ] **Step 4: Implement coordinator and settings view model**
+- [x] **Step 4: Implement coordinator and settings view model**
 
 Use these boundaries:
 
@@ -272,7 +272,7 @@ Catch playback exceptions at this boundary.
 saves an immutable settings copy. Preview calls the player only when globally enabled
 and catches playback exceptions.
 
-- [ ] **Step 5: Make refresh policy explicit**
+- [x] **Step 5: Make refresh policy explicit**
 
 Change the command construction to a parameterless lambda:
 
@@ -293,7 +293,7 @@ public async Task RefreshAsync(
 }
 ```
 
-- [ ] **Step 6: Run application tests**
+- [x] **Step 6: Run application tests**
 
 Run:
 
@@ -303,7 +303,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj
 
 Expected: all application tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/Sounds src/ThreadBeacon.App/ViewModels tests/ThreadBeacon.App.Tests
