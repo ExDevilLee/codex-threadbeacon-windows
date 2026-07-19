@@ -112,21 +112,34 @@
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
-                    <TextBlock FontFamily="Segoe Fluent Icons" FontSize="15">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value="&#xE718;" />
-                                <Setter Property="Foreground"
-                                        Value="{StaticResource SecondaryTextBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
-                                        <Setter Property="Text" Value="&#xE842;" />
-                                        <Setter Property="Foreground" Value="#0067C0" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <Grid Width="16" Height="16">
+                        <TextBlock x:Name="WindowPinFillGlyph"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="Segoe Fluent Icons"
+                                   FontSize="15"
+                                   Foreground="#0067C0"
+                                   Text="&#xE841;"
+                                   Visibility="{Binding WindowPin.IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock x:Name="WindowPinOutlineGlyph"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="Segoe Fluent Icons"
+                                   FontSize="15"
+                                   Text="&#xE718;">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground"
+                                            Value="{StaticResource SecondaryTextBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WindowPin.IsPinned}" Value="True">
+                                            <Setter Property="Foreground" Value="#0067C0" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </Button>
 
                 <Button x:Name="IgnoredTasksButton"

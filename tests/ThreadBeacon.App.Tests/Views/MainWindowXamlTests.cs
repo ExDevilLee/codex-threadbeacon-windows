@@ -30,27 +30,31 @@ public sealed class MainWindowXamlTests
     }
 
     [Fact]
-    public void Toolbar_WindowPinSelectedStateUsesCompleteFilledPinGlyph()
+    public void Toolbar_WindowPinSelectedStateLayersFillBehindCompletePinOutline()
     {
         XDocument document = LoadDocument();
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
         XElement pinButton = Assert.Single(
             document.Descendants(),
             element => element.Name.LocalName == "Button"
                 && (string?)element.Attribute("Command") == "{Binding WindowPin.ToggleCommand}");
-        XElement selectedTrigger = Assert.Single(
+        XElement fillGlyph = Assert.Single(
             pinButton.Descendants(),
-            element => element.Name.LocalName == "DataTrigger"
-                && (string?)element.Attribute("Binding") == "{Binding WindowPin.IsPinned}"
-                && (string?)element.Attribute("Value") == "True"
-                && element.Elements().Any(setter =>
-                    setter.Name.LocalName == "Setter"
-                    && (string?)setter.Attribute("Property") == "Text"));
-        XElement textSetter = Assert.Single(
-            selectedTrigger.Elements(),
-            setter => setter.Name.LocalName == "Setter"
-                && (string?)setter.Attribute("Property") == "Text");
+            element => element.Name.LocalName == "TextBlock"
+                && (string?)element.Attribute(x + "Name") == "WindowPinFillGlyph");
+        XElement outlineGlyph = Assert.Single(
+            pinButton.Descendants(),
+            element => element.Name.LocalName == "TextBlock"
+                && (string?)element.Attribute(x + "Name") == "WindowPinOutlineGlyph");
 
-        Assert.Equal("\uE842", (string?)textSetter.Attribute("Value"));
+        Assert.Equal("\uE841", (string?)fillGlyph.Attribute("Text"));
+        Assert.Equal(
+            "{Binding WindowPin.IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}",
+            (string?)fillGlyph.Attribute("Visibility"));
+        Assert.Equal("\uE718", (string?)outlineGlyph.Attribute("Text"));
+        Assert.Equal(
+            (string?)fillGlyph.Attribute("FontSize"),
+            (string?)outlineGlyph.Attribute("FontSize"));
     }
 
     [Fact]
