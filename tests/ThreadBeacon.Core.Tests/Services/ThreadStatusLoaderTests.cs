@@ -486,17 +486,17 @@ public sealed class ThreadStatusLoaderTests
     {
         public IReadOnlySet<string>? RequestedThreadIds { get; private set; }
 
-        public IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+        public ServiceLogLoadResult LoadLatestIncidents(
             IReadOnlySet<string> threadIds)
         {
             RequestedThreadIds = new HashSet<string>(threadIds, StringComparer.Ordinal);
-            return incidents;
+            return new ServiceLogLoadResult(ServiceLogSourceStatus.Healthy, incidents);
         }
     }
 
     private sealed class ThrowingLogEventRepository : ILogEventRepository
     {
-        public IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+        public ServiceLogLoadResult LoadLatestIncidents(
             IReadOnlySet<string> threadIds) =>
             throw new IOException("Synthetic log read failure.");
     }

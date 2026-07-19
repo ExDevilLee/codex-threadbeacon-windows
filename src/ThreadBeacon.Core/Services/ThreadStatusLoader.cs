@@ -187,7 +187,7 @@ public sealed class ThreadStatusLoader
 
         try
         {
-            return logEventRepository.LoadLatestIncidents(visibleIds);
+            return logEventRepository.LoadLatestIncidents(visibleIds).Incidents;
         }
         catch (Exception)
         {

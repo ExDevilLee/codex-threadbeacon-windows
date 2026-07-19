@@ -5,6 +5,10 @@ namespace ThreadBeacon.Core.Services;
 
 public sealed class SQLiteLogEventRepository : ILogEventRepository
 {
+    private const int SqliteSchemaError = 1;
+    private const int SqliteBusy = 5;
+    private const int SqliteLocked = 6;
+
     private readonly string databasePath;
     private readonly LogEventParser parser;
 
@@ -15,7 +19,7 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
         this.parser = parser ?? new LogEventParser();
     }
 
-    public IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+    public ServiceLogLoadResult LoadLatestIncidents(
         IReadOnlySet<string> threadIds)
     {
         ArgumentNullException.ThrowIfNull(threadIds);
@@ -25,21 +29,28 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        if (requestedIds.Length == 0 || !File.Exists(databasePath))
+        if (requestedIds.Length == 0)
         {
-            return EmptyResult();
+            return Result(ServiceLogSourceStatus.NotUsed);
         }
 
-        using SqliteConnection connection = OpenReadOnlyConnection();
-        using SqliteCommand command = connection.CreateCommand();
-        string[] parameterNames = new string[requestedIds.Length];
-        for (int index = 0; index < requestedIds.Length; index++)
+        if (!File.Exists(databasePath))
         {
-            parameterNames[index] = $"$thread{index}";
-            command.Parameters.AddWithValue(parameterNames[index], requestedIds[index]);
+            return Result(ServiceLogSourceStatus.Missing);
         }
 
-        command.CommandText = $"""
+        try
+        {
+            using SqliteConnection connection = OpenReadOnlyConnection();
+            using SqliteCommand command = connection.CreateCommand();
+            string[] parameterNames = new string[requestedIds.Length];
+            for (int index = 0; index < requestedIds.Length; index++)
+            {
+                parameterNames[index] = $"$thread{index}";
+                command.Parameters.AddWithValue(parameterNames[index], requestedIds[index]);
+            }
+
+            command.CommandText = $"""
             SELECT ts, ts_nanos, target, thread_id, feedback_log_body
             FROM logs
             WHERE thread_id IN ({string.Join(", ", parameterNames)})
@@ -70,23 +81,45 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
             ORDER BY ts, ts_nanos, id;
             """;
 
-        using SqliteDataReader reader = command.ExecuteReader();
-        var records = new List<LogEventRecord>();
-        while (reader.Read())
-        {
-            long seconds = reader.GetInt64(0);
-            long nanoseconds = reader.GetInt64(1);
-            DateTimeOffset occurredAt = DateTimeOffset
-                .FromUnixTimeSeconds(seconds)
-                .AddTicks(nanoseconds / 100);
-            records.Add(new LogEventRecord(
-                reader.GetString(3),
-                occurredAt,
-                reader.GetString(2),
-                reader.GetString(4)));
-        }
+            using SqliteDataReader reader = command.ExecuteReader();
+            var records = new List<LogEventRecord>();
+            while (reader.Read())
+            {
+                long seconds = reader.GetInt64(0);
+                long nanoseconds = reader.GetInt64(1);
+                DateTimeOffset occurredAt = DateTimeOffset
+                    .FromUnixTimeSeconds(seconds)
+                    .AddTicks(nanoseconds / 100);
+                records.Add(new LogEventRecord(
+                    reader.GetString(3),
+                    occurredAt,
+                    reader.GetString(2),
+                    reader.GetString(4)));
+            }
 
-        return parser.LatestIncidents(records);
+            return new ServiceLogLoadResult(
+                ServiceLogSourceStatus.Healthy,
+                parser.LatestIncidents(records));
+        }
+        catch (SqliteException exception) when (
+            exception.SqliteErrorCode is SqliteBusy or SqliteLocked)
+        {
+            return Result(ServiceLogSourceStatus.Busy);
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode is SqliteSchemaError)
+        {
+            return Result(ServiceLogSourceStatus.Incompatible);
+        }
+        catch (Exception exception) when (
+            exception is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            return Result(ServiceLogSourceStatus.Unavailable);
+        }
+        catch (Exception exception) when (
+            exception is InvalidCastException or OverflowException or ArgumentOutOfRangeException)
+        {
+            return Result(ServiceLogSourceStatus.Incompatible);
+        }
     }
 
     private SqliteConnection OpenReadOnlyConnection()
@@ -114,6 +147,6 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
         }
     }
 
-    private static IReadOnlyDictionary<string, ServiceIncident> EmptyResult() =>
-        new Dictionary<string, ServiceIncident>(StringComparer.Ordinal);
+    private static ServiceLogLoadResult Result(ServiceLogSourceStatus status) =>
+        new(status, new Dictionary<string, ServiceIncident>(StringComparer.Ordinal));
 }

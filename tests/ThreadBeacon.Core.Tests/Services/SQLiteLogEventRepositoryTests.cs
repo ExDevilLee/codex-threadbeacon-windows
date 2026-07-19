@@ -12,9 +12,11 @@ public sealed class SQLiteLogEventRepositoryTests
         using TemporaryLogDatabase database = TemporaryLogDatabase.Create();
         var repository = new SQLiteLogEventRepository(database.Path);
 
-        IReadOnlyDictionary<string, ServiceIncident> incidents = repository.LoadLatestIncidents(
+        ServiceLogLoadResult result = repository.LoadLatestIncidents(
             new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b" });
+        IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
+        Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
         Assert.Equal(2, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
@@ -24,29 +26,63 @@ public sealed class SQLiteLogEventRepositoryTests
     }
 
     [Fact]
-    public void LoadLatestIncidents_ReturnsEmptyWithoutOpeningDatabaseForEmptyIds()
+    public void LoadLatestIncidents_ReturnsNotUsedWithoutOpeningDatabaseForEmptyIds()
     {
         string missingPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite");
         var repository = new SQLiteLogEventRepository(missingPath);
 
-        IReadOnlyDictionary<string, ServiceIncident> incidents = repository.LoadLatestIncidents(
+        ServiceLogLoadResult result = repository.LoadLatestIncidents(
             new HashSet<string>(StringComparer.Ordinal));
 
-        Assert.Empty(incidents);
+        Assert.Equal(ServiceLogSourceStatus.NotUsed, result.Status);
+        Assert.Empty(result.Incidents);
         Assert.False(File.Exists(missingPath));
     }
 
     [Fact]
-    public void LoadLatestIncidents_ReturnsEmptyForMissingDatabase()
+    public void LoadLatestIncidents_ReturnsMissingForMissingDatabase()
     {
         string missingPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite");
         var repository = new SQLiteLogEventRepository(missingPath);
 
-        IReadOnlyDictionary<string, ServiceIncident> incidents = repository.LoadLatestIncidents(
+        ServiceLogLoadResult result = repository.LoadLatestIncidents(
             new HashSet<string>(StringComparer.Ordinal) { "thread-a" });
 
-        Assert.Empty(incidents);
+        Assert.Equal(ServiceLogSourceStatus.Missing, result.Status);
+        Assert.Empty(result.Incidents);
         Assert.False(File.Exists(missingPath));
+    }
+
+    [Fact]
+    public void LoadLatestIncidents_ReturnsIncompatibleForUnexpectedSchema()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite");
+        try
+        {
+            using (var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+            {
+                DataSource = path,
+                Pooling = false,
+            }.ConnectionString))
+            {
+                connection.Open();
+                using SqliteCommand command = connection.CreateCommand();
+                command.CommandText = "CREATE TABLE unrelated (id INTEGER PRIMARY KEY);";
+                command.ExecuteNonQuery();
+            }
+
+            ServiceLogLoadResult result = new SQLiteLogEventRepository(path).LoadLatestIncidents(
+                new HashSet<string>(StringComparer.Ordinal) { "thread-a" });
+
+            Assert.Equal(ServiceLogSourceStatus.Incompatible, result.Status);
+            Assert.Empty(result.Incidents);
+        }
+        finally
+        {
+            File.Delete(path);
+            File.Delete($"{path}-shm");
+            File.Delete($"{path}-wal");
+        }
     }
 
     private sealed class TemporaryLogDatabase : IDisposable

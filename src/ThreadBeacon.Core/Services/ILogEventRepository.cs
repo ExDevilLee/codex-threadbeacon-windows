@@ -4,6 +4,6 @@ namespace ThreadBeacon.Core.Services;
 
 public interface ILogEventRepository
 {
-    IReadOnlyDictionary<string, ServiceIncident> LoadLatestIncidents(
+    ServiceLogLoadResult LoadLatestIncidents(
         IReadOnlySet<string> threadIds);
 }
