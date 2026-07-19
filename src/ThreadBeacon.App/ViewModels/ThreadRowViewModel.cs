@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using ThreadBeacon.App.Formatting;
@@ -21,6 +22,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private Brush statusBrush = UnknownBrush;
     private string tokenText = "—";
     private TokenDetailViewModel? tokenDetails;
+    private int subagentCount;
     private string durationText = string.Empty;
 
     public ThreadRowViewModel(ThreadSnapshot snapshot, DateTimeOffset now)
@@ -78,6 +80,31 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
 
     public bool HasTokenDetails => TokenDetails is not null;
 
+    public int SubagentCount
+    {
+        get => subagentCount;
+        private set
+        {
+            value = Math.Max(0, value);
+            if (SetField(ref subagentCount, value))
+            {
+                OnPropertyChanged(nameof(HasSubagents));
+                OnPropertyChanged(nameof(SubagentCountText));
+                OnPropertyChanged(nameof(SubagentAccessibilityLabel));
+            }
+        }
+    }
+
+    public bool HasSubagents => SubagentCount > 0;
+
+    public string SubagentCountText => HasSubagents
+        ? SubagentCount.ToString(CultureInfo.InvariantCulture)
+        : string.Empty;
+
+    public string SubagentAccessibilityLabel => HasSubagents
+        ? $"{SubagentCountText} 个 Subagent"
+        : string.Empty;
+
     public string DurationText
     {
         get => durationText;
@@ -100,6 +127,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         TokenDetails = snapshot.TokenUsage is null
             ? null
             : new TokenDetailViewModel(snapshot.TokenUsage);
+        SubagentCount = snapshot.SubagentCount;
         DurationText = FormatDuration(now - snapshot.StatusChangedAt);
     }
 

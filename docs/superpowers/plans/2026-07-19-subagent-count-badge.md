@@ -25,7 +25,7 @@
 - Modify: `tests/ThreadBeacon.App.Tests/ViewModels/ThreadRowCollectionTests.cs`
 - Modify: `src/ThreadBeacon.App/ViewModels/ThreadRowViewModel.cs`
 
-- [ ] **Step 1: Write failing zero and positive count tests**
+- [x] **Step 1: Write failing zero and positive count tests**
 
 Construct rows from snapshots and assert:
 
@@ -45,12 +45,12 @@ Assert.Equal("3 个 Subagent", populated.SubagentAccessibilityLabel);
 
 Add a negative-count case that is defensively normalized to zero.
 
-- [ ] **Step 2: Write a failing reconciliation test**
+- [x] **Step 2: Write a failing reconciliation test**
 
 Create a row with one Subagent, reconcile the same thread with four, and assert the
 row instance is preserved while all four count properties update.
 
-- [ ] **Step 3: Run focused tests and confirm failure**
+- [x] **Step 3: Run focused tests and confirm failure**
 
 Run:
 
@@ -60,7 +60,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj --filter 
 
 Expected: compilation fails because the count presentation properties do not exist.
 
-- [ ] **Step 4: Implement the count properties**
+- [x] **Step 4: Implement the count properties**
 
 Add a backing field and these properties:
 
@@ -91,7 +91,7 @@ public string SubagentAccessibilityLabel => HasSubagents
 
 Assign `SubagentCount = snapshot.SubagentCount` inside `Update`.
 
-- [ ] **Step 5: Run focused and full application tests**
+- [x] **Step 5: Run focused and full application tests**
 
 Run:
 
@@ -102,7 +102,7 @@ dotnet test tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj
 
 Expected: all focused tests and all application tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add src/ThreadBeacon.App/ViewModels/ThreadRowViewModel.cs tests/ThreadBeacon.App.Tests/ViewModels

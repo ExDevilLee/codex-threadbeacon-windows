@@ -59,7 +59,29 @@ public sealed class ThreadRowCollectionTests
         Assert.Same(first, collection.Items[1]);
     }
 
-    private static ThreadSnapshot Snapshot(string id, string title, long tokens) =>
+    [Fact]
+    public void Reconcile_ExistingThreadPreservesIdentityAndUpdatesSubagentCount()
+    {
+        var collection = new ThreadRowCollection();
+        collection.Reconcile([Snapshot("a", "Task", 100, subagentCount: 1)], Now);
+        ThreadRowViewModel original = collection.Items.Single();
+
+        collection.Reconcile(
+            [Snapshot("a", "Task", 100, subagentCount: 4)],
+            Now.AddSeconds(2));
+
+        Assert.Same(original, collection.Items.Single());
+        Assert.Equal(4, original.SubagentCount);
+        Assert.True(original.HasSubagents);
+        Assert.Equal("4", original.SubagentCountText);
+        Assert.Equal("4 个 Subagent", original.SubagentAccessibilityLabel);
+    }
+
+    private static ThreadSnapshot Snapshot(
+        string id,
+        string title,
+        long tokens,
+        int subagentCount = 0) =>
         new(
             id,
             title,
@@ -74,6 +96,6 @@ public sealed class ThreadRowCollectionTests
                 new TokenUsage(tokens, tokens / 2, 0, 0, tokens),
                 null,
                 Now),
-            0,
+            subagentCount,
             RolloutSourceStatus.Healthy);
 }
