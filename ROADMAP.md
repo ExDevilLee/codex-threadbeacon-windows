@@ -151,6 +151,12 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Preserve Chime and Alert defaults and all previously saved enum values.
 - [x] Bundle the exact macOS WAV assets and publish their CC0 provenance.
 
+## Phase 16: Public Collaboration Readiness
+
+- [x] Add changelog, contribution, security, and bilingual troubleshooting documents.
+- [x] Add privacy-safe Bug and Feature Issue Forms plus a Pull Request checklist.
+- [x] Keep public feedback free of Codex data files, task identities, local paths, and credentials.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

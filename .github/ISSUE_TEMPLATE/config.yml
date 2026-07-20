@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 故障排查 / Troubleshooting
+    url: https://github.com/ExDevilLee/codex-threadbeacon-windows/blob/main/docs/troubleshooting.md
+    about: 提交 Bug 前先检查常见问题和安全诊断范围。
+  - name: Security Vulnerability
+    url: https://github.com/ExDevilLee/codex-threadbeacon-windows/security/advisories/new
+    about: 请私密报告安全漏洞，不要创建包含敏感信息的公开 Issue。

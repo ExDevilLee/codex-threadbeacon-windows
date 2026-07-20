@@ -1,0 +1,98 @@
+name: Bug 报告 / Bug Report
+description: 报告可复现问题，请勿上传 Codex 数据文件或私人内容。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先阅读[故障排查](https://github.com/ExDevilLee/codex-threadbeacon-windows/blob/main/docs/troubleshooting.md)。
+
+        **不要上传任务标题、任务 ID、会话正文、state_5.sqlite、rollout、完整日志、本机路径、Token、Cookie 或凭据。**
+        安全漏洞请使用仓库 Security 页面的私密报告入口。
+
+  - type: input
+    id: threadbeacon_version
+    attributes:
+      label: ThreadBeacon 版本 / Version
+      description: Release Tag 或“源码构建”，例如 v0.10.0。
+      placeholder: v0.10.0
+    validations:
+      required: true
+
+  - type: input
+    id: windows_version
+    attributes:
+      label: Windows 版本 / Windows Version
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: 架构 / Architecture
+      options:
+        - x64
+        - Arm64
+        - 不确定 / Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: codex_source
+    attributes:
+      label: Codex 来源 / Codex Source
+      multiple: true
+      options:
+        - Codex Desktop
+        - Codex CLI
+    validations:
+      required: true
+
+  - type: dropdown
+    id: health_status
+    attributes:
+      label: 数据源健康状态 / Data-Source Health
+      description: 只选择界面中的状态类别，不粘贴原始日志。
+      options:
+        - 正常 / Healthy
+        - 部分降级 / Degraded
+        - 不可用 / Unavailable
+        - 不确定 / Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: 实际现象 / Observed Behavior
+      description: 使用虚构或脱敏名称，不要粘贴会话内容或完整日志。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 最小复现步骤 / Minimal Reproduction
+      placeholder: |
+        1. Start ThreadBeacon
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果 / Expected Behavior
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: 隐私确认 / Privacy Confirmation
+      options:
+        - label: 我没有附加 Codex 数据库、rollout、会话内容、任务身份、本机路径或凭据。
+          required: true
+        - label: 我已经阅读故障排查，并确认这不是其中记录的已知行为。
+          required: true

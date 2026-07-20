@@ -132,6 +132,13 @@ Service-incident monitoring transiently parses only three allow-listed log targe
 
 See [PRIVACY.md](PRIVACY.md) for the exact local data scope and processing boundaries.
 
+## Help And Contributing
+
+- Troubleshooting: [`English`](docs/troubleshooting-en.md) / [`简体中文`](docs/troubleshooting.md)
+- Release history: [CHANGELOG.md](CHANGELOG.md)
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Security reporting: [SECURITY.md](SECURITY.md)
+
 ## License
 
 [MIT](LICENSE)
