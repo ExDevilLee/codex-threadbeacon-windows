@@ -32,6 +32,13 @@
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">发布版本</sys:String>
     <sys:String x:Key="AboutPrivacy">隐私说明</sys:String>
+    <sys:String x:Key="CheckForUpdates">检查更新</sys:String>
+    <sys:String x:Key="UpdateCheckIdle">尚未检查更新。</sys:String>
+    <sys:String x:Key="CheckingForUpdates">正在检查更新…</sys:String>
+    <sys:String x:Key="UpToDate">当前已是最新版本。</sys:String>
+    <sys:String x:Key="UpdateAvailableVersion">发现新版本。</sys:String>
+    <sys:String x:Key="UpdateCheckFailed">检查更新失败，但不影响任务监听。</sys:String>
+    <sys:String x:Key="OpenRelease">打开发布页面</sys:String>
     <sys:String x:Key="Close">关闭</sys:String>
     <sys:String x:Key="Refresh">刷新</sys:String>
     <sys:String x:Key="PinToFront">钉在最前面</sys:String>

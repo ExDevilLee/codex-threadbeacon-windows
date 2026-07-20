@@ -130,9 +130,17 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Provide explicit links to the repository, Releases, and privacy statement.
 - [x] Localize the window in Simplified Chinese and English and keep it theme-aware.
 
+## Phase 13: Release Update Checks
+
+- [x] Parse SemVer release tags and compare stable/prerelease versions safely.
+- [x] Check the fixed public GitHub Releases API once after startup without blocking monitoring.
+- [x] Show a footer update indicator and open the selected release page only after a user click.
+- [x] Provide manual checking and retry from About, with network failures treated as non-blocking.
+- [x] Never download or install updates automatically.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.
 - Subagent alerts, reliable active-child counts, and parent-child Token aggregation.
 - System tray integration.
-- Packaging, signing, and automatic updates.
+- Packaging, signing, and automatic installation updates.

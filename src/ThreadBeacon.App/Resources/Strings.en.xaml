@@ -32,6 +32,13 @@
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">Releases</sys:String>
     <sys:String x:Key="AboutPrivacy">Privacy</sys:String>
+    <sys:String x:Key="CheckForUpdates">Check for updates</sys:String>
+    <sys:String x:Key="UpdateCheckIdle">Update status has not been checked.</sys:String>
+    <sys:String x:Key="CheckingForUpdates">Checking for updates…</sys:String>
+    <sys:String x:Key="UpToDate">You are up to date.</sys:String>
+    <sys:String x:Key="UpdateAvailableVersion">A newer version is available.</sys:String>
+    <sys:String x:Key="UpdateCheckFailed">Update check failed; task monitoring is unaffected.</sys:String>
+    <sys:String x:Key="OpenRelease">Open release page</sys:String>
     <sys:String x:Key="Close">Close</sys:String>
     <sys:String x:Key="Refresh">Refresh</sys:String>
     <sys:String x:Key="PinToFront">Keep on top</sys:String>

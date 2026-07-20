@@ -16,6 +16,8 @@ public sealed class AboutWindowXamlTests
         Assert.Contains("{Binding VersionText}", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource AboutDescription}", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource AboutDisclaimer}", markup, StringComparison.Ordinal);
+        Assert.Contains("UpdateCheck.CheckCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("UpdateCheck.OpenReleaseCommand", markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -40,5 +42,6 @@ public sealed class AboutWindowXamlTests
 
         Assert.Contains("OnAboutButtonClick", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource About}", markup, StringComparison.Ordinal);
+        Assert.Contains("UpdateCheck.IsUpdateAvailable", markup, StringComparison.Ordinal);
     }
 }

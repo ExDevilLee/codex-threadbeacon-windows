@@ -11,6 +11,9 @@
         Foreground="{DynamicResource PrimaryTextBrush}"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -40,6 +43,40 @@
             <TextBlock HorizontalAlignment="Center"
                        Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding VersionText}" />
+            <Button Margin="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Padding="12,6"
+                    Command="{Binding UpdateCheck.CheckCommand}"
+                    Content="{DynamicResource CheckForUpdates}" />
+            <TextBlock Margin="0,6,0,0"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SecondaryTextBrush}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="{DynamicResource UpdateCheckIdle}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding UpdateCheck.Status}" Value="Checking">
+                                <Setter Property="Text" Value="{DynamicResource CheckingForUpdates}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding UpdateCheck.Status}" Value="UpToDate">
+                                <Setter Property="Text" Value="{DynamicResource UpToDate}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding UpdateCheck.Status}" Value="Available">
+                                <Setter Property="Text" Value="{DynamicResource UpdateAvailableVersion}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding UpdateCheck.Status}" Value="Failed">
+                                <Setter Property="Text" Value="{DynamicResource UpdateCheckFailed}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <Button Margin="0,6,0,0"
+                    HorizontalAlignment="Center"
+                    Padding="12,6"
+                    Command="{Binding UpdateCheck.OpenReleaseCommand}"
+                    Content="{DynamicResource OpenRelease}"
+                    Visibility="{Binding UpdateCheck.IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </StackPanel>
 
         <StackPanel Grid.Row="4">

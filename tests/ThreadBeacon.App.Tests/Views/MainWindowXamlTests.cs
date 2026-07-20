@@ -107,10 +107,10 @@ public sealed class MainWindowXamlTests
             footer.Descendants(),
             element => (string?)element.Attribute("Text") == "{Binding UpdatedText}");
 
-        Assert.Equal(3, columns.Length);
-        Assert.Equal("1", (string?)health.Attribute("Grid.Column"));
+        Assert.Equal(4, columns.Length);
+        Assert.Equal("2", (string?)health.Attribute("Grid.Column"));
         Assert.Equal("{Binding DataSourceHealth}", (string?)health.Attribute("Details"));
-        Assert.Equal("2", (string?)updated.Attribute("Grid.Column"));
+        Assert.Equal("3", (string?)updated.Attribute("Grid.Column"));
     }
 
     [Fact]

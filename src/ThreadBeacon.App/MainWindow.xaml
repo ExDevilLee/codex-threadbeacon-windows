@@ -579,14 +579,31 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock FontSize="11"
                        Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding StatusText}" />
-            <controls:DataSourceHealthControl Grid.Column="1"
+            <Button Grid.Column="1"
+                    Width="28"
+                    Height="24"
+                    Margin="8,-3,0,-3"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    Command="{Binding UpdateCheck.OpenReleaseCommand}"
+                    ToolTip="{DynamicResource UpdateAvailable}"
+                    AutomationProperties.Name="{DynamicResource UpdateAvailable}"
+                    Visibility="{Binding UpdateCheck.IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock FontFamily="Segoe Fluent Icons"
+                           FontSize="15"
+                           Foreground="#C98B00"
+                           Text="&#xE895;" />
+            </Button>
+            <controls:DataSourceHealthControl Grid.Column="2"
                                               Margin="8,-3,8,-3"
                                               Details="{Binding DataSourceHealth}" />
-            <TextBlock Grid.Column="2"
+            <TextBlock Grid.Column="3"
                        FontSize="11"
                        Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding UpdatedText}" />

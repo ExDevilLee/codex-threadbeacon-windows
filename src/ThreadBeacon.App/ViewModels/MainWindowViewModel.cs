@@ -47,7 +47,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ICompletionNotificationObserver? completionObserver = null,
         IThreadListPreferenceStore? preferenceStore = null,
         TimeProvider? timeProvider = null,
-        DisplaySettingsViewModel? displaySettings = null)
+        DisplaySettingsViewModel? displaySettings = null,
+        UpdateCheckViewModel? updateCheck = null)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
@@ -56,6 +57,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         this.preferenceStore = preferenceStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.displaySettings = displaySettings ?? new DisplaySettingsViewModel();
+        UpdateCheck = updateCheck;
         sourceStatusText = this.displaySettings.EffectiveLanguage is AppLanguage.SimplifiedChinese
             ? "准备监听"
             : "Ready to monitor";
@@ -90,6 +92,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public MonitoringState Monitoring { get; }
 
     public DataSourceHealthViewModel DataSourceHealth { get; } = new();
+
+    public UpdateCheckViewModel? UpdateCheck { get; }
 
     public AsyncRelayCommand RefreshCommand => refreshCommand;
 

@@ -2,12 +2,16 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Reflection;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.Startup;
 using ThreadBeacon.App.ViewModels;
 using ThreadBeacon.App.Windowing;
 using ThreadBeacon.Core.Notifications;
+using ThreadBeacon.Core.Models;
 using ThreadBeacon.Core.Services;
 
 namespace ThreadBeacon.App;
@@ -20,6 +24,7 @@ public partial class MainWindow : Window
     private readonly MonitoringSettingsCoordinator monitoringSettingsCoordinator;
     private readonly SettingsWindowViewModel settingsViewModel;
     private readonly WindowsLoginStartupService loginStartupService;
+    private readonly HttpClient updateHttpClient;
     private readonly WindowPlacementCoordinator windowPlacementCoordinator;
     private SettingsWindow? settingsWindow;
     private AboutWindow? aboutWindow;
@@ -56,13 +61,22 @@ public partial class MainWindow : Window
         windowPlacementCoordinator = new WindowPlacementCoordinator(
             JsonWindowPlacementStore.CreateDefault(),
             new NativeWindowPlacementPlatform());
+        updateHttpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+        SemanticVersion.TryParse(
+            Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3),
+            out SemanticVersion currentVersion);
+        var updateCheck = new UpdateCheckViewModel(
+            new GitHubReleaseClient(updateHttpClient),
+            currentVersion,
+            uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }));
         viewModel = new MainWindowViewModel(
             loader,
             windowPin,
             monitoring,
             completionNotifications,
             JsonThreadListPreferenceStore.CreateDefault(),
-            displaySettings: displaySettings);
+            displaySettings: displaySettings,
+            updateCheck: updateCheck);
         DataContext = viewModel;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -113,6 +127,7 @@ public partial class MainWindow : Window
         {
             refreshTimer.Start();
         }
+        _ = viewModel.UpdateCheck?.CheckAsync();
     }
 
     private async void OnRefreshTimerTick(object? sender, EventArgs e)
@@ -155,6 +170,7 @@ public partial class MainWindow : Window
         Closing -= OnClosing;
         soundPlayer.Dispose();
         loginStartupService.Dispose();
+        updateHttpClient.Dispose();
     }
 
     private void OnSettingsButtonClick(object sender, RoutedEventArgs e)
@@ -196,7 +212,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        aboutWindow = new AboutWindow { Owner = this };
+        aboutWindow = new AboutWindow(viewModel.UpdateCheck) { Owner = this };
         aboutWindow.Closed += OnAboutWindowClosed;
         aboutWindow.Show();
     }
