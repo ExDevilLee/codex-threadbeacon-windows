@@ -1,0 +1,36 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: Build release assets
+        shell: pwsh
+        run: .\script\publish_release.ps1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/release/${{ github.ref_name }}/ThreadBeacon-${{ github.ref_name }}-win-x64.exe
+            artifacts/release/${{ github.ref_name }}/ThreadBeacon-${{ github.ref_name }}-win-x64.zip

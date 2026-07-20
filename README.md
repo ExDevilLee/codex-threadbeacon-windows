@@ -95,6 +95,8 @@ dotnet run --project tools/ThreadBeacon.Probe --configuration Release
 
 脚本会在 `artifacts/release/<tag>` 下生成便携 ZIP 和发布 EXE。推荐分发 ZIP，因为其中包含 EXE 及配套的内置提示音资源。
 
+推送 `v*` tag 后，仓库 GitHub Actions 会在干净的 Windows runner 上重新构建，并将两个文件发布到对应的 GitHub Release。
+
 ## App 图标
 
 <p align="center">

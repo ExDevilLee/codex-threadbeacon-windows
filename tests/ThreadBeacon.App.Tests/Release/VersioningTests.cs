@@ -46,4 +46,16 @@ public sealed class VersioningTests
         Assert.Contains("IncludeAllContentForSelfExtract=true", releaseScript, StringComparison.Ordinal);
         Assert.Contains("Compress-Archive", releaseScript, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ReleaseScript_RejectsTagThatDoesNotMatchVersionFile()
+    {
+        string releaseScript = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            "script",
+            "publish_release.ps1"));
+
+        Assert.Contains("GITHUB_REF_NAME", releaseScript, StringComparison.Ordinal);
+        Assert.Contains("does not match VERSION tag", releaseScript, StringComparison.Ordinal);
+    }
 }

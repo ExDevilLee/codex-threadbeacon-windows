@@ -97,6 +97,8 @@ The repository root `VERSION` file is the single source of truth for the app ver
 
 The script writes a portable package ZIP and the published executable under `artifacts/release/<tag>`. The ZIP is the recommended distribution because it includes the bundled sound assets alongside the executable.
 
+Pushing a `v*` tag also starts the repository GitHub Actions release workflow. It rebuilds the assets on a clean Windows runner and publishes both files to the matching GitHub Release.
+
 ## App Icon
 
 <p align="center">

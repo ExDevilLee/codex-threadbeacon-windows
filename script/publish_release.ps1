@@ -12,6 +12,9 @@ if ($version -notmatch '^0\.[0-9]+\.[0-9]+$') {
 }
 
 $tag = "v$version"
+if ($env:GITHUB_REF_NAME -and $env:GITHUB_REF_NAME -ne $tag) {
+    throw "GITHUB_REF_NAME '$($env:GITHUB_REF_NAME)' does not match VERSION tag '$tag'."
+}
 $releaseRoot = Join-Path $repositoryRoot "artifacts\release\$tag"
 $publishRoot = Join-Path $releaseRoot "ThreadBeacon"
 $singleFileRoot = Join-Path $releaseRoot "_single"
