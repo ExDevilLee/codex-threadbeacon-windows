@@ -32,7 +32,7 @@ The gear button opens a separate settings window. Its General tab offers 1, 2, 5
 
 The settings window also supports Simplified Chinese, English, and System language preferences. The preference is stored as a stable semantic value, and switching languages updates both the main and settings windows immediately. Task titles, Agent aliases, model names, HTTP status codes, and other raw Codex data remain unchanged. Unsupported system locales fall back to English, while missing or invalid language settings fall back to System.
 
-The information button in the title bar opens a single-instance About window with the App icon, runtime version, project purpose, and independent-community disclaimer, plus GitHub, Releases, and Privacy links. Those links are handed to the default browser only after an explicit user click.
+The information button in the title bar opens a single-instance About window with the App icon, runtime version, project purpose, and independent-community disclaimer, plus GitHub, Releases, Privacy, MIT License, and Support project links. The support page currently lists non-financial ways to help and unlocks no features. Those links are handed to the default browser only after an explicit user click.
 
 After startup, the App silently checks GitHub Releases once, including prereleases. If a newer release is found, an update icon appears in the footer; About also provides manual checking and retry. A failed check does not affect task monitoring, sounds, or data-source health, and the App never downloads or installs updates automatically.
 

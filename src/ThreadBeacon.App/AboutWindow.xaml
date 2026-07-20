@@ -4,9 +4,9 @@
         Title="{DynamicResource AboutTitle}"
         Icon="Resources/AppIcon.ico"
         Width="420"
-        Height="430"
+        Height="570"
         MinWidth="380"
-        MinHeight="380"
+        MinHeight="520"
         Background="{DynamicResource WindowBackgroundBrush}"
         Foreground="{DynamicResource PrimaryTextBrush}"
         ShowInTaskbar="False"
@@ -90,7 +90,18 @@
                 <Button Margin="4" Padding="12,6" Click="OnLinkClick" Tag="https://github.com/ExDevilLee/codex-threadbeacon-windows" Content="{DynamicResource AboutRepository}" />
                 <Button Margin="4" Padding="12,6" Click="OnLinkClick" Tag="https://github.com/ExDevilLee/codex-threadbeacon-windows/releases" Content="{DynamicResource AboutReleases}" />
                 <Button Margin="4" Padding="12,6" Click="OnLinkClick" Tag="https://github.com/ExDevilLee/codex-threadbeacon-windows/blob/main/PRIVACY.md" Content="{DynamicResource AboutPrivacy}" />
+                <Button Margin="4" Padding="12,6" Click="OnLinkClick" Tag="https://github.com/ExDevilLee/codex-threadbeacon-windows/blob/main/LICENSE" Content="{DynamicResource AboutLicense}" />
             </WrapPanel>
+            <Button Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Padding="12,6"
+                    Click="OnLinkClick"
+                    Tag="https://github.com/ExDevilLee/codex-threadbeacon-windows/blob/main/SPONSOR.md"
+                    Content="{DynamicResource AboutSupportProject}" />
+            <TextBlock Margin="0,10,0,0"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
+                       Text="{DynamicResource AboutCopyright}" />
         </StackPanel>
 
         <Button Grid.Row="5"

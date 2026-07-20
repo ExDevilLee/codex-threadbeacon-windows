@@ -22,7 +22,19 @@ public partial class AboutWindow : Window
     {
         if (sender is FrameworkElement { Tag: string uri })
         {
-            Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            }
+            catch
+            {
+                MessageBox.Show(
+                    this,
+                    FindResource("OpenLinkFailedMessage") as string ?? "Unable to open the link.",
+                    FindResource("OpenLinkFailedTitle") as string ?? "ThreadBeacon",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
     }
 

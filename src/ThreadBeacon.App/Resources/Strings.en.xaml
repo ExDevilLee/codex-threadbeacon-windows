@@ -34,6 +34,11 @@
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">Releases</sys:String>
     <sys:String x:Key="AboutPrivacy">Privacy</sys:String>
+    <sys:String x:Key="AboutLicense">MIT License</sys:String>
+    <sys:String x:Key="AboutSupportProject">Support project</sys:String>
+    <sys:String x:Key="AboutCopyright">Copyright © 2026 ExDevilLee</sys:String>
+    <sys:String x:Key="OpenLinkFailedTitle">Unable to open link</sys:String>
+    <sys:String x:Key="OpenLinkFailedMessage">Check your default browser and try again.</sys:String>
     <sys:String x:Key="CheckForUpdates">Check for updates</sys:String>
     <sys:String x:Key="UpdateCheckIdle">Update status has not been checked.</sys:String>
     <sys:String x:Key="CheckingForUpdates">Checking for updates…</sys:String>

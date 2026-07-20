@@ -34,6 +34,11 @@
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">发布版本</sys:String>
     <sys:String x:Key="AboutPrivacy">隐私说明</sys:String>
+    <sys:String x:Key="AboutLicense">MIT License</sys:String>
+    <sys:String x:Key="AboutSupportProject">支持项目</sys:String>
+    <sys:String x:Key="AboutCopyright">Copyright © 2026 ExDevilLee</sys:String>
+    <sys:String x:Key="OpenLinkFailedTitle">无法打开链接</sys:String>
+    <sys:String x:Key="OpenLinkFailedMessage">请检查默认浏览器或稍后重试。</sys:String>
     <sys:String x:Key="CheckForUpdates">检查更新</sys:String>
     <sys:String x:Key="UpdateCheckIdle">尚未检查更新。</sys:String>
     <sys:String x:Key="CheckingForUpdates">正在检查更新…</sys:String>

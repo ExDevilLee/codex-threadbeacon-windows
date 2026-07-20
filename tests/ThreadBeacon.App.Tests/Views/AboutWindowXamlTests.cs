@@ -21,7 +21,7 @@ public sealed class AboutWindowXamlTests
     }
 
     [Fact]
-    public void Window_OffersRepositoryReleaseAndPrivacyLinks()
+    public void Window_OffersProjectInformationAndSupportLinks()
     {
         string[] tags = LoadDocument().Descendants()
             .Where(element => element.Name.LocalName == "Button")
@@ -32,6 +32,21 @@ public sealed class AboutWindowXamlTests
         Assert.Contains(tags, tag => tag.EndsWith("/codex-threadbeacon-windows", StringComparison.Ordinal));
         Assert.Contains(tags, tag => tag.EndsWith("/releases", StringComparison.Ordinal));
         Assert.Contains(tags, tag => tag.EndsWith("/PRIVACY.md", StringComparison.Ordinal));
+        Assert.Contains(tags, tag => tag.EndsWith("/LICENSE", StringComparison.Ordinal));
+        Assert.Contains(tags, tag => tag.EndsWith("/SPONSOR.md", StringComparison.Ordinal));
+
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+        Assert.Contains("{DynamicResource AboutSupportProject}", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource AboutCopyright}", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Window_IsTallEnoughToShowSupportContentWithoutClipping()
+    {
+        XElement window = LoadDocument().Root!;
+
+        Assert.True(int.Parse((string)window.Attribute("Height")!) >= 550);
+        Assert.True(int.Parse((string)window.Attribute("MinHeight")!) >= 500);
     }
 
     [Fact]
