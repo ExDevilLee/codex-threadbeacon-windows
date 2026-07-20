@@ -13,17 +13,19 @@ public sealed class SQLiteLogEventRepositoryTests
         var repository = new SQLiteLogEventRepository(database.Path);
 
         ServiceLogLoadResult result = repository.LoadLatestIncidents(
-            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d" });
+            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e" });
         IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
         Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
-        Assert.Equal(3, incidents.Count);
+        Assert.Equal(4, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
         Assert.Equal(ServiceIncidentPhase.Retrying, incidents["thread-b"].Phase);
         Assert.Equal(429, incidents["thread-b"].HttpStatusCode);
         Assert.Equal(ServiceIncidentKind.ModelCapacity, incidents["thread-d"].Kind);
         Assert.Null(incidents["thread-d"].HttpStatusCode);
+        Assert.Equal(ServiceIncidentKind.BadRequest, incidents["thread-e"].Kind);
+        Assert.Equal(400, incidents["thread-e"].HttpStatusCode);
         Assert.DoesNotContain("thread-c", incidents.Keys);
     }
 
@@ -149,7 +151,11 @@ public sealed class SQLiteLogEventRepositoryTests
                 (300, 0, 'INFO', 'codex_core::session::turn',
                  'turn{turn.id=turn-c}: Turn error: unexpected status 503 Service Unavailable', 'thread-c'),
                 (400, 0, 'INFO', 'codex_core::session::turn',
-                 'turn{turn.id=turn-d}: Turn error: Selected model is at capacity. Please try a different model.', 'thread-d');
+                 'turn{turn.id=turn-d}: Turn error: Selected model is at capacity. Please try a different model.', 'thread-d'),
+                (500, 0, 'DEBUG', 'codex_http_client::default_client',
+                 'turn{turn.id=turn-e}: Request completed status=400 Bad Request', 'thread-e'),
+                (501, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-e}: Turn error: unexpected status 400 Bad Request', 'thread-e');
             """;
     }
 }

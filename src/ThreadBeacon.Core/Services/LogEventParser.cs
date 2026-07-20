@@ -46,11 +46,9 @@ public sealed partial class LogEventParser
                         {
                             episode.LatestSuccessAt = Later(episode.LatestSuccessAt, record.OccurredAt);
                         }
-                        else if (statusCode is 429 or 503)
+                        else if (statusCode is 400 or 429 or 503)
                         {
-                            episode.Kind = statusCode == 429
-                                ? ServiceIncidentKind.HttpRateLimit
-                                : ServiceIncidentKind.ServiceUnavailable;
+                            episode.Kind = IncidentKind(statusCode);
                             episode.HttpStatusCode = statusCode;
                             episode.LatestErrorAt = Later(episode.LatestErrorAt, record.OccurredAt);
                         }
@@ -82,12 +80,11 @@ public sealed partial class LogEventParser
                         episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
                     }
                     else if (record.Body.Contains("Turn error:", StringComparison.Ordinal)
-                        && TryStatusCode(record.Body) is 429 or 503)
+                        && TryStatusCode(record.Body) is 400 or 429 or 503)
                     {
-                        episode.Kind = TryStatusCode(record.Body) == 429
-                            ? ServiceIncidentKind.HttpRateLimit
-                            : ServiceIncidentKind.ServiceUnavailable;
-                        episode.HttpStatusCode = TryStatusCode(record.Body);
+                        int turnStatusCode = TryStatusCode(record.Body)!.Value;
+                        episode.Kind = IncidentKind(turnStatusCode);
+                        episode.HttpStatusCode = turnStatusCode;
                         episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
                     }
 
@@ -117,6 +114,13 @@ public sealed partial class LogEventParser
             && int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int result)
                 ? result
                 : null;
+
+    private static ServiceIncidentKind IncidentKind(int statusCode) => statusCode switch
+    {
+        400 => ServiceIncidentKind.BadRequest,
+        429 => ServiceIncidentKind.HttpRateLimit,
+        _ => ServiceIncidentKind.ServiceUnavailable,
+    };
 
     private static int? TryPositiveInt(string value) =>
         int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int result)

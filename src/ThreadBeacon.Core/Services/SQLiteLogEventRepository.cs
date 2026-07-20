@@ -61,6 +61,7 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
                   AND feedback_log_body LIKE '%Request completed%'
                   AND (
                     feedback_log_body LIKE '%status=200 OK%'
+                    OR feedback_log_body LIKE '%status=400 Bad Request%'
                     OR feedback_log_body LIKE '%status=429 Too Many Requests%'
                     OR feedback_log_body LIKE '%status=503 Service Unavailable%'
                   )
@@ -73,7 +74,8 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
                   target = 'codex_core::session::turn'
                   AND feedback_log_body LIKE '%Turn error:%'
                   AND (
-                    feedback_log_body LIKE '%status 429 Too Many Requests%'
+                    feedback_log_body LIKE '%status 400 Bad Request%'
+                    OR feedback_log_body LIKE '%status 429 Too Many Requests%'
                     OR feedback_log_body LIKE '%status 503 Service Unavailable%'
                     OR feedback_log_body LIKE '%Selected model is at capacity%'
                   )

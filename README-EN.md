@@ -34,7 +34,7 @@ The settings window also supports Simplified Chinese, English, and System langua
 
 Theme preferences are available in the General tab with `System`, `Light`, and `Dark` modes. New installations default to `System`, which follows the Windows app appearance setting. Choosing `Light` or `Dark` applies immediately to the main window, settings window, and open detail surfaces; the selected mode is stored locally and restored after restart. This milestone does not add custom colors or a dedicated high-contrast theme.
 
-The App now also monitors HTTP 429/503 service incidents and model-capacity failures for currently visible primary tasks. Active retries appear as a yellow “Service incident” with the HTTP status and retry progress; exhausted retries and model-capacity failures become a red “Service failure,” with capacity failures carrying a dedicated detail label. A later HTTP 200 in the same turn or a newer rollout lifecycle event clears the stale incident. Each incident episode can play one independently configurable warning sound and shares the baseline and 256-entry local derived-ID history with completion events.
+The App now also monitors HTTP 400/429/503 service incidents and model-capacity failures for currently visible primary tasks. Active 429/503 retries appear as a yellow “Service incident” with the HTTP status and retry progress; HTTP 400, exhausted retries, and model-capacity failures become a red “Service failure,” with capacity failures carrying a dedicated detail label. A later HTTP 200 in the same turn or a newer rollout lifecycle event clears the stale incident. Each incident episode can play one independently configurable warning sound and shares the baseline and 256-entry local derived-ID history with completion events.
 
 A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. Clicking the count expands direct children inline with `Agent alias | title`, derived status, recent activity, and cumulative Token usage. The detail button shows role, model, reasoning effort, and numeric Token fields. Child records and rollout tails are read only for visible expanded parents; collapsing stops those reads. Conversation bodies and deeper descendants are never read or displayed.
 
@@ -47,7 +47,7 @@ The first POC is deliberately limited to:
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
-- Detecting HTTP 429/503 retries and terminal failures for visible primary tasks from read-only local logs.
+- Detecting HTTP 400/429/503 and model-capacity incidents for visible primary tasks from read-only local logs.
 - Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.

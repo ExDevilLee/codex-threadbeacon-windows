@@ -8,6 +8,7 @@ public enum ServiceIncidentPhase
 
 public enum ServiceIncidentKind
 {
+    BadRequest,
     ServiceUnavailable,
     HttpRateLimit,
     ModelCapacity,

@@ -64,6 +64,24 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_RecognizesBadRequestAsFailure()
+    {
+        LogEventRecord[] records =
+        [
+            Record(104, "codex_http_client::default_client",
+                "turn{turn.id=turn-bad-request}: Request completed status=400 Bad Request"),
+            Record(105, "codex_core::session::turn",
+                "turn{turn.id=turn-bad-request}: Turn error: unexpected status 400 Bad Request"),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.BadRequest, incident.Kind);
+        Assert.Equal(400, incident.HttpStatusCode);
+    }
+
+    [Fact]
     public void LatestIncidents_ClearsRetryAfterSameTurnRecovers()
     {
         LogEventRecord[] records =
