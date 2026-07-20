@@ -6,6 +6,33 @@ ThreadBeacon is a native Windows status window for monitoring primary Codex Desk
 
 This repository is the independent Windows implementation of [ThreadBeacon for macOS](https://github.com/ExDevilLee/codex-threadbeacon-macos). It is an unofficial community project and is not affiliated with or endorsed by OpenAI. `Codex` is a trademark of its respective owner.
 
+## 30-Second Quick Start
+
+Before starting, make sure that:
+
+- You are running 64-bit Windows 11.
+- Codex Desktop or Codex CLI is installed and has run at least one task.
+- The current download is a portable technical preview. Windows may display a security prompt on first launch.
+
+Then:
+
+1. Download `ThreadBeacon-vX.Y.Z-win-x64.zip` from [Releases](https://github.com/ExDevilLee/codex-threadbeacon-windows/releases).
+2. Extract the complete ZIP to a permanent folder instead of running the App from inside the archive.
+3. Double-click `ThreadBeacon.App.exe`. If Microsoft Defender SmartScreen displays a warning, verify that the file came from this repository's Release, then select **More info** and **Run anyway**.
+4. ThreadBeacon automatically reads recent local Codex primary tasks. No account, API token, or data path is required.
+
+If no tasks appear or the footer reports a data-source problem, see [`Troubleshooting`](docs/troubleshooting-en.md) before opening a privacy-safe Issue.
+
+## Interface Preview
+
+| Primary task status with inline Subagent expansion | Token usage details |
+| :---: | :---: |
+| ![ThreadBeacon primary task status with inline Subagent expansion](docs/assets/readme/zh-Hans/threadbeacon-main.png) | ![ThreadBeacon Token usage details](docs/assets/readme/zh-Hans/threadbeacon-token-details.png) |
+
+| About ThreadBeacon | General settings |
+| :---: | :---: |
+| ![About ThreadBeacon](docs/assets/readme/zh-Hans/threadbeacon-about.png) | ![ThreadBeacon General settings](docs/assets/readme/zh-Hans/threadbeacon-settings.png) |
+
 ## Status
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
