@@ -4,6 +4,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
+using ThreadBeacon.App.Startup;
 using ThreadBeacon.App.ViewModels;
 using ThreadBeacon.App.Windowing;
 using ThreadBeacon.Core.Notifications;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private readonly WavSoundPlaybackService soundPlayer;
     private readonly MonitoringSettingsCoordinator monitoringSettingsCoordinator;
     private readonly SettingsWindowViewModel settingsViewModel;
+    private readonly WindowsLoginStartupService loginStartupService;
     private readonly WindowPlacementCoordinator windowPlacementCoordinator;
     private SettingsWindow? settingsWindow;
     private bool isPlacementTrackingActive;
@@ -45,7 +47,11 @@ public partial class MainWindow : Window
         var completionNotifications = new CompletionNotificationCoordinator(
             soundSettings,
             soundPlayer);
-        settingsViewModel = new SettingsWindowViewModel(displaySettings, soundSettings);
+        loginStartupService = new WindowsLoginStartupService();
+        settingsViewModel = new SettingsWindowViewModel(
+            displaySettings,
+            soundSettings,
+            new LoginStartupViewModel(loginStartupService));
         windowPlacementCoordinator = new WindowPlacementCoordinator(
             JsonWindowPlacementStore.CreateDefault(),
             new NativeWindowPlacementPlatform());
@@ -147,6 +153,7 @@ public partial class MainWindow : Window
         SizeChanged -= OnMainWindowBoundsChanged;
         Closing -= OnClosing;
         soundPlayer.Dispose();
+        loginStartupService.Dispose();
     }
 
     private void OnSettingsButtonClick(object sender, RoutedEventArgs e)

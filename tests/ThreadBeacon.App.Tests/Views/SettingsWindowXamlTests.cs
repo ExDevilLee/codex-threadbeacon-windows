@@ -42,6 +42,15 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
+    public void Window_IsTallEnoughForAllGeneralSettings()
+    {
+        XElement window = LoadDocument().Root!;
+
+        Assert.True(int.Parse((string)window.Attribute("Height")!) >= 420);
+        Assert.True(int.Parse((string)window.Attribute("MinHeight")!) >= 400);
+    }
+
+    [Fact]
     public void SoundTab_UsesCategoryAndSoundEnablementBindings()
     {
         string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
@@ -76,6 +85,16 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
+    public void GeneralTab_BindsLaunchAtLoginPreference()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Contains("Startup.IsEnabled", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource LaunchAtLogin}", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource LaunchAtLoginDescription}", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GeneralTab_UsesDedicatedRowsForAllSettings()
     {
         XDocument document = LoadDocument();
@@ -89,7 +108,7 @@ public sealed class SettingsWindowXamlTests
             generalGrid.Elements(),
             element => element.Name.LocalName == "Grid.RowDefinitions");
 
-        Assert.Equal(7, rowDefinitions.Elements().Count());
+        Assert.Equal(9, rowDefinitions.Elements().Count());
         XElement languageCombo = Assert.Single(
             generalGrid.Descendants(),
             element => element.Name.LocalName == "ComboBox"
@@ -104,11 +123,18 @@ public sealed class SettingsWindowXamlTests
                     == "{Binding Display.Theme, Mode=TwoWay}");
         Assert.Equal("4", (string?)themeCombo.Attribute("Grid.Row"));
 
+        XElement launchAtLoginCheckBox = Assert.Single(
+            generalGrid.Descendants(),
+            element => element.Name.LocalName == "CheckBox"
+                && (string?)element.Attribute("IsChecked")
+                    == "{Binding Startup.IsEnabled, Mode=TwoWay}");
+        Assert.Equal("6", (string?)launchAtLoginCheckBox.Attribute("Grid.Row"));
+
         XElement maximumCountCombo = Assert.Single(
             generalGrid.Descendants(),
             element => element.Name.LocalName == "ComboBox"
                 && (string?)element.Attribute("SelectedValue")
                     == "{Binding Display.MaximumTaskCount, Mode=TwoWay}");
-        Assert.Equal("6", (string?)maximumCountCombo.Attribute("Grid.Row"));
+        Assert.Equal("8", (string?)maximumCountCombo.Attribute("Grid.Row"));
     }
 }

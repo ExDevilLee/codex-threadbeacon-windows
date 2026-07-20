@@ -91,6 +91,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Configure maximum visible task counts of 4, 8, 12, or 20 without replaying notifications.
 - [x] Keep paused monitoring paused while preferences change.
 - [x] Persist display preferences separately from window pin and sound settings.
+- [x] Add an opt-in Launch at login switch backed by the current-user Run registry key.
 
 ## Phase 9: Main Window Placement
 
