@@ -6,11 +6,15 @@ namespace ThreadBeacon.App.Sounds;
 public sealed class WavSoundPlaybackService : ISoundPlaybackService, IDisposable
 {
     private readonly string baseDirectory;
+    private readonly Func<string, bool> pathPlayer;
     private SoundPlayer? activePlayer;
 
-    public WavSoundPlaybackService(string? baseDirectory = null)
+    public WavSoundPlaybackService(
+        string? baseDirectory = null,
+        Func<string, bool>? pathPlayer = null)
     {
         this.baseDirectory = baseDirectory ?? AppContext.BaseDirectory;
+        this.pathPlayer = pathPlayer ?? TryPlayPath;
     }
 
     public string GetSoundPath(CompletionSound sound)
@@ -30,18 +34,27 @@ public sealed class WavSoundPlaybackService : ISoundPlaybackService, IDisposable
     }
 
     public bool Play(CompletionSound sound)
+        => Play(sound, customPath: null);
+
+    public bool Play(CompletionSound sound, string? customPath)
+    {
+        string builtInPath = GetSoundPath(sound);
+        if (!string.IsNullOrWhiteSpace(customPath)
+            && File.Exists(customPath)
+            && pathPlayer(customPath))
+        {
+            return true;
+        }
+
+        return File.Exists(builtInPath) && pathPlayer(builtInPath);
+    }
+
+    private bool TryPlayPath(string path)
     {
         try
         {
-            string soundPath = GetSoundPath(sound);
-            if (!File.Exists(soundPath))
-            {
-                return false;
-            }
-
-            var player = new SoundPlayer(soundPath);
+            var player = new SoundPlayer(path);
             player.Load();
-
             activePlayer?.Stop();
             activePlayer?.Dispose();
             activePlayer = player;

@@ -51,7 +51,10 @@ public sealed class CompletionNotificationCoordinator : ICompletionNotificationO
 
         try
         {
-            player.Play(sound.Value);
+            string? customPath = notification.Category is SoundNotificationCategory.Done
+                ? settings.CompletionSoundPath
+                : settings.WarningSoundPath;
+            player.Play(sound.Value, customPath);
         }
         catch
         {

@@ -160,4 +160,25 @@ public sealed class SoundSettingsViewModelTests
 
         Assert.Equal([CompletionSound.Pulse], player.Played);
     }
+
+    [Fact]
+    public void CustomSoundCommands_SaveFilenameAndCanClearIt()
+    {
+        var store = new MemorySoundSettingsStore(new SoundNotificationSettings());
+        var viewModel = new SoundSettingsViewModel(
+            store,
+            new RecordingSoundPlayer(),
+            () => @"C:\Sounds\complete.wav");
+
+        viewModel.SelectCompletionSoundCommand.Execute(null);
+
+        Assert.Equal(@"C:\Sounds\complete.wav", store.Current.CompletionSoundPath);
+        Assert.Equal("complete.wav", viewModel.CompletionSoundPathText);
+        Assert.True(viewModel.HasCompletionSoundPath);
+
+        viewModel.ClearCompletionSoundCommand.Execute(null);
+
+        Assert.Null(store.Current.CompletionSoundPath);
+        Assert.False(viewModel.HasCompletionSoundPath);
+    }
 }

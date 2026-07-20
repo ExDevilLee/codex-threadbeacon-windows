@@ -40,6 +40,24 @@ public sealed class CompletionNotificationCoordinatorTests
     }
 
     [Fact]
+    public void Observe_UsesConfiguredCustomPathForCompletion()
+    {
+        var store = new MemorySoundSettingsStore(new SoundNotificationSettings
+        {
+            CompletionSoundPath = @"C:\Sounds\custom.wav",
+        });
+        var player = new RecordingSoundPlayer();
+        var settings = new SoundSettingsViewModel(store, player);
+        var coordinator = new CompletionNotificationCoordinator(settings, player);
+
+        coordinator.Observe(
+            [Completed("thread-custom", AtSeconds(11))],
+            RefreshNotificationPolicy.Notify);
+
+        Assert.Equal([@"C:\Sounds\custom.wav"], player.CustomPaths);
+    }
+
+    [Fact]
     public void Observe_MultipleNewCompletionsPlayOneSoundAndPersistAll()
     {
         var store = new MemorySoundSettingsStore(new SoundNotificationSettings
@@ -198,6 +216,8 @@ internal sealed class RecordingSoundPlayer : ISoundPlaybackService
 {
     public List<CompletionSound> Played { get; } = [];
 
+    public List<string?> CustomPaths { get; } = [];
+
     public bool ThrowOnPlay { get; init; }
 
     public bool Play(CompletionSound sound)
@@ -209,5 +229,12 @@ internal sealed class RecordingSoundPlayer : ISoundPlaybackService
 
         Played.Add(sound);
         return true;
+    }
+
+    public bool Play(CompletionSound sound, string? customPath)
+    {
+        bool result = Play(sound);
+        CustomPaths.Add(customPath);
+        return result;
     }
 }

@@ -59,6 +59,10 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Sound.IsCompletionSoundEnabled", markup, StringComparison.Ordinal);
         Assert.Contains("Sound.IsWarningCategoryEnabled", markup, StringComparison.Ordinal);
         Assert.Contains("Sound.IsWarningSoundEnabled", markup, StringComparison.Ordinal);
+        Assert.Contains("Sound.SelectCompletionSoundCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("Sound.ClearCompletionSoundCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("Sound.SelectWarningSoundCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("Sound.ClearWarningSoundCommand", markup, StringComparison.Ordinal);
     }
 
     [Fact]

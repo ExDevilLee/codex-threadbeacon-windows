@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using ThreadBeacon.App.Commands;
@@ -22,17 +23,24 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 
     private readonly ISoundNotificationSettingsStore settingsStore;
     private readonly ISoundPlaybackService player;
+    private readonly Func<string?> chooseSoundFile;
     private SoundNotificationSettings settings;
 
     public SoundSettingsViewModel(
         ISoundNotificationSettingsStore settingsStore,
-        ISoundPlaybackService player)
+        ISoundPlaybackService player,
+        Func<string?>? chooseSoundFile = null)
     {
         this.settingsStore = settingsStore ?? throw new ArgumentNullException(nameof(settingsStore));
         this.player = player ?? throw new ArgumentNullException(nameof(player));
+        this.chooseSoundFile = chooseSoundFile ?? (() => null);
         settings = settingsStore.Load();
         PreviewCommand = new RelayCommand(Preview);
         WarningPreviewCommand = new RelayCommand(PreviewWarning);
+        SelectCompletionSoundCommand = new RelayCommand(SelectCompletionSound);
+        ClearCompletionSoundCommand = new RelayCommand(ClearCompletionSound, () => HasCompletionSoundPath);
+        SelectWarningSoundCommand = new RelayCommand(SelectWarningSound);
+        ClearWarningSoundCommand = new RelayCommand(ClearWarningSound, () => HasWarningSoundPath);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -44,6 +52,32 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
     public ICommand PreviewCommand { get; }
 
     public ICommand WarningPreviewCommand { get; }
+
+    public ICommand SelectCompletionSoundCommand { get; }
+
+    public ICommand ClearCompletionSoundCommand { get; }
+
+    public ICommand SelectWarningSoundCommand { get; }
+
+    public ICommand ClearWarningSoundCommand { get; }
+
+    public string CompletionSoundPathText =>
+        string.IsNullOrWhiteSpace(settings.CompletionSoundPath)
+            ? string.Empty
+            : Path.GetFileName(settings.CompletionSoundPath);
+
+    public string WarningSoundPathText =>
+        string.IsNullOrWhiteSpace(settings.WarningSoundPath)
+            ? string.Empty
+            : Path.GetFileName(settings.WarningSoundPath);
+
+    public bool HasCompletionSoundPath => !string.IsNullOrWhiteSpace(settings.CompletionSoundPath);
+
+    public bool HasWarningSoundPath => !string.IsNullOrWhiteSpace(settings.WarningSoundPath);
+
+    public string? CompletionSoundPath => settings.CompletionSoundPath;
+
+    public string? WarningSoundPath => settings.WarningSoundPath;
 
     public bool IsEnabled
     {
@@ -166,7 +200,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 
         try
         {
-            player.Play(SelectedCompletionSound);
+            player.Play(SelectedCompletionSound, CompletionSoundPath);
         }
         catch
         {
@@ -183,7 +217,7 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 
         try
         {
-            player.Play(SelectedWarningSound);
+            player.Play(SelectedWarningSound, WarningSoundPath);
         }
         catch
         {
@@ -192,6 +226,58 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
     }
 
     private void Save() => settingsStore.Save(settings);
+
+    private void SelectCompletionSound()
+    {
+        if (chooseSoundFile() is string path)
+        {
+            settings = settings with { CompletionSoundPath = path };
+            Save();
+            NotifyCustomSoundProperties(completion: true);
+        }
+    }
+
+    private void ClearCompletionSound()
+    {
+        settings = settings with { CompletionSoundPath = null };
+        Save();
+        NotifyCustomSoundProperties(completion: true);
+    }
+
+    private void SelectWarningSound()
+    {
+        if (chooseSoundFile() is string path)
+        {
+            settings = settings with { WarningSoundPath = path };
+            Save();
+            NotifyCustomSoundProperties(completion: false);
+        }
+    }
+
+    private void ClearWarningSound()
+    {
+        settings = settings with { WarningSoundPath = null };
+        Save();
+        NotifyCustomSoundProperties(completion: false);
+    }
+
+    private void NotifyCustomSoundProperties(bool completion)
+    {
+        if (completion)
+        {
+            OnPropertyChanged(nameof(CompletionSoundPath));
+            OnPropertyChanged(nameof(CompletionSoundPathText));
+            OnPropertyChanged(nameof(HasCompletionSoundPath));
+            if (ClearCompletionSoundCommand is RelayCommand command) command.NotifyCanExecuteChanged();
+        }
+        else
+        {
+            OnPropertyChanged(nameof(WarningSoundPath));
+            OnPropertyChanged(nameof(WarningSoundPathText));
+            OnPropertyChanged(nameof(HasWarningSoundPath));
+            if (ClearWarningSoundCommand is RelayCommand command) command.NotifyCanExecuteChanged();
+        }
+    }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

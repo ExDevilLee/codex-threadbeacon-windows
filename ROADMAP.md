@@ -138,6 +138,12 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Provide manual checking and retry from About, with network failures treated as non-blocking.
 - [x] Never download or install updates automatically.
 
+## Phase 14: Custom Sounds
+
+- [x] Allow separate local WAV selections for completion and service-incident notifications.
+- [x] Persist only selected file paths and provide preview/clear controls.
+- [x] Fall back to the selected built-in tone when a custom file is missing or invalid.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

@@ -17,6 +17,8 @@
     <sys:String x:Key="TaskCompletion">任务完成</sys:String>
     <sys:String x:Key="ServiceIncident">服务异常</sys:String>
     <sys:String x:Key="Preview">试听</sys:String>
+    <sys:String x:Key="SelectCustomSound">选择 WAV</sys:String>
+    <sys:String x:Key="ClearCustomSound">清除自定义</sys:String>
     <sys:String x:Key="CodexTaskStatus">Codex 任务状态</sys:String>
     <sys:String x:Key="Status">状态</sys:String>
     <sys:String x:Key="Task">任务</sys:String>

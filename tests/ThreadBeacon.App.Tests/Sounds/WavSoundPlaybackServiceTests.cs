@@ -38,6 +38,29 @@ public sealed class WavSoundPlaybackServiceTests : IDisposable
         Assert.False(result);
     }
 
+    [Fact]
+    public void Play_InvalidCustomFileFallsBackToBundledSound()
+    {
+        string soundDirectory = Path.Combine(tempRoot, "Resources", "Sounds");
+        Directory.CreateDirectory(soundDirectory);
+        File.WriteAllBytes(Path.Combine(soundDirectory, "Done-Beacon.wav"), [1]);
+        string invalidCustom = Path.Combine(tempRoot, "invalid.wav");
+        File.WriteAllText(invalidCustom, "not a WAV file");
+        var attempted = new List<string>();
+        var player = new WavSoundPlaybackService(
+            tempRoot,
+            path =>
+            {
+                attempted.Add(path);
+                return path.EndsWith("Done-Beacon.wav", StringComparison.Ordinal);
+            });
+
+        bool result = player.Play(CompletionSound.Beacon, invalidCustom);
+
+        Assert.True(result);
+        Assert.Equal([invalidCustom, Path.Combine(soundDirectory, "Done-Beacon.wav")], attempted);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(tempRoot))

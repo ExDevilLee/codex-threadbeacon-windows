@@ -17,6 +17,8 @@
     <sys:String x:Key="TaskCompletion">Task completion</sys:String>
     <sys:String x:Key="ServiceIncident">Service incident</sys:String>
     <sys:String x:Key="Preview">Preview</sys:String>
+    <sys:String x:Key="SelectCustomSound">Choose WAV</sys:String>
+    <sys:String x:Key="ClearCustomSound">Clear custom</sys:String>
     <sys:String x:Key="CodexTaskStatus">Codex task status</sys:String>
     <sys:String x:Key="Status">Status</sys:String>
     <sys:String x:Key="Task">Task</sys:String>

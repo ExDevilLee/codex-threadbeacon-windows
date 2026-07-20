@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
+using Microsoft.Win32;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.Startup;
@@ -49,7 +50,8 @@ public partial class MainWindow : Window
         soundPlayer = new WavSoundPlaybackService();
         var soundSettings = new SoundSettingsViewModel(
             JsonSoundNotificationSettingsStore.CreateDefault(),
-            soundPlayer);
+            soundPlayer,
+            ChooseSoundFile);
         var completionNotifications = new CompletionNotificationCoordinator(
             soundSettings,
             soundPlayer);
@@ -193,6 +195,19 @@ public partial class MainWindow : Window
         };
         settingsWindow.Closed += OnSettingsWindowClosed;
         settingsWindow.Show();
+    }
+
+    private static string? ChooseSoundFile()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "WAV files (*.wav)|*.wav|All files (*.*)|*.*",
+            CheckFileExists = true,
+            Multiselect = false,
+            Title = Application.Current.TryFindResource("SelectCustomSound") as string
+                ?? "Choose WAV",
+        };
+        return dialog.ShowDialog() is true ? dialog.FileName : null;
     }
 
     private void OnSettingsWindowClosed(object? sender, EventArgs e)

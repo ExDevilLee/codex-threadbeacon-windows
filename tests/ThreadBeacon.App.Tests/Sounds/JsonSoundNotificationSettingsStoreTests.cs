@@ -48,6 +48,8 @@ public sealed class JsonSoundNotificationSettingsStoreTests : IDisposable
             IsEnabled = false,
             IsCompletionEnabled = false,
             SelectedCompletionSound = CompletionSound.Resolve,
+            CompletionSoundPath = @"C:\Sounds\completion.wav",
+            WarningSoundPath = @"C:\Sounds\warning.wav",
             IsWarningEnabled = false,
             SelectedWarningSound = CompletionSound.Knock,
             SeenEventIds = ["done:a:1000", "warning:b:turn-b"],
@@ -60,6 +62,8 @@ public sealed class JsonSoundNotificationSettingsStoreTests : IDisposable
         Assert.Equal(expected.IsEnabled, result.IsEnabled);
         Assert.Equal(expected.IsCompletionEnabled, result.IsCompletionEnabled);
         Assert.Equal(expected.SelectedCompletionSound, result.SelectedCompletionSound);
+        Assert.Equal(expected.CompletionSoundPath, result.CompletionSoundPath);
+        Assert.Equal(expected.WarningSoundPath, result.WarningSoundPath);
         Assert.Equal(expected.IsWarningEnabled, result.IsWarningEnabled);
         Assert.Equal(expected.SelectedWarningSound, result.SelectedWarningSound);
         Assert.Equal(expected.SeenEventIds, result.SeenEventIds);
