@@ -87,6 +87,16 @@ dotnet run --project src/ThreadBeacon.App
 dotnet run --project tools/ThreadBeacon.Probe --configuration Release
 ```
 
+## Versioned Release
+
+The repository root `VERSION` file is the single source of truth for the app version. Stable releases use a matching Git tag such as `v0.1.0`. Generate a self-contained `win-x64` release package with:
+
+```powershell
+.\script\publish_release.ps1
+```
+
+The script writes a portable package ZIP and the published executable under `artifacts/release/<tag>`. The ZIP is the recommended distribution because it includes the bundled sound assets alongside the executable.
+
 ## App Icon
 
 <p align="center">

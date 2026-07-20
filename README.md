@@ -85,6 +85,16 @@ dotnet run --project src/ThreadBeacon.App
 dotnet run --project tools/ThreadBeacon.Probe --configuration Release
 ```
 
+## 版本化发布
+
+仓库根目录的 `VERSION` 是 App 版本号的唯一来源。稳定版本使用相同版本号的 Git tag，例如 `v0.1.0`。生成自包含的 `win-x64` 发布包：
+
+```powershell
+.\script\publish_release.ps1
+```
+
+脚本会在 `artifacts/release/<tag>` 下生成便携 ZIP 和发布 EXE。推荐分发 ZIP，因为其中包含 EXE 及配套的内置提示音资源。
+
 ## App 图标
 
 <p align="center">
