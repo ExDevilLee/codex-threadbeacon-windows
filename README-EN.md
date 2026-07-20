@@ -37,7 +37,9 @@ If no tasks appear or the footer reports a data-source problem, see [`Troublesho
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
 
-The first end-to-end POC is now implemented: short-lived, non-pooled, read-only SQLite connections load recent unarchived primary threads and exclude subagents; a shared read of `session_index.jsonl` selects the last valid renamed title; each rollout read is limited to the final 2 MiB and retains only event types, timestamps, and numeric Token fields to derive `running`, `justCompleted`, `idle`, and `unknown`. A unified loader merges these sources into snapshots, and the WPF window displays status lights, titles, cumulative Token usage, and status duration. It defaults to 8 tasks and a 2-second automatic refresh interval, with manual refresh also available. Each source degrades safely when unavailable or incompatible.
+The first end-to-end POC is now implemented: short-lived, non-pooled, read-only SQLite connections load recent unarchived primary threads and exclude genuine Subagents; a shared read of `session_index.jsonl` selects the last valid renamed title; each rollout read is limited to the final 2 MiB and retains only event types, timestamps, and numeric Token fields to derive `running`, `justCompleted`, `idle`, and `unknown`. A unified loader merges these sources into snapshots, and the WPF window displays status lights, titles, cumulative Token usage, and status duration. It defaults to 8 tasks and a 2-second automatic refresh interval, with manual refresh also available. Each source degrades safely when unavailable or incompatible.
+
+Some tasks created through Codex delegation remain marked with a `subagent` source even after they appear as independent user-visible tasks. ThreadBeacon conservatively restores such a record as a primary candidate only when it has no child relationship and the healthy Rename index contains its user-visible title. Genuine direct children remain available only through their parent, and missing or unhealthy relationship/Rename data never promotes detached records.
 
 The WPF App is connected to real local task data. A Win11 read-only concurrent-task soak ran for more than 30 minutes: 900 samples completed with no probe failures, source degradations, or App crashes, and Codex writes remained available. See the [Windows 30-minute soak record](docs/validation/2026-07-18-windows-30-minute-soak.md).
 
@@ -75,7 +77,7 @@ The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. 
 
 The first POC is deliberately limited to:
 
-- Reading 8 recent unarchived primary threads by default, with configurable limits of 4, 8, 12, or 20, and excluding subagents.
+- Reading 8 recent unarchived primary threads by default, with configurable limits of 4, 8, 12, or 20, while excluding genuine Subagents and restoring only unlinked records with a visible Rename.
 - Using the latest renamed title from `session_index.jsonl`.
 - Deriving task status from rollout JSONL tails.
 - Displaying cumulative Token usage with a numeric-only detail popover.

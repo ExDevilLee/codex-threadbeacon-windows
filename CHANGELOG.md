@@ -7,6 +7,12 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-07-21
+
+### Fixed
+
+- 当 Codex 将用户可见的独立任务保留为 `subagent` 来源、但没有父子关系时，使用健康的 Rename 索引保守地将其恢复为主任务候选；真正的子任务和无法确认的孤立记录仍被排除。
+
 ## [0.10.0] - 2026-07-20
 
 ### Documentation
@@ -80,7 +86,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.1...HEAD
+[0.10.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.7.0...v0.8.0

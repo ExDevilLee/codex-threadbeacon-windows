@@ -154,6 +154,34 @@ public sealed class SQLiteThreadRepositoryTests
     }
 
     [Fact]
+    public void LoadDetachedSubagentCandidates_ReturnsOnlyActiveUnlinkedSubagents()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+
+        ThreadLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDetachedSubagentCandidates(8);
+
+        ThreadRecord record = Assert.Single(result.Threads);
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Equal("orphan-subagent", record.Id);
+        Assert.False(record.IsArchived);
+        Assert.Equal(0, record.SubagentCount);
+    }
+
+    [Fact]
+    public void LoadDetachedSubagentCandidates_ReturnsEmptyWhenSpawnEdgesTableIsMissing()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create(
+            includeSpawnEdges: false);
+
+        ThreadLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDetachedSubagentCandidates(8);
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Empty(result.Threads);
+    }
+
+    [Fact]
     public void LoadDirectSubagents_ReturnsOnlyRequestedParentsInRecencyOrder()
     {
         using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
@@ -274,6 +302,8 @@ public sealed class SQLiteThreadRepositoryTests
                 ('older-thread', 'Older', 'D:\rollouts\older.jsonl', 100, 100000, 100000, 0, 'user', 1, NULL, NULL, NULL, NULL),
                 ('new-thread', 'New', 'D:\rollouts\new.jsonl', 200, 200000, 300000, 0, 'user', 70808875, NULL, NULL, NULL, NULL),
                 ('subagent-thread', 'Child', 'D:\rollouts\child.jsonl', 300, 300000, 500000, 0, 'subagent', 2, 'worker', 'reviewer', 'gpt-test', 'medium'),
+                ('orphan-subagent', 'Detached', 'D:\rollouts\detached.jsonl', 330, 330000, 530000, 0, 'subagent', 6, NULL, NULL, NULL, NULL),
+                ('archived-orphan-subagent', 'Archived Detached', 'D:\rollouts\archived-detached.jsonl', 340, 340000, 540000, 1, 'subagent', 7, NULL, NULL, NULL, NULL),
                 ('legacy-child', 'Legacy Child', 'D:\rollouts\legacy.jsonl', 310, 310000, 510000, 0, NULL, 4, NULL, NULL, NULL, NULL),
                 ('archived-child', 'Archived Child', 'D:\rollouts\archived-child.jsonl', 320, 320000, 520000, 1, NULL, 5, 'reviewer', 'explorer', 'gpt-test', 'high'),
                 ('archived-thread', 'Archived', 'D:\rollouts\archived.jsonl', 400, 400000, 400000, 1, 'user', 3, NULL, NULL, NULL, NULL);

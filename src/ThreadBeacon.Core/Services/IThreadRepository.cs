@@ -6,6 +6,12 @@ public interface IThreadRepository
 {
     ThreadLoadResult LoadRecent(int limit = 8);
 
+    ThreadLoadResult LoadDetachedSubagentCandidates(int limit)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
+        return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, []);
+    }
+
     ThreadLoadResult LoadByIds(IReadOnlySet<string> threadIds)
     {
         ArgumentNullException.ThrowIfNull(threadIds);

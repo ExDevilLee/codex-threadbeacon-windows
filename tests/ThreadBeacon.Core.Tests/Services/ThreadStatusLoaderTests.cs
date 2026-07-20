@@ -101,6 +101,94 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_PromotesOnlyRenamedDetachedSubagentCandidates()
+    {
+        ThreadRecord recent = Record("recent", "Recent");
+        ThreadRecord renamedDetached = Record("renamed-detached", "Database title");
+        ThreadRecord unnamedDetached = Record("unnamed-detached", "Unlisted title");
+        var repository = new DetachedCandidateThreadRepository(
+            [recent],
+            new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [renamedDetached, unnamedDetached]));
+        var observations = new Dictionary<string, RolloutLoadResult>(StringComparer.Ordinal)
+        {
+            ["recent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            ["renamed-detached"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+        };
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["renamed-detached"] = "User-visible detached task",
+                })),
+            new StubRolloutParser(observations),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(8);
+
+        Assert.Equal(8, repository.RequestedDetachedLimit);
+        Assert.Equal(["renamed-detached", "recent"], result.Threads.Select(thread => thread.Id));
+        Assert.Equal("User-visible detached task", result.Threads[0].Title);
+    }
+
+    [Fact]
+    public void Load_SkipsDetachedSubagentCandidatesWhenRenameIndexIsUnavailable()
+    {
+        ThreadRecord recent = Record("recent", "Recent");
+        var repository = new DetachedCandidateThreadRepository(
+            [recent],
+            new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("detached", "Detached")]));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Missing,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["recent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(8);
+
+        Assert.Null(repository.RequestedDetachedLimit);
+        Assert.Equal("recent", Assert.Single(result.Threads).Id);
+    }
+
+    [Fact]
+    public void Load_ReportsDetachedCandidateQueryFailureAsDegraded()
+    {
+        ThreadRecord recent = Record("recent", "Recent");
+        var repository = new DetachedCandidateThreadRepository(
+            [recent],
+            new ThreadLoadResult(ThreadRepositoryStatus.Busy, []));
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>
+                {
+                    ["detached"] = "Detached",
+                })),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["recent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load(8);
+
+        Assert.Equal(OverallDataSourceHealth.Degraded, result.Health.OverallStatus);
+        Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.TaskDatabase.Level);
+        Assert.Equal("recent", Assert.Single(result.Threads).Id);
+    }
+
+    [Fact]
     public void Load_PropagatesDataSourceHealthWithoutDroppingThreads()
     {
         var threadRepository = new StubThreadRepository(new ThreadLoadResult(
@@ -572,6 +660,22 @@ public sealed class ThreadStatusLoaderTests
         {
             RequestedParentIds = new HashSet<string>(parentIds, StringComparer.Ordinal);
             return subagentResult;
+        }
+    }
+
+    private sealed class DetachedCandidateThreadRepository(
+        IReadOnlyList<ThreadRecord> recent,
+        ThreadLoadResult detachedResult) : IThreadRepository
+    {
+        public int? RequestedDetachedLimit { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, recent);
+
+        public ThreadLoadResult LoadDetachedSubagentCandidates(int limit)
+        {
+            RequestedDetachedLimit = limit;
+            return detachedResult;
         }
     }
 

@@ -157,6 +157,13 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Add privacy-safe Bug and Feature Issue Forms plus a Pull Request checklist.
 - [x] Keep public feedback free of Codex data files, task identities, local paths, and credentials.
 
+## Phase 17: Detached Subagent Compatibility
+
+- [x] Detect active `subagent` records that have no child relationship without weakening the normal primary-task query.
+- [x] Promote only detached records whose IDs have a user-visible title in a healthy Rename index.
+- [x] Keep linked, archived, unrenamed, or unverifiable Subagents out of the primary list.
+- [x] Treat the detached-candidate query as optional and degrade without dropping normal tasks.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

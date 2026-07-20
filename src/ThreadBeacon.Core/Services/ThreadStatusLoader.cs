@@ -54,10 +54,19 @@ public sealed class ThreadStatusLoader
         ThreadLoadResult favoriteResult = favoriteThreadIds.Count == 0
             ? new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [])
             : threadRepository.LoadByIdsIncludingArchived(favoriteThreadIds);
+        TitleLoadResult titleResult = titleRepository.LoadLatestTitles();
+        bool detachedCandidatesWereUsed = titleResult.IsHealthy && titleResult.Titles.Count > 0;
+        ThreadLoadResult detachedCandidateResult = detachedCandidatesWereUsed
+            ? threadRepository.LoadDetachedSubagentCandidates(request.RecentLimit)
+            : new ThreadLoadResult(ThreadRepositoryStatus.Healthy, []);
+        IEnumerable<ThreadRecord> promotedDetachedRecords = detachedCandidateResult.Threads
+            .Where(record => titleResult.Titles.TryGetValue(record.Id, out string? title)
+                && !string.IsNullOrWhiteSpace(title));
         var recordsById = new Dictionary<string, ThreadRecord>(StringComparer.Ordinal);
         foreach (ThreadRecord record in recentResult.Threads
             .Concat(includedResult.Threads)
-            .Concat(favoriteResult.Threads))
+            .Concat(favoriteResult.Threads)
+            .Concat(promotedDetachedRecords))
         {
             recordsById[record.Id] = record;
         }
@@ -65,8 +74,8 @@ public sealed class ThreadStatusLoader
         ThreadRepositoryStatus threadStatus = FirstUnhealthyStatus(
             recentResult.Status,
             includedResult.Status,
-            favoriteResult.Status);
-        TitleLoadResult titleResult = titleRepository.LoadLatestTitles();
+            favoriteResult.Status,
+            detachedCandidateResult.Status);
         IReadOnlyList<ThreadRecord> records = ThreadTitleResolver.Resolve(
             recordsById.Values.ToArray(),
             titleResult.Titles);
@@ -107,6 +116,8 @@ public sealed class ThreadStatusLoader
             request.IncludedThreadIds.Count > 0,
             favoriteResult.Status,
             favoriteThreadIds.Count > 0,
+            detachedCandidateResult.Status,
+            detachedCandidatesWereUsed,
             subagentResult.Status,
             requestedParentIds.Count > 0,
             titleResult.Status,
@@ -215,6 +226,8 @@ public sealed class ThreadStatusLoader
         bool includedWasUsed,
         ThreadRepositoryStatus favoriteStatus,
         bool favoriteWasUsed,
+        ThreadRepositoryStatus detachedCandidateStatus,
+        bool detachedCandidatesWereUsed,
         ThreadRepositoryStatus subagentStatus,
         bool subagentWasUsed,
         SessionIndexStatus titleStatus,
@@ -237,6 +250,8 @@ public sealed class ThreadStatusLoader
                 includedWasUsed,
                 favoriteStatus,
                 favoriteWasUsed,
+                detachedCandidateStatus,
+                detachedCandidatesWereUsed,
                 subagentStatus,
                 subagentWasUsed),
             RenameHealth(titleStatus),
@@ -253,6 +268,8 @@ public sealed class ThreadStatusLoader
         bool includedWasUsed,
         ThreadRepositoryStatus favoriteStatus,
         bool favoriteWasUsed,
+        ThreadRepositoryStatus detachedCandidateStatus,
+        bool detachedCandidatesWereUsed,
         ThreadRepositoryStatus subagentStatus,
         bool subagentWasUsed)
     {
@@ -265,6 +282,9 @@ public sealed class ThreadStatusLoader
         [
             includedWasUsed ? includedStatus : ThreadRepositoryStatus.Healthy,
             favoriteWasUsed ? favoriteStatus : ThreadRepositoryStatus.Healthy,
+            detachedCandidatesWereUsed
+                ? detachedCandidateStatus
+                : ThreadRepositoryStatus.Healthy,
             subagentWasUsed ? subagentStatus : ThreadRepositoryStatus.Healthy,
         ];
         ThreadRepositoryStatus supplementalFailure = FirstUnhealthyStatus(

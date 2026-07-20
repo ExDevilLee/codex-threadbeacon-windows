@@ -159,6 +159,57 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         }
     }
 
+    public ThreadLoadResult LoadDetachedSubagentCandidates(int limit)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
+
+        if (!File.Exists(databasePath))
+        {
+            return Result(ThreadRepositoryStatus.Missing);
+        }
+
+        try
+        {
+            using SqliteConnection connection = OpenReadOnlyConnection();
+            if (!HasTable(connection, "thread_spawn_edges"))
+            {
+                return Result(ThreadRepositoryStatus.Healthy);
+            }
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = DetachedSubagentCandidateSql;
+            command.Parameters.AddWithValue("$limit", limit);
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            var records = new List<ThreadRecord>(Math.Min(limit, 256));
+            while (reader.Read())
+            {
+                records.Add(ReadRecord(reader));
+            }
+
+            return new ThreadLoadResult(ThreadRepositoryStatus.Healthy, records);
+        }
+        catch (SqliteException exception) when (
+            exception.SqliteErrorCode is SqliteBusy or SqliteLocked)
+        {
+            return Result(ThreadRepositoryStatus.Busy);
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode is SqliteSchemaError)
+        {
+            return Result(ThreadRepositoryStatus.Incompatible);
+        }
+        catch (Exception exception) when (
+            exception is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            return Result(ThreadRepositoryStatus.Unavailable);
+        }
+        catch (Exception exception) when (
+            exception is InvalidCastException or OverflowException or ArgumentOutOfRangeException)
+        {
+            return Result(ThreadRepositoryStatus.Incompatible);
+        }
+    }
+
     public SubagentLoadResult LoadDirectSubagents(IReadOnlySet<string> parentIds)
     {
         ArgumentNullException.ThrowIfNull(parentIds);
@@ -382,6 +433,26 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         WHERE archived = 0
           AND COALESCE(thread_source, '') <> 'subagent'
         ORDER BY recency_at_ms DESC, id DESC
+        LIMIT $limit;
+        """;
+
+    private const string DetachedSubagentCandidateSql = """
+        SELECT t.id,
+               t.title,
+               t.rollout_path,
+               COALESCE(t.updated_at_ms, t.updated_at * 1000),
+               COALESCE(t.tokens_used, 0),
+               0,
+               t.archived
+        FROM threads AS t
+        WHERE t.archived = 0
+          AND COALESCE(t.thread_source, '') = 'subagent'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM thread_spawn_edges AS edge
+              WHERE edge.child_thread_id = t.id
+          )
+        ORDER BY t.recency_at_ms DESC, t.id DESC
         LIMIT $limit;
         """;
 }
