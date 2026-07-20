@@ -23,6 +23,16 @@
     <sys:String x:Key="TotalToken">累计 Token</sys:String>
     <sys:String x:Key="Duration">持续</sys:String>
     <sys:String x:Key="Settings">设置</sys:String>
+    <sys:String x:Key="About">关于</sys:String>
+    <sys:String x:Key="AboutTitle">关于 ThreadBeacon</sys:String>
+    <sys:String x:Key="AboutTagline">面向 Codex 的紧凑型只读状态助手。</sys:String>
+    <sys:String x:Key="AboutVersionLabel">版本</sys:String>
+    <sys:String x:Key="AboutDescription">ThreadBeacon 在本机只读展示 Codex 任务状态、Token 用量、Subagent 和服务异常。</sys:String>
+    <sys:String x:Key="AboutDisclaimer">这是独立的社区工具，不会修改 Codex 数据，也不会与 Codex 服务器通信。</sys:String>
+    <sys:String x:Key="AboutRepository">GitHub</sys:String>
+    <sys:String x:Key="AboutReleases">发布版本</sys:String>
+    <sys:String x:Key="AboutPrivacy">隐私说明</sys:String>
+    <sys:String x:Key="Close">关闭</sys:String>
     <sys:String x:Key="Refresh">刷新</sys:String>
     <sys:String x:Key="PinToFront">钉在最前面</sys:String>
     <sys:String x:Key="Unpin">取消钉住</sys:String>

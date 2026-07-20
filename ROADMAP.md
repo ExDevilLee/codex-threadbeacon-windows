@@ -123,6 +123,13 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Keep theme state independent from language, refresh interval, and task-count settings.
 - [x] Document the supported modes and the default System behavior.
 
+## Phase 12: About Window
+
+- [x] Open a single-instance About window from the main toolbar.
+- [x] Show the App icon, runtime version, project purpose, and independent-community disclaimer.
+- [x] Provide explicit links to the repository, Releases, and privacy statement.
+- [x] Localize the window in Simplified Chinese and English and keep it theme-aware.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

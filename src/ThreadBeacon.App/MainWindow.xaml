@@ -182,6 +182,21 @@
                         Padding="0"
                         Background="{DynamicResource SurfaceBrush}"
                         BorderBrush="{DynamicResource ControlBorderBrush}"
+                        Click="OnAboutButtonClick"
+                        ToolTip="{DynamicResource About}"
+                        AutomationProperties.Name="{DynamicResource About}">
+                    <TextBlock FontFamily="Segoe Fluent Icons"
+                               FontSize="15"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               Text="&#xE946;" />
+                </Button>
+
+                <Button Width="32"
+                        Height="32"
+                        Margin="0,0,8,0"
+                        Padding="0"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource ControlBorderBrush}"
                         Command="{Binding Monitoring.ToggleCommand}">
                     <Button.Style>
                         <Style TargetType="Button">

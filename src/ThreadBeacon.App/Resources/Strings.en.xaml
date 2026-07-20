@@ -23,6 +23,16 @@
     <sys:String x:Key="TotalToken">Total Token</sys:String>
     <sys:String x:Key="Duration">Duration</sys:String>
     <sys:String x:Key="Settings">Settings</sys:String>
+    <sys:String x:Key="About">About</sys:String>
+    <sys:String x:Key="AboutTitle">About ThreadBeacon</sys:String>
+    <sys:String x:Key="AboutTagline">A compact read-only status companion for Codex.</sys:String>
+    <sys:String x:Key="AboutVersionLabel">Version</sys:String>
+    <sys:String x:Key="AboutDescription">ThreadBeacon provides a local, read-only view of Codex task status, Token usage, Subagents, and service incidents.</sys:String>
+    <sys:String x:Key="AboutDisclaimer">This is an independent community tool. It does not modify Codex data or communicate with Codex servers.</sys:String>
+    <sys:String x:Key="AboutRepository">GitHub</sys:String>
+    <sys:String x:Key="AboutReleases">Releases</sys:String>
+    <sys:String x:Key="AboutPrivacy">Privacy</sys:String>
+    <sys:String x:Key="Close">Close</sys:String>
     <sys:String x:Key="Refresh">Refresh</sys:String>
     <sys:String x:Key="PinToFront">Keep on top</sys:String>
     <sys:String x:Key="Unpin">Unpin</sys:String>

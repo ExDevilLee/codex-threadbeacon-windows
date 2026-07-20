@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly WindowsLoginStartupService loginStartupService;
     private readonly WindowPlacementCoordinator windowPlacementCoordinator;
     private SettingsWindow? settingsWindow;
+    private AboutWindow? aboutWindow;
     private bool isPlacementTrackingActive;
 
     public MainWindow()
@@ -184,6 +185,28 @@ public partial class MainWindow : Window
         {
             settingsWindow.Closed -= OnSettingsWindowClosed;
             settingsWindow = null;
+        }
+    }
+
+    private void OnAboutButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (aboutWindow is not null)
+        {
+            aboutWindow.Activate();
+            return;
+        }
+
+        aboutWindow = new AboutWindow { Owner = this };
+        aboutWindow.Closed += OnAboutWindowClosed;
+        aboutWindow.Show();
+    }
+
+    private void OnAboutWindowClosed(object? sender, EventArgs e)
+    {
+        if (aboutWindow is not null)
+        {
+            aboutWindow.Closed -= OnAboutWindowClosed;
+            aboutWindow = null;
         }
     }
 
