@@ -13,6 +13,8 @@ public sealed class SoundSettingsViewModel : INotifyPropertyChanged
 {
     private static readonly IReadOnlyList<CompletionSoundOption> SoundOptions =
     [
+        new(CompletionSound.FupicatNotification, "Fupicat Notification"),
+        new(CompletionSound.BassguitarNotification, "Bassguitar Notification"),
         new(CompletionSound.Beacon, "Beacon"),
         new(CompletionSound.Chime, "Chime"),
         new(CompletionSound.Pulse, "Pulse"),

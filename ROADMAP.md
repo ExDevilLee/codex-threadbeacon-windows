@@ -144,6 +144,12 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Persist only selected file paths and provide preview/clear controls.
 - [x] Fall back to the selected built-in tone when a custom file is missing or invalid.
 
+## Phase 15: Expanded Built-in Sound Library
+
+- [x] Match the macOS eight-sound list with Fupicat Notification and Bassguitar Notification.
+- [x] Preserve Chime and Alert defaults and all previously saved enum values.
+- [x] Bundle the exact macOS WAV assets and publish their CC0 provenance.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

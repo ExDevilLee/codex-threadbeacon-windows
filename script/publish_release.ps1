@@ -45,7 +45,68 @@ dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App
     -p:FileVersion="$version.0" `
     -p:InformationalVersion=$version
 
-Compress-Archive -Path (Join-Path $publishRoot "*") -DestinationPath $archivePath -CompressionLevel Optimal
+function Test-ReleaseArchive([string]$Path, [string]$SourceDirectory) {
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
+        try {
+            $fileEntries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith("/") })
+            $sourceFileCount = @(Get-ChildItem -LiteralPath $SourceDirectory -Recurse -File).Count
+            if ($fileEntries.Count -ne $sourceFileCount) {
+                return $false
+            }
+
+            $buffer = New-Object byte[] 65536
+            foreach ($entry in $fileEntries) {
+                $stream = $entry.Open()
+                try {
+                    while ($stream.Read($buffer, 0, $buffer.Length) -gt 0) {}
+                }
+                finally {
+                    $stream.Dispose()
+                }
+            }
+            return $true
+        }
+        finally {
+            $archive.Dispose()
+        }
+    }
+    catch {
+        return $false
+    }
+}
+
+$maximumArchiveAttempts = 3
+$archiveIsValid = $false
+for ($archiveAttempt = 1; $archiveAttempt -le $maximumArchiveAttempts; $archiveAttempt++) {
+    if (Test-Path $archivePath) {
+        Remove-Item -Force -LiteralPath $archivePath
+    }
+
+    try {
+        Compress-Archive `
+            -Path (Join-Path $publishRoot "*") `
+            -DestinationPath $archivePath `
+            -CompressionLevel Optimal `
+            -ErrorAction Stop
+        $archiveIsValid = Test-ReleaseArchive $archivePath $publishRoot
+    }
+    catch {
+        $archiveIsValid = $false
+    }
+
+    if ($archiveIsValid) {
+        break
+    }
+    if ($archiveAttempt -lt $maximumArchiveAttempts) {
+        Start-Sleep -Seconds 1
+    }
+}
+
+if (-not $archiveIsValid) {
+    throw "Release archive validation failed after $maximumArchiveAttempts attempts."
+}
 
 dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App.csproj") `
     --configuration $Configuration `

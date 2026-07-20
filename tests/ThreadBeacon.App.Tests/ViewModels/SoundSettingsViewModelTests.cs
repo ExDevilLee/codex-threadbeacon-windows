@@ -7,7 +7,7 @@ namespace ThreadBeacon.App.Tests.ViewModels;
 public sealed class SoundSettingsViewModelTests
 {
     [Fact]
-    public void Constructor_RestoresSettingsAndExposesSixSounds()
+    public void Constructor_RestoresSettingsAndExposesEightSounds()
     {
         var store = new MemorySoundSettingsStore(new SoundNotificationSettings
         {
@@ -27,6 +27,8 @@ public sealed class SoundSettingsViewModelTests
         Assert.Equal(CompletionSound.Chime, viewModel.SelectedWarningSound);
         Assert.Equal(
             [
+                CompletionSound.FupicatNotification,
+                CompletionSound.BassguitarNotification,
                 CompletionSound.Beacon,
                 CompletionSound.Chime,
                 CompletionSound.Pulse,

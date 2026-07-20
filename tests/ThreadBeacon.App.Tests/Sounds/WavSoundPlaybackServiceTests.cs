@@ -9,6 +9,8 @@ public sealed class WavSoundPlaybackServiceTests : IDisposable
         $"threadbeacon-wav-player-{Guid.NewGuid():N}");
 
     [Theory]
+    [InlineData(CompletionSound.FupicatNotification, "Done-Fupicat-Notification.wav")]
+    [InlineData(CompletionSound.BassguitarNotification, "Done-Bassguitar-Notification.wav")]
     [InlineData(CompletionSound.Beacon, "Done-Beacon.wav")]
     [InlineData(CompletionSound.Chime, "Done-Chime.wav")]
     [InlineData(CompletionSound.Pulse, "Done-Pulse.wav")]

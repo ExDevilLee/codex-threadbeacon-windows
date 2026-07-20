@@ -21,6 +21,8 @@ public sealed class WavSoundPlaybackService : ISoundPlaybackService, IDisposable
     {
         string fileName = sound switch
         {
+            CompletionSound.FupicatNotification => "Done-Fupicat-Notification.wav",
+            CompletionSound.BassguitarNotification => "Done-Bassguitar-Notification.wav",
             CompletionSound.Beacon => "Done-Beacon.wav",
             CompletionSound.Chime => "Done-Chime.wav",
             CompletionSound.Pulse => "Done-Pulse.wav",

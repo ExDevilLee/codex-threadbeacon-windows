@@ -18,14 +18,16 @@ public sealed class BundledSoundAssetTests
         "Resources",
         "Sounds"));
 
-    public static TheoryData<string> AllSoundFiles => new()
+    public static TheoryData<string, short> AllSoundFiles => new()
     {
-        "Done-Beacon.wav",
-        "Done-Chime.wav",
-        "Done-Pulse.wav",
-        "Done-Alert.wav",
-        "Done-Resolve.wav",
-        "Done-Knock.wav",
+        { "Done-Fupicat-Notification.wav", 2 },
+        { "Done-Bassguitar-Notification.wav", 2 },
+        { "Done-Beacon.wav", 1 },
+        { "Done-Chime.wav", 1 },
+        { "Done-Pulse.wav", 1 },
+        { "Done-Alert.wav", 1 },
+        { "Done-Resolve.wav", 1 },
+        { "Done-Knock.wav", 1 },
     };
 
     public static TheoryData<string, string> NewSoundHashes => new()
@@ -42,11 +44,19 @@ public sealed class BundledSoundAssetTests
             "Done-Knock.wav",
             "127AA68C18EB0A419627D33FAA8395A1A5CA601BA8B5ABA3181EAE894CD4889D"
         },
+        {
+            "Done-Fupicat-Notification.wav",
+            "D4338430E4A7AC375A18191AAA0932671B2C8B23790B62AB5FFB18EE839B0617"
+        },
+        {
+            "Done-Bassguitar-Notification.wav",
+            "69636EA0D3DED6E05A27EDC579757B966A78EC4DB99B4696BE6277565939286A"
+        },
     };
 
     [Theory]
     [MemberData(nameof(AllSoundFiles))]
-    public void BundledFile_IsMono44100Hertz16BitPcmWave(string fileName)
+    public void BundledFile_Is44100Hertz16BitPcmWave(string fileName, short expectedChannels)
     {
         string path = Path.Combine(SoundDirectory, fileName);
 
@@ -55,7 +65,7 @@ public sealed class BundledSoundAssetTests
         Assert.Equal("RIFF", Encoding.ASCII.GetString(header, 0, 4));
         Assert.Equal("WAVE", Encoding.ASCII.GetString(header, 8, 4));
         Assert.Equal(1, BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(20, 2)));
-        Assert.Equal(1, BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(22, 2)));
+        Assert.Equal(expectedChannels, BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(22, 2)));
         Assert.Equal(44_100, BinaryPrimitives.ReadInt32LittleEndian(header.AsSpan(24, 4)));
         Assert.Equal(16, BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(34, 2)));
     }

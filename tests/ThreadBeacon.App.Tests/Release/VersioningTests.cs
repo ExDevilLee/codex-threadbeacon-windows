@@ -48,6 +48,19 @@ public sealed class VersioningTests
     }
 
     [Fact]
+    public void ReleaseScript_RetriesAndValidatesZipArchive()
+    {
+        string releaseScript = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            "script",
+            "publish_release.ps1"));
+
+        Assert.Contains("$maximumArchiveAttempts", releaseScript, StringComparison.Ordinal);
+        Assert.Contains("ZipFile]::OpenRead", releaseScript, StringComparison.Ordinal);
+        Assert.Contains("Release archive validation failed", releaseScript, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReleaseScript_RejectsTagThatDoesNotMatchVersionFile()
     {
         string releaseScript = File.ReadAllText(Path.Combine(
