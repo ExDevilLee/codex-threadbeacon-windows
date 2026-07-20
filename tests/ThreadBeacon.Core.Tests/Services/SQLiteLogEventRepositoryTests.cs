@@ -13,15 +13,17 @@ public sealed class SQLiteLogEventRepositoryTests
         var repository = new SQLiteLogEventRepository(database.Path);
 
         ServiceLogLoadResult result = repository.LoadLatestIncidents(
-            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b" });
+            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d" });
         IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
         Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
-        Assert.Equal(2, incidents.Count);
+        Assert.Equal(3, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
         Assert.Equal(ServiceIncidentPhase.Retrying, incidents["thread-b"].Phase);
         Assert.Equal(429, incidents["thread-b"].HttpStatusCode);
+        Assert.Equal(ServiceIncidentKind.ModelCapacity, incidents["thread-d"].Kind);
+        Assert.Null(incidents["thread-d"].HttpStatusCode);
         Assert.DoesNotContain("thread-c", incidents.Keys);
     }
 
@@ -145,7 +147,9 @@ public sealed class SQLiteLogEventRepositoryTests
                 (201, 500000000, 'INFO', 'codex_core::responses_retry',
                  'turn{turn.id=turn-b}: retrying sampling request (2/5 in 500ms)...', 'thread-b'),
                 (300, 0, 'INFO', 'codex_core::session::turn',
-                 'turn{turn.id=turn-c}: Turn error: unexpected status 503 Service Unavailable', 'thread-c');
+                 'turn{turn.id=turn-c}: Turn error: unexpected status 503 Service Unavailable', 'thread-c'),
+                (400, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-d}: Turn error: Selected model is at capacity. Please try a different model.', 'thread-d');
             """;
     }
 }

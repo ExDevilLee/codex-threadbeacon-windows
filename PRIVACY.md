@@ -8,14 +8,14 @@ ThreadBeacon 只在本机读取以下 Codex 数据：
 - 用户展开主任务时，该主任务直接 Subagent 的标题、昵称、角色、模型、Reasoning effort、更新时间、累计 Token 和 rollout 路径；
 - `session_index.jsonl` 中与当前主任务或已展开直接 Subagent ID 对应的最新 rename 名称；
 - 对应 rollout JSONL 文件尾部最多 2 MiB 中的事件类型、时间戳和 Token 数字字段，用于推导状态和显示 Token 概览。
-- `logs_2.sqlite` 中仅限当前可见主任务 ID、且目标为 `codex_http_client::default_client`、`codex_core::responses_retry` 或 `codex_core::session::turn` 的 HTTP 200/429/503、重试进度和最终 Turn error 日志，用于识别 429/503 episode。
+- `logs_2.sqlite` 中仅限当前可见主任务 ID、且目标为 `codex_http_client::default_client`、`codex_core::responses_retry` 或 `codex_core::session::turn` 的 HTTP 200/429/503、重试进度、最终 Turn error 和固定模型容量错误文本，用于识别服务异常 episode。
 
 App 不提取用户消息、助手回答正文、reasoning summary、命令、工具输出、文件内容或完整请求，也不读取第二层及更深的子任务。`codex_http_client::transport` 明确不在日志白名单中，因为它可能包含完整请求上下文。
 
 ## 数据处理
 
 - SQLite 使用短生命周期、无连接池、只读连接，并启用 `query_only`。
-- 日志正文只在单次刷新查询和解析期间短暂存在；任务快照仅保留 episode ID、429/503 状态码、重试次数/上限、阶段和时间，不保留原始日志正文。
+- 日志正文只在单次刷新查询和解析期间短暂存在；任务快照仅保留 episode ID、异常分类、可选 HTTP 状态码、重试次数/上限、阶段和时间，不保留原始日志正文。
 - 数据源健康诊断只在内存中保留四类固定状态、Rollout 成功/失败读取数量和最近一次成功刷新时间；不保留路径、任务 ID、标题、日志正文或原始异常，也不保存健康历史。
 - 数据只在当前进程内存中用于生成界面状态。
 - App 不上传数据、不启动网络服务、不写入或修改 Codex 数据。

@@ -87,6 +87,7 @@
                         <TextBlock Margin="0,4,18,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
                                    Text="{DynamicResource LaunchAtLoginDescription}" />
                     </StackPanel>
                     <CheckBox Grid.Row="6"

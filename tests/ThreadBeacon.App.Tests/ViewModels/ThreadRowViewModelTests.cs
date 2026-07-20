@@ -127,6 +127,27 @@ public sealed class ThreadRowViewModelTests
     }
 
     [Fact]
+    public void Constructor_ModelCapacityIncidentShowsCapacityDetail()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(
+                subagentCount: 0,
+                serviceIncident: new ServiceIncident(
+                    "turn-capacity",
+                    ServiceIncidentPhase.Failed,
+                    null,
+                    null,
+                    null,
+                    Now.AddSeconds(-10),
+                    ServiceIncidentKind.ModelCapacity)),
+            Now,
+            language: AppLanguage.English);
+
+        Assert.Equal("Service failed", viewModel.StatusLabel);
+        Assert.Equal("Model at capacity", viewModel.IncidentDetailText);
+    }
+
+    [Fact]
     public void Constructor_NormalTaskHasNoIncidentPresentation()
     {
         var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 0), Now);

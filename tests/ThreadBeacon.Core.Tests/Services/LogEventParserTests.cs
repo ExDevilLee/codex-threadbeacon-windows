@@ -48,6 +48,22 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_RecognizesModelCapacityFailure()
+    {
+        LogEventRecord[] records =
+        [
+            Record(103, "codex_core::session::turn",
+                "turn{turn.id=turn-capacity}: Turn error: Selected model is at capacity. Please try a different model."),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.ModelCapacity, incident.Kind);
+        Assert.Null(incident.HttpStatusCode);
+    }
+
+    [Fact]
     public void LatestIncidents_ClearsRetryAfterSameTurnRecovers()
     {
         LogEventRecord[] records =

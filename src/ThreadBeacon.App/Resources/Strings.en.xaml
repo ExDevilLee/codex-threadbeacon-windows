@@ -15,7 +15,7 @@
     <sys:String x:Key="EnableLaunchAtLogin">Enable</sys:String>
     <sys:String x:Key="EnableSounds">Enable sounds</sys:String>
     <sys:String x:Key="TaskCompletion">Task completion</sys:String>
-    <sys:String x:Key="ServiceIncident">429/503 service incident</sys:String>
+    <sys:String x:Key="ServiceIncident">Service incident</sys:String>
     <sys:String x:Key="Preview">Preview</sys:String>
     <sys:String x:Key="CodexTaskStatus">Codex task status</sys:String>
     <sys:String x:Key="Status">Status</sys:String>

@@ -48,6 +48,9 @@ public sealed partial class LogEventParser
                         }
                         else if (statusCode is 429 or 503)
                         {
+                            episode.Kind = statusCode == 429
+                                ? ServiceIncidentKind.HttpRateLimit
+                                : ServiceIncidentKind.ServiceUnavailable;
                             episode.HttpStatusCode = statusCode;
                             episode.LatestErrorAt = Later(episode.LatestErrorAt, record.OccurredAt);
                         }
@@ -70,9 +73,20 @@ public sealed partial class LogEventParser
                     break;
 
                 case "codex_core::session::turn":
-                    if (record.Body.Contains("Turn error:", StringComparison.Ordinal)
+                    if (record.Body.Contains(
+                        "Turn error: Selected model is at capacity. Please try a different model.",
+                        StringComparison.Ordinal))
+                    {
+                        episode.Kind = ServiceIncidentKind.ModelCapacity;
+                        episode.HttpStatusCode = null;
+                        episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
+                    }
+                    else if (record.Body.Contains("Turn error:", StringComparison.Ordinal)
                         && TryStatusCode(record.Body) is 429 or 503)
                     {
+                        episode.Kind = TryStatusCode(record.Body) == 429
+                            ? ServiceIncidentKind.HttpRateLimit
+                            : ServiceIncidentKind.ServiceUnavailable;
                         episode.HttpStatusCode = TryStatusCode(record.Body);
                         episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
                     }
@@ -133,6 +147,7 @@ public sealed partial class LogEventParser
     private sealed class Episode
     {
         public int? HttpStatusCode { get; set; }
+        public ServiceIncidentKind Kind { get; set; } = ServiceIncidentKind.ServiceUnavailable;
         public int? RetryAttempt { get; set; }
         public int? RetryLimit { get; set; }
         public DateTimeOffset? LatestErrorAt { get; set; }
@@ -150,7 +165,8 @@ public sealed partial class LogEventParser
                     HttpStatusCode,
                     RetryAttempt,
                     RetryLimit,
-                    failedAt);
+                    failedAt,
+                    Kind);
             }
 
             DateTimeOffset? warningAt = new[] { LatestErrorAt, LatestRetryAt }.Max();
@@ -162,7 +178,8 @@ public sealed partial class LogEventParser
                         HttpStatusCode,
                         RetryAttempt,
                         RetryLimit,
-                        occurredAt)
+                        occurredAt,
+                        Kind)
                     : null;
         }
     }

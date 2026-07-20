@@ -92,6 +92,11 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Startup.IsEnabled", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource LaunchAtLogin}", markup, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource LaunchAtLoginDescription}", markup, StringComparison.Ordinal);
+        XElement launchDescription = Assert.Single(
+            LoadDocument().Descendants(),
+            element => element.Name.LocalName == "TextBlock"
+                && (string?)element.Attribute("Text") == "{DynamicResource LaunchAtLoginDescription}");
+        Assert.Equal("Wrap", (string?)launchDescription.Attribute("TextWrapping"));
     }
 
     [Fact]

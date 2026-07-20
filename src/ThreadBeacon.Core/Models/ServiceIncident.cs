@@ -6,10 +6,18 @@ public enum ServiceIncidentPhase
     Failed,
 }
 
+public enum ServiceIncidentKind
+{
+    ServiceUnavailable,
+    HttpRateLimit,
+    ModelCapacity,
+}
+
 public sealed record ServiceIncident(
     string EpisodeId,
     ServiceIncidentPhase Phase,
     int? HttpStatusCode,
     int? RetryAttempt,
     int? RetryLimit,
-    DateTimeOffset OccurredAt);
+    DateTimeOffset OccurredAt,
+    ServiceIncidentKind Kind = ServiceIncidentKind.ServiceUnavailable);

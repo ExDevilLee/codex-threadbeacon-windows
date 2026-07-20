@@ -47,11 +47,12 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Default new settings to Chime for completion and Alert for 429/503 incidents while preserving existing selections.
 - [x] Persist sound preferences and bounded derived event history locally.
 
-## Phase 4: HTTP 429/503 Service Incidents
+## Phase 4: Service Incidents
 
 - [x] Query only visible primary task IDs from `logs_2.sqlite` with a strict target and event allow-list.
 - [x] Parse retry episodes without retaining raw log bodies in task snapshots.
 - [x] Show active retries as warnings and exhausted retries as failures with HTTP/retry detail.
+- [x] Detect model-capacity failures and show a dedicated privacy-safe detail label.
 - [x] Clear stale incidents after same-turn recovery or newer rollout lifecycle evidence.
 - [x] Suppress misleading completion sounds while an incident is active.
 - [x] Play one independently configurable warning sound per incident episode.

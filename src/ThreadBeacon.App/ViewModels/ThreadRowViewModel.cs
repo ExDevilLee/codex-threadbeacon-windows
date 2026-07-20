@@ -377,6 +377,13 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         }
 
         var parts = new List<string>(2);
+        if (incident.Kind is ServiceIncidentKind.ModelCapacity)
+        {
+            parts.Add(language is AppLanguage.SimplifiedChinese
+                ? "模型容量不足"
+                : "Model at capacity");
+        }
+
         if (incident.HttpStatusCode is int statusCode)
         {
             parts.Add($"HTTP {statusCode.ToString(CultureInfo.InvariantCulture)}");

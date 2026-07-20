@@ -75,6 +75,7 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
                   AND (
                     feedback_log_body LIKE '%status 429 Too Many Requests%'
                     OR feedback_log_body LIKE '%status 503 Service Unavailable%'
+                    OR feedback_log_body LIKE '%Selected model is at capacity%'
                   )
                 )
               )
