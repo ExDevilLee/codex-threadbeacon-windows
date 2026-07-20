@@ -27,11 +27,11 @@ If no tasks appear or the footer reports a data-source problem, see [`Troublesho
 
 | Primary task status with inline Subagent expansion | Token usage details |
 | :---: | :---: |
-| ![ThreadBeacon primary task status with inline Subagent expansion](docs/assets/readme/zh-Hans/threadbeacon-main.png) | ![ThreadBeacon Token usage details](docs/assets/readme/zh-Hans/threadbeacon-token-details.png) |
+| ![ThreadBeacon primary task status with inline Subagent expansion](docs/assets/readme/en/threadbeacon-main.png) | ![ThreadBeacon Token usage details](docs/assets/readme/en/threadbeacon-token-details.png) |
 
 | About ThreadBeacon | General settings |
 | :---: | :---: |
-| ![About ThreadBeacon](docs/assets/readme/zh-Hans/threadbeacon-about.png) | ![ThreadBeacon General settings](docs/assets/readme/zh-Hans/threadbeacon-settings.png) |
+| ![About ThreadBeacon](docs/assets/readme/en/threadbeacon-about.png) | ![ThreadBeacon General settings](docs/assets/readme/en/threadbeacon-settings.png) |
 
 ## Status
 
