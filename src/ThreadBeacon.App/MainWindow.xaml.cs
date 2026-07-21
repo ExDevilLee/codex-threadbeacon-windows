@@ -1,6 +1,9 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Input;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using System.Windows.Threading;
 using System.Diagnostics;
 using System.Net.Http;
@@ -28,6 +31,7 @@ public partial class MainWindow : Window
     private readonly WindowsLoginStartupService loginStartupService;
     private readonly HttpClient updateHttpClient;
     private readonly WindowPlacementCoordinator windowPlacementCoordinator;
+    private readonly ICodexThreadOpener threadOpener;
     private SettingsWindow? settingsWindow;
     private AboutWindow? aboutWindow;
     private bool isPlacementTrackingActive;
@@ -62,10 +66,12 @@ public partial class MainWindow : Window
             autoRecoverySettingsStore,
             autoRecoveryHistoryStore,
             displaySettings);
+        var codexAutomation = new WindowsCodexComposerAutomation();
+        threadOpener = new WindowsCodexThreadOpener(codexAutomation);
         var autoRecoveryCoordinator = new AutoRecoveryCoordinator(
             () => autoRecoverySettings.Settings,
             new WindowsCodexRecoverySender(
-                new WindowsCodexComposerAutomation(),
+                codexAutomation,
                 new RolloutRecoveryEvidenceMonitor()),
             autoRecoveryHistoryStore);
         loginStartupService = new WindowsLoginStartupService();
@@ -258,6 +264,37 @@ public partial class MainWindow : Window
 
     private void OnIgnoredTasksButtonClick(object sender, RoutedEventArgs e) =>
         IgnoredTasksPopup.IsOpen = !IgnoredTasksPopup.IsOpen;
+
+    private async void OnTaskRowMouseLeftButtonDown(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2
+            || sender is not FrameworkElement { DataContext: ThreadRowViewModel row }
+            || e.OriginalSource is DependencyObject source && HasButtonAncestor(source))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await threadOpener.OpenAsync(row.Id, row.Title);
+    }
+
+    private static bool HasButtonAncestor(DependencyObject source)
+    {
+        DependencyObject? current = source;
+        while (current is not null)
+        {
+            if (current is ButtonBase)
+            {
+                return true;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
+    }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

@@ -174,6 +174,13 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Persist localized/custom prompts and bounded privacy-safe attempt history locally.
 - [x] Keep Core independent from WPF and cover policy, tracking, rollout evidence, persistence, coordination, and sender behavior with tests.
 
+## Phase 19: Open Codex Task
+
+- [x] Reuse the Windows Codex ID deep-link and exact-title selector for explicit navigation.
+- [x] Open a primary task by double-clicking its row without typing or sending text.
+- [x] Ignore double-clicks originating from Subagent and Token-detail buttons.
+- [x] Verify navigation against a dedicated same-title task pair while both rollouts remain byte-for-byte unchanged.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

@@ -97,6 +97,19 @@ public sealed class MainWindowXamlTests
     }
 
     [Fact]
+    public void TaskRow_HandlesLeftDoubleClickForCodexNavigation()
+    {
+        XDocument document = LoadDocument();
+        XElement rowBorder = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "Border"
+                && (string?)element.Attribute("MouseLeftButtonDown")
+                    == "OnTaskRowMouseLeftButtonDown");
+
+        Assert.Equal("48", (string?)rowBorder.Attribute("Height"));
+    }
+
+    [Fact]
     public void EmptyState_BindsFavoritesSpecificIconAndText()
     {
         string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);

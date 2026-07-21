@@ -7,6 +7,13 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-07-21
+
+### Added
+
+- 双击主任务行可通过任务 ID 深链在 Codex App 中打开对应任务；导航复用自动恢复的唯一窗口、空 composer、精确 Rename 标题和 composer 实例切换校验。
+- 双击 Subagent 展开与 Token 详情按钮不会触发任务导航；打开任务不会输入文字或发送消息。
+
 ## [0.11.0] - 2026-07-21
 
 ### Added
@@ -110,7 +117,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...v0.11.0
 [0.10.3]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.1...v0.10.2

@@ -292,7 +292,8 @@
                             <Border Height="48"
                                     Padding="13,0"
                                     BorderBrush="#ECECEE"
-                                    BorderThickness="0,0,0,1">
+                                    BorderThickness="0,0,0,1"
+                                    MouseLeftButtonDown="OnTaskRowMouseLeftButtonDown">
                                 <Border.ContextMenu>
                                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                         <MenuItem Header="{Binding FavoriteCommandLabel}"
