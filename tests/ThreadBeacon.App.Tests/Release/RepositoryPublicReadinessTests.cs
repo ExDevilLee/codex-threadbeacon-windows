@@ -58,4 +58,33 @@ public sealed class RepositoryPublicReadinessTests
         Assert.DoesNotContain("/Applications", chinese, StringComparison.Ordinal);
         Assert.DoesNotContain("Gatekeeper", english, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SponsorPage_ProvidesOptionalPaymentQrCodesWithoutFeatureUnlocks()
+    {
+        string sponsor = File.ReadAllText(Path.Combine(RepositoryRoot, "SPONSOR.md"));
+        string[] imagePaths =
+        [
+            "docs/assets/sponsor/wechat-pay.jpg",
+            "docs/assets/sponsor/alipay.jpg",
+        ];
+
+        foreach (string imagePath in imagePaths)
+        {
+            string absolutePath = Path.Combine(
+                RepositoryRoot,
+                imagePath.Replace('/', Path.DirectorySeparatorChar));
+
+            Assert.True(File.Exists(absolutePath), $"Missing sponsor QR image: {imagePath}");
+            byte[] header = File.ReadAllBytes(absolutePath)[..3];
+            Assert.Equal(new byte[] { 0xFF, 0xD8, 0xFF }, header);
+            Assert.Contains(imagePath, sponsor, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("完全自愿", sponsor, StringComparison.Ordinal);
+        Assert.Contains("不解锁功能", sponsor, StringComparison.Ordinal);
+        Assert.Contains("不在 App 主窗口展示付款广告或二维码", sponsor, StringComparison.Ordinal);
+        Assert.Contains("unlocks no features", sponsor, StringComparison.Ordinal);
+        Assert.Contains("stay out of the main app window", sponsor, StringComparison.Ordinal);
+    }
 }

@@ -128,7 +128,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Open a single-instance About window from the main toolbar.
 - [x] Show the App icon, runtime version, project purpose, and independent-community disclaimer.
 - [x] Provide explicit links to the repository, Releases, privacy statement, MIT License, and project support page.
-- [x] Keep support optional and non-financial by default, with no feature unlocks or sponsor identity tracking.
+- [x] Keep support optional, with no feature unlocks or sponsor identity tracking.
 - [x] Localize the window in Simplified Chinese and English and keep it theme-aware.
 
 ## Phase 13: Release Update Checks
@@ -180,6 +180,13 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Open a primary task by double-clicking its row without typing or sending text.
 - [x] Ignore double-clicks originating from Subagent and Token-detail buttons.
 - [x] Verify navigation against a dedicated same-title task pair while both rollouts remain byte-for-byte unchanged.
+
+## Phase 20: Optional Financial Support
+
+- [x] Reuse the author-provided WeChat Pay and Alipay QR assets from the macOS repository.
+- [x] Keep payment QR codes on the public support page and out of the App main window.
+- [x] State that sponsorship is optional, unlocks no features, and provides no digital-content or service reward.
+- [x] Verify the support assets and policy wording in repository-readiness tests.
 
 ## Deferred
 

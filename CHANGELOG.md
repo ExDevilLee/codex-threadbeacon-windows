@@ -7,6 +7,13 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-07-21
+
+### Added
+
+- 支持页同步 macOS 版本的微信支付与支付宝自愿赞助二维码；赞助不解锁功能、不影响免费使用，付款二维码不进入 App 主窗口。
+- 增加仓库完整性测试，校验两张二维码资源的 JPEG 格式、文档引用及自愿赞助原则。
+
 ## [0.12.0] - 2026-07-21
 
 ### Added
@@ -117,7 +124,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...v0.11.0
 [0.10.3]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.2...v0.10.3

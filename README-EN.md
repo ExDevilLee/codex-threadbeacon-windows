@@ -65,7 +65,7 @@ The Auto recovery tab provides an opt-in continuation workflow for terminal HTTP
 
 Double-click a primary task row to open that task in the installed Codex App. Navigation reuses the same ID deep link, exact renamed-title check, changed composer check, and draft-safe empty-composer preflight, but never types or sends text. Double-clicking the Subagent or Token-detail buttons keeps their existing behavior and does not navigate.
 
-The information button in the title bar opens a single-instance About window with the App icon, runtime version, project purpose, and independent-community disclaimer, plus GitHub, Releases, Privacy, MIT License, and Support project links. The support page currently lists non-financial ways to help and unlocks no features. Those links are handed to the default browser only after an explicit user click.
+The information button in the title bar opens a single-instance About window with the App icon, runtime version, project purpose, and independent-community disclaimer, plus GitHub, Releases, Privacy, MIT License, and Support project links. The support page includes non-financial ways to help plus completely optional WeChat Pay and Alipay sponsorship; sponsorship unlocks no features, and payment QR codes never appear in the App's main window. Those links are handed to the default browser only after an explicit user click.
 
 After startup, the App silently checks GitHub Releases once, including prereleases. If a newer release is found, an update icon appears in the footer; About also provides manual checking and retry. A failed check does not affect task monitoring, sounds, or data-source health, and the App never downloads or installs updates automatically.
 
