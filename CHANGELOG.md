@@ -7,6 +7,12 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-07-21
+
+### Fixed
+
+- 切换界面语言时原地更新主题选项文字，避免主题下拉框暂时变为空白，并保持用户已选择的主题不变。
+
 ## [0.10.2] - 2026-07-21
 
 ### Fixed
@@ -92,7 +98,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...HEAD
+[0.10.3]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.9.0...v0.10.0

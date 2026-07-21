@@ -115,6 +115,27 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Equal(AppTheme.Dark, store.Current.Theme);
     }
 
+    [Fact]
+    public void LanguageChange_UpdatesExistingThemeOptionsAndPreservesSelection()
+    {
+        var language = new AppLanguageState(AppLanguage.SimplifiedChinese, "zh-CN");
+        var detector = new TestThemeDetector(AppTheme.Light);
+        var theme = new AppThemeState(AppTheme.Dark, detector);
+        var viewModel = new DisplaySettingsViewModel(
+            new MemoryDisplaySettingsStore(new DisplaySettings(theme: AppTheme.Dark)),
+            language,
+            theme);
+        IReadOnlyList<ThemeSettingOption> options = viewModel.ThemeOptions;
+        ThemeSettingOption selectedOption = options.Single(option => option.Value == AppTheme.Dark);
+
+        viewModel.Language = AppLanguage.English;
+
+        Assert.Same(options, viewModel.ThemeOptions);
+        Assert.Same(selectedOption, viewModel.ThemeOptions.Single(option => option.Value == AppTheme.Dark));
+        Assert.Equal("Dark", selectedOption.DisplayName);
+        Assert.Equal(AppTheme.Dark, viewModel.Theme);
+    }
+
     private sealed class TestThemeDetector(AppTheme initial) : IAppThemeDetector
     {
         public event EventHandler? Changed

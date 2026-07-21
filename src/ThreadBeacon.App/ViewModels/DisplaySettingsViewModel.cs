@@ -38,7 +38,38 @@ public sealed class DisplaySettingOption : INotifyPropertyChanged
     internal void SetDisplayName(string value) => DisplayName = value;
 }
 public sealed record LanguageSettingOption(AppLanguage Value, string DisplayName);
-public sealed record ThemeSettingOption(AppTheme Value, string DisplayName);
+
+public sealed class ThemeSettingOption : INotifyPropertyChanged
+{
+    private string displayName;
+
+    public ThemeSettingOption(AppTheme value, string displayName)
+    {
+        Value = value;
+        this.displayName = displayName;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public AppTheme Value { get; }
+
+    public string DisplayName
+    {
+        get => displayName;
+        private set
+        {
+            if (displayName == value)
+            {
+                return;
+            }
+
+            displayName = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+        }
+    }
+
+    internal void SetDisplayName(string value) => DisplayName = value;
+}
 
 public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
 {
@@ -47,6 +78,7 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
     private readonly AppThemeState? themeState;
     private readonly IReadOnlyList<DisplaySettingOption> refreshOptions;
     private readonly IReadOnlyList<DisplaySettingOption> taskCountOptions;
+    private readonly IReadOnlyList<ThemeSettingOption> themeOptions;
     private DisplaySettings settings;
 
     public DisplaySettingsViewModel(
@@ -64,6 +96,12 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         taskCountOptions = DisplaySettings.SupportedMaximumTaskCounts
             .Select(value => new DisplaySettingOption(value, string.Empty))
             .ToArray();
+        themeOptions =
+        [
+            new(AppTheme.System, string.Empty),
+            new(AppTheme.Light, string.Empty),
+            new(AppTheme.Dark, string.Empty),
+        ];
         UpdateLocalizedOptionNames();
         if (languageState is not null)
         {
@@ -84,12 +122,7 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         new(AppLanguage.English, AppLanguageText.LanguageName(AppLanguage.English)),
     ];
 
-    public IReadOnlyList<ThemeSettingOption> ThemeOptions =>
-    [
-        new(AppTheme.System, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.System)),
-        new(AppTheme.Light, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.Light)),
-        new(AppTheme.Dark, AppLanguageText.ThemeName(languageState?.EffectiveLanguage ?? AppLanguage.SimplifiedChinese, AppTheme.Dark)),
-    ];
+    public IReadOnlyList<ThemeSettingOption> ThemeOptions => themeOptions;
 
     public AppLanguage Language
     {
@@ -207,7 +240,6 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
     {
         UpdateLocalizedOptionNames();
         OnPropertyChanged(nameof(Language));
-        OnPropertyChanged(nameof(ThemeOptions));
     }
 
     private void UpdateLocalizedOptionNames()
@@ -221,6 +253,11 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
         foreach (DisplaySettingOption option in taskCountOptions)
         {
             option.SetDisplayName(AppLanguageText.TaskCount(language, option.Value));
+        }
+
+        foreach (ThemeSettingOption option in themeOptions)
+        {
+            option.SetDisplayName(AppLanguageText.ThemeName(language, option.Value));
         }
     }
 }
