@@ -12,6 +12,7 @@ public enum ServiceIncidentKind
     ServiceUnavailable,
     HttpRateLimit,
     ModelCapacity,
+    OtherHttp,
 }
 
 public sealed record ServiceIncident(

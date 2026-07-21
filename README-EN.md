@@ -61,6 +61,8 @@ The gear button opens a separate settings window. Its General tab offers 1, 2, 5
 
 The settings window also supports Simplified Chinese, English, and System language preferences. The preference is stored as a stable semantic value, and switching languages updates both the main and settings windows immediately. Task titles, Agent aliases, model names, HTTP status codes, and other raw Codex data remain unchanged. Unsupported system locales fall back to English, while missing or invalid language settings fall back to System.
 
+The Auto recovery tab provides an opt-in continuation workflow for terminal HTTP 400, HTTP 429, other HTTP 4xx/5xx, and model-capacity failures; HTTP 503 remains disabled by default. Every rule has an independent switch and a prompt of at most 500 characters. Startup establishes a baseline and never replays historical failures. Before submitting, ThreadBeacon requires one Codex window, a task selected by ID deep link, an exact renamed header title, a changed and empty composer instance, and one structurally verified send button. It invokes Send once and never retries; the result is confirmed from the target rollout. Settings and at most 100 history entries stay local, and history excludes prompts, titles, paths, and raw errors.
+
 The information button in the title bar opens a single-instance About window with the App icon, runtime version, project purpose, and independent-community disclaimer, plus GitHub, Releases, Privacy, MIT License, and Support project links. The support page currently lists non-financial ways to help and unlocks no features. Those links are handed to the default browser only after an explicit user click.
 
 After startup, the App silently checks GitHub Releases once, including prereleases. If a newer release is found, an update icon appears in the footer; About also provides manual checking and retry. A failed check does not affect task monitoring, sounds, or data-source health, and the App never downloads or installs updates automatically.
@@ -91,7 +93,7 @@ The first POC is deliberately limited to:
 - Restoring the main window's last display, position, and size with safe disconnected-display fallback.
 - Refreshing every 2 seconds by default, with configurable 1, 2, 5, or 10-second intervals and a manual refresh option.
 - Opening SQLite databases in read-only mode.
-- Never reading conversation bodies, accessing the network, or modifying Codex data.
+- Never reading conversation bodies or writing SQLite, session-index, or rollout files. Update checks use the public GitHub API; opt-in auto recovery submits only the configured prompt through the installed Codex App and does not call Codex network APIs directly.
 
 Other failure/warning sounds, Subagent alerts and Token aggregation, and the system tray remain deferred.
 

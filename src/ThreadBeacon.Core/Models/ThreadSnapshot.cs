@@ -17,7 +17,8 @@ public sealed record ThreadSnapshot
         IReadOnlyList<SubagentSnapshot>? subagents = null,
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
         ServiceIncident? serviceIncident = null,
-        bool isArchived = false)
+        bool isArchived = false,
+        string? rolloutPath = null)
     {
         Id = id;
         Title = title;
@@ -34,6 +35,7 @@ public sealed record ThreadSnapshot
         SubagentSourceStatus = subagentSourceStatus;
         ServiceIncident = serviceIncident;
         IsArchived = isArchived;
+        RolloutPath = rolloutPath;
     }
 
     public string Id { get; }
@@ -51,4 +53,5 @@ public sealed record ThreadSnapshot
     public ThreadRepositoryStatus SubagentSourceStatus { get; }
     public ServiceIncident? ServiceIncident { get; }
     public bool IsArchived { get; }
+    public string? RolloutPath { get; }
 }

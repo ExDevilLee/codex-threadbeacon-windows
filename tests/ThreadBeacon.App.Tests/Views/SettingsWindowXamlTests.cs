@@ -8,7 +8,7 @@ public sealed class SettingsWindowXamlTests
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "SettingsWindow.xaml"));
 
     [Fact]
-    public void Window_HasGeneralAndSoundTabs()
+    public void Window_HasGeneralSoundAndAutoRecoveryTabs()
     {
         XDocument document = LoadDocument();
         string[] headers = document.Descendants()
@@ -17,7 +17,13 @@ public sealed class SettingsWindowXamlTests
             .OfType<string>()
             .ToArray();
 
-        Assert.Equal(["{DynamicResource GeneralTab}", "{DynamicResource SoundsTab}"], headers);
+        Assert.Equal(
+            [
+                "{DynamicResource GeneralTab}",
+                "{DynamicResource SoundsTab}",
+                "{DynamicResource AutoRecoveryTab}",
+            ],
+            headers);
     }
 
     [Fact]
@@ -63,6 +69,18 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Sound.ClearCompletionSoundCommand", markup, StringComparison.Ordinal);
         Assert.Contains("Sound.SelectWarningSoundCommand", markup, StringComparison.Ordinal);
         Assert.Contains("Sound.ClearWarningSoundCommand", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AutoRecoveryTab_BindsMasterRulesPromptsAndHistory()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Contains("AutoRecovery.IsEnabled", markup, StringComparison.Ordinal);
+        Assert.Contains("AutoRecovery.Rules", markup, StringComparison.Ordinal);
+        Assert.Contains("AutoRecovery.History", markup, StringComparison.Ordinal);
+        Assert.Contains("AutoRecovery.RefreshHistoryCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("MaxLength=\"500\"", markup, StringComparison.Ordinal);
     }
 
     [Fact]

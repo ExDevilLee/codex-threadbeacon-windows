@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.Win32;
+using ThreadBeacon.App.AutoRecovery;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.Startup;
@@ -55,11 +56,24 @@ public partial class MainWindow : Window
         var completionNotifications = new CompletionNotificationCoordinator(
             soundSettings,
             soundPlayer);
+        var autoRecoverySettingsStore = JsonAutoRecoverySettingsStore.CreateDefault();
+        var autoRecoveryHistoryStore = JsonAutoRecoveryHistoryStore.CreateDefault();
+        var autoRecoverySettings = new AutoRecoverySettingsViewModel(
+            autoRecoverySettingsStore,
+            autoRecoveryHistoryStore,
+            displaySettings);
+        var autoRecoveryCoordinator = new AutoRecoveryCoordinator(
+            () => autoRecoverySettings.Settings,
+            new WindowsCodexRecoverySender(
+                new WindowsCodexComposerAutomation(),
+                new RolloutRecoveryEvidenceMonitor()),
+            autoRecoveryHistoryStore);
         loginStartupService = new WindowsLoginStartupService();
         settingsViewModel = new SettingsWindowViewModel(
             displaySettings,
             soundSettings,
-            new LoginStartupViewModel(loginStartupService));
+            new LoginStartupViewModel(loginStartupService),
+            autoRecoverySettings);
         windowPlacementCoordinator = new WindowPlacementCoordinator(
             JsonWindowPlacementStore.CreateDefault(),
             new NativeWindowPlacementPlatform());
@@ -78,7 +92,8 @@ public partial class MainWindow : Window
             completionNotifications,
             JsonThreadListPreferenceStore.CreateDefault(),
             displaySettings: displaySettings,
-            updateCheck: updateCheck);
+            updateCheck: updateCheck,
+            autoRecoveryObserver: autoRecoveryCoordinator);
         DataContext = viewModel;
         monitoring.PropertyChanged += OnMonitoringPropertyChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;

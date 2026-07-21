@@ -13,11 +13,11 @@ public sealed class SQLiteLogEventRepositoryTests
         var repository = new SQLiteLogEventRepository(database.Path);
 
         ServiceLogLoadResult result = repository.LoadLatestIncidents(
-            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e" });
+            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e", "thread-f" });
         IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
         Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
-        Assert.Equal(4, incidents.Count);
+        Assert.Equal(5, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
         Assert.Equal(ServiceIncidentPhase.Retrying, incidents["thread-b"].Phase);
@@ -26,6 +26,8 @@ public sealed class SQLiteLogEventRepositoryTests
         Assert.Null(incidents["thread-d"].HttpStatusCode);
         Assert.Equal(ServiceIncidentKind.BadRequest, incidents["thread-e"].Kind);
         Assert.Equal(400, incidents["thread-e"].HttpStatusCode);
+        Assert.Equal(ServiceIncidentKind.OtherHttp, incidents["thread-f"].Kind);
+        Assert.Equal(502, incidents["thread-f"].HttpStatusCode);
         Assert.DoesNotContain("thread-c", incidents.Keys);
     }
 
@@ -143,7 +145,7 @@ public sealed class SQLiteLogEventRepositoryTests
                 (103, 0, 'TRACE', 'codex_http_client::transport',
                  'turn{turn.id=turn-a}: status=429 Too Many Requests private body', 'thread-a'),
                 (104, 0, 'DEBUG', 'codex_http_client::default_client',
-                 'turn{turn.id=ignored}: Request completed status=418 Teapot', 'thread-a'),
+                 'turn{turn.id=ignored}: Request completed status=302 Found', 'thread-a'),
                 (200, 250000000, 'DEBUG', 'codex_http_client::default_client',
                  'turn{turn.id=turn-b}: Request completed status=429 Too Many Requests', 'thread-b'),
                 (201, 500000000, 'INFO', 'codex_core::responses_retry',
@@ -155,7 +157,11 @@ public sealed class SQLiteLogEventRepositoryTests
                 (500, 0, 'DEBUG', 'codex_http_client::default_client',
                  'turn{turn.id=turn-e}: Request completed status=400 Bad Request', 'thread-e'),
                 (501, 0, 'INFO', 'codex_core::session::turn',
-                 'turn{turn.id=turn-e}: Turn error: unexpected status 400 Bad Request', 'thread-e');
+                 'turn{turn.id=turn-e}: Turn error: unexpected status 400 Bad Request', 'thread-e'),
+                (600, 0, 'DEBUG', 'codex_http_client::default_client',
+                 'turn{turn.id=turn-f}: Request completed status=502 Bad Gateway', 'thread-f'),
+                (601, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-f}: Turn error: unexpected status 502 Bad Gateway', 'thread-f');
             """;
     }
 }

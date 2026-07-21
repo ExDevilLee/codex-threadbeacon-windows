@@ -27,10 +27,10 @@
     <sys:String x:Key="Settings">Settings</sys:String>
     <sys:String x:Key="About">About</sys:String>
     <sys:String x:Key="AboutTitle">About ThreadBeacon</sys:String>
-    <sys:String x:Key="AboutTagline">A compact read-only status companion for Codex.</sys:String>
+    <sys:String x:Key="AboutTagline">A compact local status and recovery companion for Codex.</sys:String>
     <sys:String x:Key="AboutVersionLabel">Version</sys:String>
-    <sys:String x:Key="AboutDescription">ThreadBeacon provides a local, read-only view of Codex task status, Token usage, Subagents, and service incidents.</sys:String>
-    <sys:String x:Key="AboutDisclaimer">This is an independent community tool. It does not modify Codex data or communicate with Codex servers.</sys:String>
+    <sys:String x:Key="AboutDescription">ThreadBeacon provides a local view of Codex task status, Token usage, Subagents, service incidents, and optional recovery.</sys:String>
+    <sys:String x:Key="AboutDisclaimer">This independent community tool keeps Codex data sources read-only. Opt-in recovery submits only your configured prompt through the installed Codex App.</sys:String>
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">Releases</sys:String>
     <sys:String x:Key="AboutPrivacy">Privacy</sys:String>
@@ -66,4 +66,12 @@
     <sys:String x:Key="IgnoredTasks">Ignored tasks</sys:String>
     <sys:String x:Key="RestoreTask">Restore task</sys:String>
     <sys:String x:Key="RestoreAll">Restore all</sys:String>
+    <sys:String x:Key="AutoRecoveryTab">Auto recovery</sys:String>
+    <sys:String x:Key="EnableAutoRecovery">Enable automatic recovery</sys:String>
+    <sys:String x:Key="AutoRecoveryDescription">When a Codex task terminates with an enabled service error, ThreadBeacon can safely reopen it and send the configured continuation prompt. Historical errors are never replayed.</sys:String>
+    <sys:String x:Key="RecoveryHistory">Recent recovery attempts</sys:String>
+    <sys:String x:Key="RecoveryTaskId">Task ID</sys:String>
+    <sys:String x:Key="RecoveryIncident">Incident</sys:String>
+    <sys:String x:Key="RecoveryStatus">Status</sys:String>
+    <sys:String x:Key="RecoveryUpdatedAt">Updated</sys:String>
 </ResourceDictionary>

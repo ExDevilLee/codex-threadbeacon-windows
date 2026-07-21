@@ -7,6 +7,18 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-21
+
+### Added
+
+- 增加默认关闭的自动恢复：仅对启动后新出现的终止型 HTTP 400、429、其他 HTTP 错误和模型容量异常发送可配置续接提示，HTTP 503 默认关闭。
+- 使用任务 ID 深链、精确 Rename 标题、空编辑器和唯一发送按钮进行 Windows UI Automation 安全校验；发送只调用一次，并通过 rollout 中的精确用户消息与 `task_started` 事件确认结果。
+- 设置窗口增加自动恢复规则、双语默认提示和最多 100 条隐私安全的本地恢复记录；记录不保存提示词、任务标题、Codex 路径或异常原文。
+
+### Security
+
+- SQLite、session index 和 rollout 数据源保持只读；自动恢复只在用户明确开启后通过已安装的 Codex App 提交配置提示，不直接调用 Codex 网络 API。
+
 ## [0.10.3] - 2026-07-21
 
 ### Fixed
@@ -98,7 +110,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...v0.11.0
 [0.10.3]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.2...v0.10.3
 [0.10.2]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.1...v0.10.2
 [0.10.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.0...v0.10.1

@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{DynamicResource SettingsTitle}"
         Icon="Resources/AppIcon.ico"
-        Width="440"
-        Height="560"
+        Width="620"
+        Height="680"
         MinWidth="400"
         MinHeight="520"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -205,6 +205,80 @@
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
+            </TabItem>
+
+            <TabItem Header="{DynamicResource AutoRecoveryTab}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="18">
+                        <CheckBox FontWeight="SemiBold"
+                                  Content="{DynamicResource EnableAutoRecovery}"
+                                  IsChecked="{Binding AutoRecovery.IsEnabled, Mode=TwoWay}" />
+                        <TextBlock Margin="20,6,0,14"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource AutoRecoveryDescription}" />
+
+                        <ItemsControl ItemsSource="{Binding AutoRecovery.Rules}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox VerticalAlignment="Top"
+                                                  Margin="0,6,12,0"
+                                                  FontWeight="SemiBold"
+                                                  Content="{Binding DisplayName}"
+                                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                                        <TextBox Grid.Column="1"
+                                                 MinHeight="48"
+                                                 MaxLength="500"
+                                                 Padding="6,4"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 Text="{Binding Prompt, Mode=TwoWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Separator Margin="0,4,0,12" />
+                        <DockPanel Margin="0,0,0,8">
+                            <Button DockPanel.Dock="Right"
+                                    Padding="10,3"
+                                    Command="{Binding AutoRecovery.RefreshHistoryCommand}"
+                                    Content="{DynamicResource Refresh}" />
+                            <TextBlock FontSize="14"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Text="{DynamicResource RecoveryHistory}" />
+                        </DockPanel>
+                        <DataGrid Height="150"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  ItemsSource="{Binding AutoRecovery.History}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Width="*"
+                                                    Header="{DynamicResource RecoveryTaskId}"
+                                                    Binding="{Binding ThreadId}" />
+                                <DataGridTextColumn Width="130"
+                                                    Header="{DynamicResource RecoveryIncident}"
+                                                    Binding="{Binding Incident}" />
+                                <DataGridTextColumn Width="80"
+                                                    Header="{DynamicResource RecoveryStatus}"
+                                                    Binding="{Binding Status}" />
+                                <DataGridTextColumn Width="145"
+                                                    Header="{DynamicResource RecoveryUpdatedAt}"
+                                                    Binding="{Binding UpdatedAt}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </Grid>

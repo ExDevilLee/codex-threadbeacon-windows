@@ -46,7 +46,7 @@ public sealed partial class LogEventParser
                         {
                             episode.LatestSuccessAt = Later(episode.LatestSuccessAt, record.OccurredAt);
                         }
-                        else if (statusCode is 400 or 429 or 503)
+                        else if (statusCode is >= 400 and <= 599)
                         {
                             episode.Kind = IncidentKind(statusCode);
                             episode.HttpStatusCode = statusCode;
@@ -80,7 +80,7 @@ public sealed partial class LogEventParser
                         episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
                     }
                     else if (record.Body.Contains("Turn error:", StringComparison.Ordinal)
-                        && TryStatusCode(record.Body) is 400 or 429 or 503)
+                        && TryStatusCode(record.Body) is >= 400 and <= 599)
                     {
                         int turnStatusCode = TryStatusCode(record.Body)!.Value;
                         episode.Kind = IncidentKind(turnStatusCode);
@@ -119,7 +119,8 @@ public sealed partial class LogEventParser
     {
         400 => ServiceIncidentKind.BadRequest,
         429 => ServiceIncidentKind.HttpRateLimit,
-        _ => ServiceIncidentKind.ServiceUnavailable,
+        503 => ServiceIncidentKind.ServiceUnavailable,
+        _ => ServiceIncidentKind.OtherHttp,
     };
 
     private static int? TryPositiveInt(string value) =>

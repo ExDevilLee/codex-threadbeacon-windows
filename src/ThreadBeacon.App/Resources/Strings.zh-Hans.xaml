@@ -27,10 +27,10 @@
     <sys:String x:Key="Settings">设置</sys:String>
     <sys:String x:Key="About">关于</sys:String>
     <sys:String x:Key="AboutTitle">关于 ThreadBeacon</sys:String>
-    <sys:String x:Key="AboutTagline">面向 Codex 的紧凑型只读状态助手。</sys:String>
+    <sys:String x:Key="AboutTagline">面向 Codex 的紧凑型本地状态与恢复助手。</sys:String>
     <sys:String x:Key="AboutVersionLabel">版本</sys:String>
-    <sys:String x:Key="AboutDescription">ThreadBeacon 在本机只读展示 Codex 任务状态、Token 用量、Subagent 和服务异常。</sys:String>
-    <sys:String x:Key="AboutDisclaimer">这是独立的社区工具，不会修改 Codex 数据，也不会与 Codex 服务器通信。</sys:String>
+    <sys:String x:Key="AboutDescription">ThreadBeacon 在本机展示 Codex 任务状态、Token 用量、Subagent、服务异常与可选自动恢复。</sys:String>
+    <sys:String x:Key="AboutDisclaimer">这是独立的社区工具，Codex 数据源保持只读；自动恢复仅在用户开启后通过已安装的 Codex App 提交配置提示。</sys:String>
     <sys:String x:Key="AboutRepository">GitHub</sys:String>
     <sys:String x:Key="AboutReleases">发布版本</sys:String>
     <sys:String x:Key="AboutPrivacy">隐私说明</sys:String>
@@ -66,4 +66,12 @@
     <sys:String x:Key="IgnoredTasks">已忽略任务</sys:String>
     <sys:String x:Key="RestoreTask">恢复任务</sys:String>
     <sys:String x:Key="RestoreAll">全部恢复</sys:String>
+    <sys:String x:Key="AutoRecoveryTab">自动恢复</sys:String>
+    <sys:String x:Key="EnableAutoRecovery">启用自动恢复</sys:String>
+    <sys:String x:Key="AutoRecoveryDescription">Codex 任务因已启用的服务异常而终止时，ThreadBeacon 可安全地重新打开任务并发送续接提示。启动前的历史异常不会补发。</sys:String>
+    <sys:String x:Key="RecoveryHistory">最近恢复记录</sys:String>
+    <sys:String x:Key="RecoveryTaskId">任务 ID</sys:String>
+    <sys:String x:Key="RecoveryIncident">异常</sys:String>
+    <sys:String x:Key="RecoveryStatus">状态</sys:String>
+    <sys:String x:Key="RecoveryUpdatedAt">更新时间</sys:String>
 </ResourceDictionary>

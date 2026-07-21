@@ -82,6 +82,24 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_RecognizesOtherHttpFailure()
+    {
+        LogEventRecord[] records =
+        [
+            Record(106, "codex_http_client::default_client",
+                "turn{turn.id=turn-http}: Request completed status=502 Bad Gateway"),
+            Record(107, "codex_core::session::turn",
+                "turn{turn.id=turn-http}: Turn error: unexpected status 502 Bad Gateway"),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.OtherHttp, incident.Kind);
+        Assert.Equal(502, incident.HttpStatusCode);
+    }
+
+    [Fact]
     public void LatestIncidents_ClearsRetryAfterSameTurnRecovers()
     {
         LogEventRecord[] records =

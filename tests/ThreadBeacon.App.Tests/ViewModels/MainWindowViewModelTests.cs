@@ -1,3 +1,4 @@
+using ThreadBeacon.App.AutoRecovery;
 using ThreadBeacon.App.Settings;
 using ThreadBeacon.App.Sounds;
 using ThreadBeacon.App.ViewModels;
@@ -70,6 +71,26 @@ public sealed class MainWindowViewModelTests
         await viewModel.RefreshAsync();
 
         Assert.Equal(RefreshNotificationPolicy.Baseline, observer.LastPolicy);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ForwardsSuccessfulLoadToAutoRecoveryObserver()
+    {
+        var recoveryObserver = new RecordingAutoRecoveryObserver();
+        var loader = new ThreadStatusLoader(
+            new FakeThreadRepository(ThreadRepositoryStatus.Healthy),
+            new HealthyTitleRepository(),
+            new UnusedRolloutParser());
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            autoRecoveryObserver: recoveryObserver);
+
+        await viewModel.RefreshAsync(RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(1, recoveryObserver.ObservationCount);
+        Assert.Equal(RefreshNotificationPolicy.Notify, recoveryObserver.LastPolicy);
     }
 
     [Fact]
@@ -825,6 +846,23 @@ public sealed class MainWindowViewModelTests
             ObservationCount++;
             LastSnapshots = snapshots;
             LastPolicy = policy;
+        }
+    }
+
+    private sealed class RecordingAutoRecoveryObserver : IAutoRecoveryObserver
+    {
+        public int ObservationCount { get; private set; }
+
+        public RefreshNotificationPolicy? LastPolicy { get; private set; }
+
+        public Task ObserveAsync(
+            IReadOnlyList<ThreadSnapshot> snapshots,
+            RefreshNotificationPolicy policy,
+            CancellationToken cancellationToken = default)
+        {
+            ObservationCount++;
+            LastPolicy = policy;
+            return Task.CompletedTask;
         }
     }
 }

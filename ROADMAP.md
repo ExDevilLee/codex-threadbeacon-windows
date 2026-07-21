@@ -164,6 +164,16 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Keep linked, archived, unrenamed, or unverifiable Subagents out of the primary list.
 - [x] Treat the detached-candidate query as optional and degrade without dropping normal tasks.
 
+## Phase 18: Automatic Recovery
+
+- [x] Validate Windows Codex task selection and composer control with two same-title dedicated test tasks.
+- [x] Keep automatic recovery disabled by default and baseline historical incidents at startup.
+- [x] Configure HTTP 400, HTTP 429, HTTP 503, other HTTP, and model-capacity rules independently, with HTTP 503 disabled by default.
+- [x] Require ID deep-link navigation, exact Rename header identity, a changed empty composer, and one structural send-button match.
+- [x] Invoke Send once without retry and verify the exact user message plus `task_started` in the target rollout.
+- [x] Persist localized/custom prompts and bounded privacy-safe attempt history locally.
+- [x] Keep Core independent from WPF and cover policy, tracking, rollout evidence, persistence, coordination, and sender behavior with tests.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

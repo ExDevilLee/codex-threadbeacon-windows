@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using ThreadBeacon.App.AutoRecovery;
 using ThreadBeacon.App.Commands;
 using ThreadBeacon.App.Formatting;
 using ThreadBeacon.App.Localization;
@@ -20,6 +21,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly HashSet<string> expandedThreadIds = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim refreshGate = new(1, 1);
     private readonly ICompletionNotificationObserver? completionObserver;
+    private readonly IAutoRecoveryObserver? autoRecoveryObserver;
     private readonly IThreadListPreferenceStore? preferenceStore;
     private readonly TimeProvider timeProvider;
     private readonly AsyncRelayCommand refreshCommand;
@@ -48,12 +50,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         IThreadListPreferenceStore? preferenceStore = null,
         TimeProvider? timeProvider = null,
         DisplaySettingsViewModel? displaySettings = null,
-        UpdateCheckViewModel? updateCheck = null)
+        UpdateCheckViewModel? updateCheck = null,
+        IAutoRecoveryObserver? autoRecoveryObserver = null)
     {
         this.loader = loader ?? throw new ArgumentNullException(nameof(loader));
         WindowPin = windowPin ?? throw new ArgumentNullException(nameof(windowPin));
         Monitoring = monitoring ?? throw new ArgumentNullException(nameof(monitoring));
         this.completionObserver = completionObserver;
+        this.autoRecoveryObserver = autoRecoveryObserver;
         this.preferenceStore = preferenceStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         this.displaySettings = displaySettings ?? new DisplaySettingsViewModel();
@@ -217,6 +221,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 visibleResult.Health.WithLastSuccessfulRefresh(visibleResult.RefreshedAt);
             DataSourceHealth.Update(successfulHealth, displaySettings.EffectiveLanguage);
             completionObserver?.Observe(visibleResult.Threads, policy);
+            if (autoRecoveryObserver is not null)
+            {
+                await autoRecoveryObserver.ObserveAsync(visibleResult.Threads, policy);
+            }
             sourceStatusText = GetStatusText(visibleResult, displaySettings.EffectiveLanguage);
             hasSourceError = false;
             updatedText = visibleResult.RefreshedAt.ToLocalTime().ToString("HH:mm:ss");
