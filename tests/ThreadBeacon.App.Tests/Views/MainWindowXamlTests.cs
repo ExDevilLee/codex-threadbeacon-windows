@@ -31,6 +31,25 @@ public sealed class MainWindowXamlTests
     }
 
     [Fact]
+    public void Toolbar_UsesCompactSpacingAtMinimumWindowWidth()
+    {
+        XDocument document = LoadDocument();
+        XElement toolbar = document.Descendants()
+            .Single(element => element.Name.LocalName == "StackPanel"
+                && (string?)element.Attribute("Grid.Column") == "3"
+                && (string?)element.Attribute("Orientation") == "Horizontal"
+                && element.Elements().Count(child => child.Name.LocalName == "Button") == 7);
+        XElement[] buttons = toolbar.Elements()
+            .Where(element => element.Name.LocalName == "Button")
+            .ToArray();
+
+        Assert.Equal(7, buttons.Length);
+        Assert.All(buttons[..^1], button =>
+            Assert.Equal("0,0,4,0", (string?)button.Attribute("Margin")));
+        Assert.Null(buttons[^1].Attribute("Margin"));
+    }
+
+    [Fact]
     public void Toolbar_WindowPinSelectedStateLayersFillBehindCompletePinOutline()
     {
         XDocument document = LoadDocument();
