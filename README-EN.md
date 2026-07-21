@@ -6,6 +6,14 @@ ThreadBeacon is a native Windows status window for monitoring primary Codex Desk
 
 This repository is the independent Windows implementation of [ThreadBeacon for macOS](https://github.com/ExDevilLee/codex-threadbeacon-macos). It is an unofficial community project and is not affiliated with or endorsed by OpenAI. `Codex` is a trademark of its respective owner.
 
+## A Dedicated Small-Screen Status Board
+
+ThreadBeacon's compact list works well on a separate portrait display, including a 7-inch secondary screen. Keep Codex interactions on the computer display, code and diffs on the main monitor, and the running, completed, and failed states of primary tasks continuously visible on the small display.
+
+![ThreadBeacon used as a Codex task status board on a portrait small display](docs/assets/readme/threadbeacon-small-display-workspace.jpg)
+
+> AI-generated workspace concept. On-screen content illustrates the layout and workflow; refer to the interface screenshots below for the actual app UI.
+
 ## 30-Second Quick Start
 
 Before starting, make sure that:
