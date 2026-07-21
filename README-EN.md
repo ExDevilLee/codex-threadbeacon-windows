@@ -41,6 +41,10 @@ If no tasks appear or the footer reports a data-source problem, see [`Troublesho
 | :---: | :---: |
 | ![About ThreadBeacon](docs/assets/readme/en/threadbeacon-about.png) | ![ThreadBeacon General settings](docs/assets/readme/en/threadbeacon-settings.png) |
 
+| Notification and custom sounds | Auto-recovery rules and prompts |
+| :---: | :---: |
+| ![ThreadBeacon notification and custom sounds](docs/assets/readme/en/threadbeacon-sounds.png) | ![ThreadBeacon auto-recovery rules and prompts](docs/assets/readme/en/threadbeacon-auto-recovery.png) |
+
 ## Status
 
 The project is in its Windows POC stage. A Win11 probe has verified the core local data path for the currently installed Codex version. These local formats are not a stable public API.
