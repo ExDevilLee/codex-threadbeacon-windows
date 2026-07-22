@@ -271,6 +271,7 @@ public partial class MainWindow : Window
     {
         if (e.ClickCount != 2
             || sender is not FrameworkElement { DataContext: ThreadRowViewModel row }
+            || row.IsArchived
             || e.OriginalSource is DependencyObject source && HasButtonAncestor(source))
         {
             return;

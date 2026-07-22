@@ -7,6 +7,12 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-07-22
+
+### Fixed
+
+- 已归档的收藏观察任务不再响应双击打开；未归档主任务、Subagent 展开和 Token 详情交互保持不变。
+
 ## [0.13.0] - 2026-07-22
 
 ### Added
@@ -135,7 +141,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...v0.12.0

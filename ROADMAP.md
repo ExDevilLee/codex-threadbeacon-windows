@@ -180,6 +180,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Reuse the Windows Codex ID deep-link and exact-title selector for explicit navigation.
 - [x] Open a primary task by double-clicking its row without typing or sending text.
 - [x] Ignore double-clicks originating from Subagent and Token-detail buttons.
+- [x] Ignore double-clicks on archived favorite watchlist rows.
 - [x] Verify navigation against a dedicated same-title task pair while both rollouts remain byte-for-byte unchanged.
 
 ## Phase 20: Optional Financial Support

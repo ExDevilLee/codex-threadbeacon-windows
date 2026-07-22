@@ -8,6 +8,9 @@ public sealed class MainWindowXamlTests
     private static XDocument LoadDocument() => XDocument.Load(
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml"));
 
+    private static string LoadCodeBehind() => File.ReadAllText(
+        Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml.cs.txt"));
+
     [Fact]
     public void Toolbar_PlacesFavoritesFilterBeforeWindowPinWithDynamicPresentation()
     {
@@ -107,6 +110,15 @@ public sealed class MainWindowXamlTests
                     == "OnTaskRowMouseLeftButtonDown");
 
         Assert.Equal("48", (string?)rowBorder.Attribute("Height"));
+    }
+
+    [Fact]
+    public void TaskRow_DoubleClickNavigationRejectsArchivedRows()
+    {
+        string source = LoadCodeBehind();
+
+        Assert.Contains("|| row.IsArchived", source, StringComparison.Ordinal);
+        Assert.Contains("await threadOpener.OpenAsync(row.Id, row.Title)", source, StringComparison.Ordinal);
     }
 
     [Fact]
