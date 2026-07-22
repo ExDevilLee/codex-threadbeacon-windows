@@ -21,7 +21,8 @@ public sealed record ThreadSnapshot
         string? rolloutPath = null,
         string? model = null,
         string? reasoningEffort = null,
-        int activeSubagentCount = 0)
+        int activeSubagentCount = 0,
+        CompactionHistory? compactionHistory = null)
     {
         Id = id;
         Title = title;
@@ -42,6 +43,7 @@ public sealed record ThreadSnapshot
         Model = model;
         ReasoningEffort = reasoningEffort;
         ActiveSubagentCount = Math.Min(Math.Max(0, activeSubagentCount), SubagentCount);
+        CompactionHistory = compactionHistory ?? new CompactionHistory();
     }
 
     public string Id { get; }
@@ -63,4 +65,6 @@ public sealed record ThreadSnapshot
     public string? Model { get; }
     public string? ReasoningEffort { get; }
     public int ActiveSubagentCount { get; }
+
+    public CompactionHistory CompactionHistory { get; }
 }

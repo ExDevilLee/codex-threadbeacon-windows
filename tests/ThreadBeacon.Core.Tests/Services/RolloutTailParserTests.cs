@@ -243,6 +243,55 @@ public sealed class RolloutTailParserTests
         Assert.Null(result.TokenUsage?.CurrentTurn);
     }
 
+    [Fact]
+    public void ParseLines_CountsCompressionEventsAndKeepsLatestCompletion()
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            CompactEvent("2026-07-16T01:00:00Z"),
+            ContextCompactedEvent("2026-07-16T01:00:00.200Z"),
+            CompactEvent("2026-07-16T01:03:00Z"),
+        ]);
+
+        Assert.Equal(2, result.CompactionHistory.CompletionCount);
+        Assert.Equal(ParseDate("2026-07-16T01:03:00Z"), result.CompactionHistory.LastCompletedAt);
+    }
+
+    [Fact]
+    public void ParseLines_CompactedPairIsCountedOnce()
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            CompactEvent("2026-07-16T01:00:00Z"),
+            ContextCompactedEvent("2026-07-16T01:00:00.200Z"),
+        ]);
+
+        Assert.Equal(1, result.CompactionHistory.CompletionCount);
+    }
+
+    [Fact]
+    public void ParseLines_IgnoresMalformedCompressionRecords()
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            "not-json",
+            """{"timestamp":"invalid","type":"compacted","payload":{"summary":"private"}}""",
+            """{"timestamp":"2026-07-16T01:00:00Z","type":"compacted","payload":{"summary":"private"}}""",
+        ]);
+
+        Assert.Equal(1, result.CompactionHistory.CompletionCount);
+        Assert.DoesNotContain("Summary", typeof(CompactionHistory).GetProperties().Select(property => property.Name));
+    }
+
+    [Fact]
+    public void ParseLines_WithoutCompressionKeepsEmptyHistory()
+    {
+        RolloutObservation result = parser.ParseLines(["not-json"]);
+
+        Assert.Equal(0, result.CompactionHistory.CompletionCount);
+        Assert.Null(result.CompactionHistory.LastCompletedAt);
+    }
+
     [Theory]
     [InlineData(-1, 0, 0, 0, 0)]
     [InlineData(100, 101, 0, 0, 100)]
@@ -363,5 +412,21 @@ public sealed class RolloutTailParserTests
             timestamp,
             type = "event_msg",
             payload = new { type = "turn_aborted", reason },
+        });
+
+    private static string CompactEvent(string timestamp) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp,
+            type = "compacted",
+            payload = new { summary = "private" },
+        });
+
+    private static string ContextCompactedEvent(string timestamp) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp,
+            type = "event_msg",
+            payload = new { type = "context_compacted", summary = "private" },
         });
 }

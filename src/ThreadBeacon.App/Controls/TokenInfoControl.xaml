@@ -109,6 +109,35 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <Border Height="1"
+                            Margin="0,4,0,8"
+                            Background="{DynamicResource ControlBorderBrush}"
+                            Visibility="{Binding CompactionDividerVisibility}" />
+
+                    <ItemsControl Grid.IsSharedSizeScope="True"
+                                  ItemsSource="{Binding CompactionRows}"
+                                  Visibility="{Binding CompactionSectionVisibility}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabel" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock FontSize="12"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               Text="{Binding Label}" />
+                                    <TextBlock Grid.Column="2"
+                                               HorizontalAlignment="Right"
+                                               FontFamily="Cascadia Mono, Consolas"
+                                               FontSize="12"
+                                               Text="{Binding Value}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <TextBlock FontSize="10"
                                Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{Binding Note}"

@@ -81,6 +81,7 @@ public sealed class RolloutTailParser : IRolloutTailParser
         TokenUsage? currentTurnBaseline = null;
         string? latestModel = null;
         string? latestReasoningEffort = null;
+        var compactionEvents = new List<DateTimeOffset>();
 
         foreach (string line in lines)
         {
@@ -95,6 +96,11 @@ public sealed class RolloutTailParser : IRolloutTailParser
                 JsonElement root = document.RootElement;
                 latestEvent = Latest(latestEvent, timestamp);
                 string? envelopeType = GetString(root, "type");
+
+                if (envelopeType is "compacted")
+                {
+                    compactionEvents.Add(timestamp);
+                }
 
                 if (envelopeType is "turn_context")
                 {
@@ -137,6 +143,9 @@ public sealed class RolloutTailParser : IRolloutTailParser
                             }
 
                             latestInterruption = Latest(latestInterruption, interruptionAt);
+                            break;
+                        case "context_compacted":
+                            compactionEvents.Add(timestamp);
                             break;
                         case "token_count" when TryReadTokenUsage(payload, out TokenUsage? usage):
                             latestTokenUsage = usage;
@@ -192,6 +201,22 @@ public sealed class RolloutTailParser : IRolloutTailParser
                 currentTurnBaseline is null ? null : latestTokenUsage.Subtract(currentTurnBaseline),
                 latestTokenEvent);
 
+        DateTimeOffset[] distinctCompactions = compactionEvents
+            .OrderBy(timestamp => timestamp)
+            .Aggregate(
+                new List<DateTimeOffset>(),
+                (distinct, timestamp) =>
+                {
+                    if (distinct.Count == 0
+                        || timestamp - distinct[^1] > TimeSpan.FromSeconds(1))
+                    {
+                        distinct.Add(timestamp);
+                    }
+
+                    return distinct;
+                })
+            .ToArray();
+
         return new RolloutObservation(
             status,
             statusChangedAt,
@@ -200,7 +225,10 @@ public sealed class RolloutTailParser : IRolloutTailParser
             latestTaskStarted,
             tokenSnapshot,
             latestModel,
-            latestReasoningEffort);
+            latestReasoningEffort,
+            new CompactionHistory(
+                distinctCompactions.Length,
+                distinctCompactions.Length == 0 ? null : distinctCompactions[^1]));
     }
 
     private static IReadOnlyList<string> ReadLines(ReadOnlySpan<byte> content)

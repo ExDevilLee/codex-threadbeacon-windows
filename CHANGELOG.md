@@ -7,6 +7,20 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-07-23
+
+### Added
+
+- Added read-only rollout compression history to Token details, including the
+  completed compression count and latest completion time.
+- Deduplicated adjacent `compacted` and `context_compacted` records without
+  retaining compression summaries or conversation content.
+
+### Privacy
+
+- This phase does not install or modify Codex Hooks and does not read or store
+  compression summaries, conversation text, Reasoning, paths, or transcripts.
+
 ## [0.19.0] - 2026-07-22
 
 ### Changed

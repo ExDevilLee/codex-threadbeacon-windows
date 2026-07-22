@@ -167,6 +167,18 @@ public static class AppLanguageText
             ? new[] { "会话总量", "输入", "缓存输入", "非缓存输入", "输出", "Reasoning", "当前 turn", "缓存率", "更新时间" }[index]
             : new[] { "Session total", "Input", "Cached input", "Uncached input", "Output", "Reasoning", "Current turn", "Cache ratio", "Updated" }[index];
 
+    #if false
+    public static string CompactionLabel(AppLanguage language, int index) =>
+        language is AppLanguage.SimplifiedChinese
+            ? new[] { "鍘嬬缉娆℃暟", "鏈€杩戝帇缁? }[index]
+            : new[] { "Compactions", "Last compaction" }[index];
+    #endif
+
+    public static string CompactionLabel(AppLanguage language, int index) =>
+        language is AppLanguage.SimplifiedChinese
+            ? new[] { "\u538b\u7f29\u6b21\u6570", "\u6700\u8fd1\u538b\u7f29" }[index]
+            : new[] { "Compactions", "Last compaction" }[index];
+
     public static string TaskMetadataLabel(AppLanguage language, int index) =>
         language is AppLanguage.SimplifiedChinese
             ? new[] { "模型", "推理强度" }[index]

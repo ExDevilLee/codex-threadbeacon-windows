@@ -66,4 +66,45 @@ public sealed class TokenDetailViewModelTests
             details.Rows.Select(row => row.Label));
         Assert.Equal("Cached input is included in input; Reasoning is included in output.", details.Note);
     }
+
+    [Fact]
+    public void Constructor_MapsCompressionHistoryAfterTokenRows()
+    {
+        var completedAt = new DateTimeOffset(2026, 7, 18, 12, 34, 56, TimeSpan.Zero);
+        var details = new TokenDetailViewModel(
+            new ThreadSnapshot(
+                "task",
+                "Task",
+                ThreadStatus.Idle,
+                completedAt,
+                completedAt,
+                null,
+                null,
+                null,
+                new TokenUsageSnapshot(900, null, null, null),
+                0,
+                RolloutSourceStatus.Healthy,
+                compactionHistory: new CompactionHistory(3, completedAt)),
+            AppLanguage.English);
+
+        Assert.Equal(["Compactions", "Last compaction"], details.CompactionRows.Select(row => row.Label));
+        Assert.Equal(["3", completedAt.ToLocalTime().ToString("HH:mm:ss")], details.CompactionRows.Select(row => row.Value));
+        Assert.Equal("Last compaction", details.Rows[^1].Label);
+    }
+
+    [Fact]
+    public void Constructor_ShowsEmptyCompressionHistoryWithoutTokenUsage()
+    {
+        var details = new TokenDetailViewModel(
+            new ThreadSnapshot(
+                "task", "Task", ThreadStatus.Idle, DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow, null, null, null, null, 0,
+                RolloutSourceStatus.Healthy,
+                compactionHistory: new CompactionHistory()),
+            AppLanguage.English);
+
+        Assert.False(details.HasTokenUsage);
+        Assert.Equal(["0", "-"], details.CompactionRows.Select(row => row.Value));
+        Assert.True(details.HasCompactionHistory);
+    }
 }

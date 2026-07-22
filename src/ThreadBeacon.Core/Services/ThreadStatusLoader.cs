@@ -249,7 +249,8 @@ public sealed class ThreadStatusLoader
             record.RolloutPath,
             record.Model ?? rollout.Observation.Model,
             record.ReasoningEffort ?? rollout.Observation.ReasoningEffort,
-            record.IsArchived ? 0 : activeSubagentCount);
+            record.IsArchived ? 0 : activeSubagentCount,
+            rollout.Observation.CompactionHistory);
     }
 
     private ServiceLogLoadResult LoadIncidents(

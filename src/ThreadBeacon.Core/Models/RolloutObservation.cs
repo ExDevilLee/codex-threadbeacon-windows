@@ -8,8 +8,11 @@ public sealed record RolloutObservation(
     DateTimeOffset? LatestTaskStartedAt,
     TokenUsageSnapshot? TokenUsage,
     string? Model = null,
-    string? ReasoningEffort = null)
+    string? ReasoningEffort = null,
+    CompactionHistory? CompactionHistory = null)
 {
+    public CompactionHistory CompactionHistory { get; } = CompactionHistory ?? new();
+
     public static RolloutObservation Empty { get; } = new(
         ThreadStatus.Unknown,
         null,
