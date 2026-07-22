@@ -52,7 +52,8 @@ checkpoint, then update this section even when no Windows change is required.
   `Compacting` phase on the primary task row. The Hook uses structured JSON
   merge, backs up existing configuration, removes only ThreadBeacon entries on
   uninstall, and keeps conversation text, summaries, Reasoning, paths, and
-  transcripts out of storage. Windows has no equivalent yet.
+  transcripts out of storage. Windows history is implemented in `663da08`;
+  live Hook status is still pending.
 - **Confirmed foreground recovery** (`648719f`): automatic recovery may proceed
   without navigating when the already-frontmost Codex task is the exact
   confirmed target and its composer is empty. Drafts and ambiguous composer
@@ -96,5 +97,5 @@ reference advances.
   `PreCompact`/`PostCompact` Hook lifecycle tracking.
 - Found a recovery safety refinement: allow confirmed frontmost target recovery
   only with an empty composer, and add stable diagnostic codes.
-- Windows implementation status: both items pending; no Windows code changed in
-  this comparison.
+- Windows implementation status: compression history is complete in `663da08`;
+  the opt-in Hook phase and foreground recovery refinement remain pending.
