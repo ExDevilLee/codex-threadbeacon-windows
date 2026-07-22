@@ -13,6 +13,7 @@ public sealed class ThreadStatusPriorityTests
             ThreadStatus.NeedsAction,
             ThreadStatus.Warning,
             ThreadStatus.Running,
+            ThreadStatus.Interrupted,
             ThreadStatus.JustCompleted,
             ThreadStatus.Idle,
             ThreadStatus.Unknown,

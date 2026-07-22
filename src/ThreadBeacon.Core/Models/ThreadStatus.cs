@@ -6,6 +6,7 @@ public enum ThreadStatus
     NeedsAction,
     Warning,
     Running,
+    Interrupted,
     JustCompleted,
     Idle,
     Unknown,

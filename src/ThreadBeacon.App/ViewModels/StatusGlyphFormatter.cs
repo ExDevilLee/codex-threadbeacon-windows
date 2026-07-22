@@ -10,6 +10,7 @@ internal static class StatusGlyphFormatter
         ThreadStatus.NeedsAction => "\uEA39",
         ThreadStatus.Warning => "\uE7BA",
         ThreadStatus.Running => "\uE768",
+        ThreadStatus.Interrupted => "\uE71A",
         ThreadStatus.JustCompleted => "\uE930",
         ThreadStatus.Idle => "\uE738",
         _ => "\uE897",

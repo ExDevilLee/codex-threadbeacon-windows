@@ -70,6 +70,32 @@ public sealed class CompletionNotificationTrackerTests
     }
 
     [Fact]
+    public void Observe_InterruptedSnapshotDoesNotReplayHistoricalCompletion()
+    {
+        var tracker = new CompletionNotificationTracker();
+        DateTimeOffset completedAt = AtSeconds(10);
+        ThreadSnapshot interrupted = new(
+            "thread-1",
+            "thread-1",
+            ThreadStatus.Interrupted,
+            AtSeconds(20),
+            AtSeconds(20),
+            AtSeconds(20),
+            null,
+            completedAt,
+            null,
+            0,
+            RolloutSourceStatus.Healthy);
+
+        CompletionNotificationEvent? result = tracker.Observe(
+            [interrupted],
+            RefreshNotificationPolicy.Notify);
+
+        Assert.Null(result);
+        Assert.Empty(tracker.SeenEventIds);
+    }
+
+    [Fact]
     public void Observe_SuppliedHistorySuppressesExistingCompletion()
     {
         var tracker = new CompletionNotificationTracker(["done:thread-1:10000"]);

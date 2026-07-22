@@ -78,7 +78,8 @@ public sealed class CompletionNotificationTracker
                 SoundNotificationCategory.Warning);
         }
 
-        return snapshot.CompletionEventAt is DateTimeOffset completedAt
+        return snapshot.Status is not ThreadStatus.Interrupted
+            && snapshot.CompletionEventAt is DateTimeOffset completedAt
             ? new CompletionNotificationEvent(
                 $"done:{snapshot.Id}:{completedAt.ToUnixTimeMilliseconds()}",
                 snapshot.Id,

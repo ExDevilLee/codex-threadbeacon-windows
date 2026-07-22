@@ -41,6 +41,105 @@ public sealed class RolloutTailParserTests
     }
 
     [Fact]
+    public void ParseLines_InterruptedTurnIsInterrupted()
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            TaskStarted("2026-07-16T01:00:00Z"),
+            TurnAborted("2026-07-16T01:01:00Z", "interrupted"),
+        ]);
+
+        Assert.Equal(ThreadStatus.Interrupted, result.Status);
+        Assert.Equal(ParseDate("2026-07-16T01:01:00Z"), result.StatusChangedAt);
+    }
+
+    [Fact]
+    public void ParseLines_LaterTaskStartSupersedesInterruption()
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            TurnAborted("2026-07-16T01:00:00Z", "interrupted"),
+            TaskStarted("2026-07-16T01:01:00Z"),
+        ]);
+
+        Assert.Equal(ThreadStatus.Running, result.Status);
+    }
+
+    [Theory]
+    [InlineData("task_complete")]
+    [InlineData("final")]
+    public void ParseLines_CompletionAtSameTimeSupersedesInterruption(string completionKind)
+    {
+        const string timestamp = "2026-07-16T01:01:00Z";
+        string completion = completionKind is "task_complete"
+            ? TaskComplete(timestamp)
+            : FinalMessage(timestamp, completionKind);
+
+        RolloutObservation result = parser.ParseLines(
+        [
+            TaskStarted("2026-07-16T01:00:00Z"),
+            TurnAborted(timestamp, "interrupted"),
+            completion,
+        ]);
+
+        Assert.Equal(ThreadStatus.JustCompleted, result.Status);
+        Assert.Equal(ParseDate(timestamp), result.StatusChangedAt);
+    }
+
+    [Theory]
+    [InlineData("42")]
+    [InlineData("not-a-timestamp")]
+    public void ParseLines_InvalidCompletedAtFallsBackToEnvelopeTimestamp(string completedAt)
+    {
+        string aborted = JsonSerializer.Serialize(new
+        {
+            timestamp = "2026-07-16T01:01:00Z",
+            type = "event_msg",
+            payload = new { type = "turn_aborted", reason = "interrupted", completed_at = completedAt },
+        });
+
+        RolloutObservation result = parser.ParseLines([TaskStarted("2026-07-16T01:00:00Z"), aborted]);
+
+        Assert.Equal(ThreadStatus.Interrupted, result.Status);
+        Assert.Equal(ParseDate("2026-07-16T01:01:00Z"), result.StatusChangedAt);
+    }
+
+    [Fact]
+    public void ParseLines_ParseableCompletedAtCanAdvanceInterruptionTimestamp()
+    {
+        string aborted = JsonSerializer.Serialize(new
+        {
+            timestamp = "2026-07-16T01:01:00Z",
+            type = "event_msg",
+            payload = new
+            {
+                type = "turn_aborted",
+                reason = "interrupted",
+                completed_at = "2026-07-16T01:02:00Z",
+            },
+        });
+
+        RolloutObservation result = parser.ParseLines([TaskStarted("2026-07-16T01:00:00Z"), aborted]);
+
+        Assert.Equal(ThreadStatus.Interrupted, result.Status);
+        Assert.Equal(ParseDate("2026-07-16T01:02:00Z"), result.StatusChangedAt);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("cancelled")]
+    public void ParseLines_MissingOrDifferentAbortReasonIsIgnored(string? reason)
+    {
+        RolloutObservation result = parser.ParseLines(
+        [
+            TaskStarted("2026-07-16T01:00:00Z"),
+            TurnAborted("2026-07-16T01:01:00Z", reason),
+        ]);
+
+        Assert.Equal(ThreadStatus.Running, result.Status);
+    }
+
+    [Fact]
     public void ParseLines_RetainsLatestNonEmptyTaskMetadata()
     {
         string[] lines =
@@ -240,5 +339,29 @@ public sealed class RolloutTailParserTests
                 role = "assistant",
                 phase,
             },
+        });
+
+    private static string TaskStarted(string timestamp) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp,
+            type = "event_msg",
+            payload = new { type = "task_started" },
+        });
+
+    private static string TaskComplete(string timestamp) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp,
+            type = "event_msg",
+            payload = new { type = "task_complete" },
+        });
+
+    private static string TurnAborted(string timestamp, string? reason) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp,
+            type = "event_msg",
+            payload = new { type = "turn_aborted", reason },
         });
 }

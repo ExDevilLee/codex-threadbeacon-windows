@@ -132,6 +132,7 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
         ThreadStatus.Error or ThreadStatus.NeedsAction => ErrorBrush,
         ThreadStatus.Warning => WarningBrush,
         ThreadStatus.Running => RunningBrush,
+        ThreadStatus.Interrupted => IdleBrush,
         ThreadStatus.JustCompleted => CompletedBrush,
         ThreadStatus.Idle => IdleBrush,
         _ => UnknownBrush,

@@ -8,9 +8,10 @@ public static class ThreadStatusPriority
         ThreadStatus.NeedsAction => 1,
         ThreadStatus.Warning => 2,
         ThreadStatus.Running => 3,
-        ThreadStatus.JustCompleted => 4,
-        ThreadStatus.Idle => 5,
-        ThreadStatus.Unknown => 6,
+        ThreadStatus.Interrupted => 4,
+        ThreadStatus.JustCompleted => 5,
+        ThreadStatus.Idle => 6,
+        ThreadStatus.Unknown => 7,
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
     };
 }

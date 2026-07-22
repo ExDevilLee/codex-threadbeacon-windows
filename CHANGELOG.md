@@ -7,6 +7,22 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-07-22
+
+### Added
+
+- 识别 rollout 中结构化的用户中断事件，主任务与 Subagent 会显示中性的“已中断”状态，并在后续新 turn 开始后恢复为运行中。
+- 色盲安全状态标识新增独立停止符号，中英文、浅色和深色主题均使用同一状态语义。
+
+### Fixed
+
+- 中断时间优先使用有效的 ISO `completed_at`，字段为数字或格式异常时安全回退到事件顶层时间戳，避免漏判整条中断事件。
+- 已中断状态不会重放历史完成提示音，也不会创建自动恢复候选。
+
+### Privacy
+
+- 中断探测只保留事件类型和时间戳，不读取或保存中断原因之外的正文、回复或任务内容。
+
 ## [0.17.0] - 2026-07-22
 
 ### Added
@@ -185,7 +201,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...v0.15.0

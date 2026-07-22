@@ -75,6 +75,7 @@ public sealed class RolloutTailParser : IRolloutTailParser
         DateTimeOffset? latestEvent = null;
         DateTimeOffset? latestCompletion = null;
         DateTimeOffset? latestTaskStarted = null;
+        DateTimeOffset? latestInterruption = null;
         TokenUsage? latestTokenUsage = null;
         DateTimeOffset? latestTokenEvent = null;
         TokenUsage? currentTurnBaseline = null;
@@ -125,6 +126,18 @@ public sealed class RolloutTailParser : IRolloutTailParser
                         case "task_complete":
                             latestCompletion = Latest(latestCompletion, timestamp);
                             break;
+                        case "turn_aborted" when GetString(payload, "reason") is "interrupted":
+                            DateTimeOffset interruptionAt = timestamp;
+                            if (GetString(payload, "completed_at") is { } completedAtText
+                                && TryParseTimestamp(completedAtText, out DateTimeOffset completedAt))
+                            {
+                                interruptionAt = completedAt > interruptionAt
+                                    ? completedAt
+                                    : interruptionAt;
+                            }
+
+                            latestInterruption = Latest(latestInterruption, interruptionAt);
+                            break;
                         case "token_count" when TryReadTokenUsage(payload, out TokenUsage? usage):
                             latestTokenUsage = usage;
                             latestTokenEvent = timestamp;
@@ -142,22 +155,33 @@ public sealed class RolloutTailParser : IRolloutTailParser
             }
         }
 
+        DateTimeOffset? latestRunning = LatestNullable(latestTurn, latestTaskStarted);
+        DateTimeOffset? latestCompleted = LatestNullable(latestFinal, latestCompletion);
+
         ThreadStatus status;
         DateTimeOffset? statusChangedAt;
-        if (latestTurn is { } turn && (latestFinal is null || turn > latestFinal))
-        {
-            status = ThreadStatus.Running;
-            statusChangedAt = latestTurn;
-        }
-        else if (latestFinal is not null)
+        if (latestCompleted is { } completed
+            && IsAtLeast(completed, latestRunning)
+            && IsAtLeast(completed, latestInterruption))
         {
             status = ThreadStatus.JustCompleted;
-            statusChangedAt = latestFinal;
+            statusChangedAt = completed;
+        }
+        else if (latestInterruption is { } interrupted
+            && IsAtLeast(interrupted, latestRunning))
+        {
+            status = ThreadStatus.Interrupted;
+            statusChangedAt = interrupted;
+        }
+        else if (latestRunning is { } running)
+        {
+            status = ThreadStatus.Running;
+            statusChangedAt = running;
         }
         else
         {
             status = ThreadStatus.Unknown;
-            statusChangedAt = latestTurn;
+            statusChangedAt = null;
         }
 
         TokenUsageSnapshot? tokenSnapshot = latestTokenUsage is null
@@ -205,11 +229,7 @@ public sealed class RolloutTailParser : IRolloutTailParser
             JsonElement root = document.RootElement;
             if (root.ValueKind is JsonValueKind.Object
                 && GetString(root, "timestamp") is { } timestampText
-                && DateTimeOffset.TryParse(
-                    timestampText,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                    out timestamp))
+                && TryParseTimestamp(timestampText, out timestamp))
             {
                 return true;
             }
@@ -225,6 +245,16 @@ public sealed class RolloutTailParser : IRolloutTailParser
             return false;
         }
     }
+
+    private static bool TryParseTimestamp(string value, out DateTimeOffset timestamp) =>
+        DateTimeOffset.TryParse(
+            value,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out timestamp);
+
+    private static bool IsAtLeast(DateTimeOffset value, DateTimeOffset? other) =>
+        other is null || value >= other.Value;
 
     private static bool TryReadTokenUsage(JsonElement payload, out TokenUsage? usage)
     {
@@ -271,6 +301,12 @@ public sealed class RolloutTailParser : IRolloutTailParser
 
     private static DateTimeOffset Latest(DateTimeOffset? current, DateTimeOffset candidate) =>
         current is null || candidate > current ? candidate : current.Value;
+
+    private static DateTimeOffset? LatestNullable(
+        DateTimeOffset? first,
+        DateTimeOffset? second) => second is null
+            ? first
+            : Latest(first, second.Value);
 
     private static RolloutLoadResult Result(RolloutSourceStatus status) =>
         new(status, RolloutObservation.Empty);

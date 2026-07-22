@@ -21,6 +21,30 @@ public sealed class AutoRecoveryCoordinatorTests
     }
 
     [Fact]
+    public async Task ObserveAsync_InterruptedTaskWithoutServiceIncidentDoesNotSend()
+    {
+        var sender = new RecordingRecoverySender();
+        var coordinator = Coordinator(sender, enabled: true);
+        ThreadSnapshot interrupted = new(
+            "thread-1",
+            "Renamed title",
+            ThreadStatus.Interrupted,
+            DateTimeOffset.UnixEpoch,
+            DateTimeOffset.UnixEpoch,
+            DateTimeOffset.UnixEpoch,
+            null,
+            null,
+            null,
+            0,
+            RolloutSourceStatus.Healthy,
+            rolloutPath: @"C:\Codex\thread-1.jsonl");
+
+        await coordinator.ObserveAsync([interrupted], RefreshNotificationPolicy.Notify);
+
+        Assert.Empty(sender.Requests);
+    }
+
+    [Fact]
     public async Task ObserveAsync_SendsNewFailureOnlyOnceWithConfiguredPrompt()
     {
         var sender = new RecordingRecoverySender();
