@@ -71,6 +71,40 @@ public sealed class WindowsCodexRecoverySenderTests
         Assert.Equal(0, automation.ClearCount);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendAsync_RestoresForegroundAfterSuccessOrFailure(bool verified)
+    {
+        var foreground = new FakeRecoveryForegroundSessionFactory();
+        var sender = new WindowsCodexRecoverySender(
+            new FakeCodexComposerAutomation(),
+            new FakeEvidenceMonitor { IsVerified = verified },
+            foreground);
+
+        await sender.SendAsync(Request(), default);
+
+        Assert.Equal(1, foreground.CaptureCount);
+        Assert.Equal(1, foreground.Session.RestoreCount);
+    }
+
+    [Fact]
+    public async Task SendAsync_RestoresForegroundWhenCancellationEscapes()
+    {
+        var foreground = new FakeRecoveryForegroundSessionFactory();
+        using var cancellation = new CancellationTokenSource();
+        var automation = new FakeCodexComposerAutomation { CancelOnType = cancellation };
+        var sender = new WindowsCodexRecoverySender(
+            automation,
+            new FakeEvidenceMonitor(),
+            foreground);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            sender.SendAsync(Request(), cancellation.Token));
+
+        Assert.Equal(1, foreground.Session.RestoreCount);
+    }
+
     private static AutoRecoveryRequest Request() => new(
         new AutoRecoveryCandidate(
             "thread-1",
@@ -90,6 +124,7 @@ internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
     public int TypeCount { get; private set; }
     public int ClearCount { get; private set; }
     public int InvokeCount { get; private set; }
+    public CancellationTokenSource? CancelOnType { get; init; }
 
     public Task<CodexComposerSession?> SelectEmptyTargetAsync(
         string threadId,
@@ -101,6 +136,12 @@ internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
 
     public Task TypeAsync(CodexComposerSession session, string text, CancellationToken cancellationToken)
     {
+        if (CancelOnType is not null)
+        {
+            CancelOnType.Cancel();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
         TypeCount++;
         return Task.CompletedTask;
     }
@@ -126,6 +167,26 @@ internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
         ClearCount++;
         return Task.FromResult(true);
     }
+}
+
+internal sealed class FakeRecoveryForegroundSessionFactory : IRecoveryForegroundSessionFactory
+{
+    public int CaptureCount { get; private set; }
+
+    public FakeRecoveryForegroundSession Session { get; } = new();
+
+    public IRecoveryForegroundSession Capture()
+    {
+        CaptureCount++;
+        return Session;
+    }
+}
+
+internal sealed class FakeRecoveryForegroundSession : IRecoveryForegroundSession
+{
+    public int RestoreCount { get; private set; }
+
+    public void RestoreIfSafe() => RestoreCount++;
 }
 
 internal sealed class FakeEvidenceMonitor : IRolloutRecoveryEvidenceMonitor

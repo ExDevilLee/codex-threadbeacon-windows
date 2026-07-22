@@ -72,7 +72,8 @@ public partial class MainWindow : Window
             () => autoRecoverySettings.Settings,
             new WindowsCodexRecoverySender(
                 codexAutomation,
-                new RolloutRecoveryEvidenceMonitor()),
+                new RolloutRecoveryEvidenceMonitor(),
+                new WindowsRecoveryForegroundSessionFactory()),
             autoRecoveryHistoryStore);
         loginStartupService = new WindowsLoginStartupService();
         settingsViewModel = new SettingsWindowViewModel(

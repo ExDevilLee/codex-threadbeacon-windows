@@ -7,6 +7,17 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-22
+
+### Added
+
+- 无人值守自动恢复现在会记录原前台窗口；发送成功、失败或取消后，仅当当前前台仍是本次 Codex 进程时才尝试恢复原应用。
+
+### Security
+
+- 前台恢复使用窗口句柄、PID 与进程启动时间共同校验；用户主动切换应用、原窗口退出、PID 复用或 Codex 身份不唯一时均安全跳过。
+- 应用身份只存在于单次恢复过程的内存中，不写入设置、历史或日志。
+
 ## [0.16.0] - 2026-07-22
 
 ### Added
@@ -174,7 +185,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...v0.14.0

@@ -6,15 +6,19 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
 {
     private readonly ICodexComposerAutomation automation;
     private readonly IRolloutRecoveryEvidenceMonitor evidenceMonitor;
+    private readonly IRecoveryForegroundSessionFactory foregroundSessionFactory;
     private readonly SemaphoreSlim sendGate = new(1, 1);
 
     public WindowsCodexRecoverySender(
         ICodexComposerAutomation automation,
-        IRolloutRecoveryEvidenceMonitor evidenceMonitor)
+        IRolloutRecoveryEvidenceMonitor evidenceMonitor,
+        IRecoveryForegroundSessionFactory? foregroundSessionFactory = null)
     {
         this.automation = automation ?? throw new ArgumentNullException(nameof(automation));
         this.evidenceMonitor = evidenceMonitor
             ?? throw new ArgumentNullException(nameof(evidenceMonitor));
+        this.foregroundSessionFactory = foregroundSessionFactory
+            ?? NoOpRecoveryForegroundSessionFactory.Instance;
     }
 
     public async Task<AutoRecoverySendResult> SendAsync(
@@ -23,6 +27,16 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
     {
         ArgumentNullException.ThrowIfNull(request);
         await sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        IRecoveryForegroundSession foregroundSession;
+        try
+        {
+            foregroundSession = foregroundSessionFactory.Capture();
+        }
+        catch
+        {
+            foregroundSession = NoOpRecoveryForegroundSession.Instance;
+        }
+
         try
         {
             return await SendCoreAsync(request, cancellationToken).ConfigureAwait(false);
@@ -37,6 +51,15 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
         }
         finally
         {
+            try
+            {
+                foregroundSession.RestoreIfSafe();
+            }
+            catch
+            {
+                // Foreground cleanup is best effort and never changes the send result.
+            }
+
             sendGate.Release();
         }
     }
