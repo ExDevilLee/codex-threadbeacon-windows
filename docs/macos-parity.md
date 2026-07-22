@@ -53,7 +53,7 @@ checkpoint, then update this section even when no Windows change is required.
   merge, backs up existing configuration, removes only ThreadBeacon entries on
   uninstall, and keeps conversation text, summaries, Reasoning, paths, and
   transcripts out of storage. Windows history is implemented in `663da08`;
-  live Hook status is still pending.
+  the opt-in live Hook status is implemented in `e48a057`.
 - **Confirmed foreground recovery** (`648719f`): automatic recovery may proceed
   without navigating when the already-frontmost Codex task is the exact
   confirmed target and its composer is empty. Drafts and ambiguous composer
@@ -98,4 +98,17 @@ reference advances.
 - Found a recovery safety refinement: allow confirmed frontmost target recovery
   only with an empty composer, and add stable diagnostic codes.
 - Windows implementation status: compression history is complete in `663da08`;
-  the opt-in Hook phase and foreground recovery refinement remain pending.
+  the opt-in Hook phase is complete in `e48a057`; the foreground recovery
+  refinement remains pending.
+
+### 2026-07-23 - Windows compression Hook completion
+
+- Added an opt-in, user-level `PreCompact`/`PostCompact` Hook bridge with
+  structured configuration merge, backup, selective removal, and fail-closed
+  handling for unknown or externally modified configurations.
+- Added a privacy-minimized local activity marker and localized live
+  `Compacting` status without storing prompts, summaries, Reasoning, transcript
+  paths, or other Hook payload fields.
+- Verified the packaged bridge lifecycle, installed Release UI in Chinese and
+  English, and the primary-row transition into and out of the compacting state.
+- Windows completion commit: `e48a057`.
