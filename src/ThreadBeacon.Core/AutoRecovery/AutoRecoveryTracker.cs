@@ -64,6 +64,7 @@ public sealed class AutoRecoveryTracker
             ServiceIncidentKind.BadRequest => AutoRecoveryIncidentType.Http400,
             ServiceIncidentKind.HttpRateLimit => AutoRecoveryIncidentType.Http429,
             ServiceIncidentKind.ModelCapacity => AutoRecoveryIncidentType.ModelCapacity,
+            ServiceIncidentKind.StreamDisconnected => AutoRecoveryIncidentType.StreamDisconnected,
             _ when incident.HttpStatusCode == 503 => AutoRecoveryIncidentType.Http503,
             _ => AutoRecoveryIncidentType.OtherHttp,
         };

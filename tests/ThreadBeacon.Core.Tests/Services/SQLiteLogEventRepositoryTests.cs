@@ -13,11 +13,11 @@ public sealed class SQLiteLogEventRepositoryTests
         var repository = new SQLiteLogEventRepository(database.Path);
 
         ServiceLogLoadResult result = repository.LoadLatestIncidents(
-            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e", "thread-f" });
+            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e", "thread-f", "thread-g" });
         IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
         Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
-        Assert.Equal(5, incidents.Count);
+        Assert.Equal(6, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
         Assert.Equal(ServiceIncidentPhase.Retrying, incidents["thread-b"].Phase);
@@ -28,6 +28,9 @@ public sealed class SQLiteLogEventRepositoryTests
         Assert.Equal(400, incidents["thread-e"].HttpStatusCode);
         Assert.Equal(ServiceIncidentKind.OtherHttp, incidents["thread-f"].Kind);
         Assert.Equal(502, incidents["thread-f"].HttpStatusCode);
+        Assert.Equal(ServiceIncidentKind.StreamDisconnected, incidents["thread-g"].Kind);
+        Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-g"].Phase);
+        Assert.Equal(5, incidents["thread-g"].RetryAttempt);
         Assert.DoesNotContain("thread-c", incidents.Keys);
     }
 
@@ -161,7 +164,11 @@ public sealed class SQLiteLogEventRepositoryTests
                 (600, 0, 'DEBUG', 'codex_http_client::default_client',
                  'turn{turn.id=turn-f}: Request completed status=502 Bad Gateway', 'thread-f'),
                 (601, 0, 'INFO', 'codex_core::session::turn',
-                 'turn{turn.id=turn-f}: Turn error: unexpected status 502 Bad Gateway', 'thread-f');
+                 'turn{turn.id=turn-f}: Turn error: unexpected status 502 Bad Gateway', 'thread-f'),
+                (700, 0, 'INFO', 'codex_core::responses_retry',
+                 'turn{turn.id=turn-g}: stream disconnected - retrying sampling request (5/5 in 3s)...', 'thread-g'),
+                (701, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-g}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)', 'thread-g');
             """;
     }
 }

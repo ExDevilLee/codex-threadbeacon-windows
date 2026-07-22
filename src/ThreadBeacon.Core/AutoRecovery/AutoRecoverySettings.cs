@@ -19,6 +19,7 @@ public enum AutoRecoveryIncidentType
     Http503,
     OtherHttp,
     ModelCapacity,
+    StreamDisconnected,
 }
 
 public sealed record AutoRecoveryRule(
@@ -105,6 +106,8 @@ public sealed class AutoRecoverySettings
             "刚才请求异常中断了，请继续未完成的任务",
         (AutoRecoveryPromptLanguage.SimplifiedChinese, AutoRecoveryIncidentType.ModelCapacity) =>
             "刚才因模型容量限制中断了，请继续未完成的任务",
+        (AutoRecoveryPromptLanguage.SimplifiedChinese, AutoRecoveryIncidentType.StreamDisconnected) =>
+            "刚才连接中断且重试失败，请继续未完成的任务",
         (AutoRecoveryPromptLanguage.English, AutoRecoveryIncidentType.Http400) =>
             "The previous request was interrupted by an error. Please continue the unfinished task.",
         (AutoRecoveryPromptLanguage.English, AutoRecoveryIncidentType.Http429) =>
@@ -113,6 +116,8 @@ public sealed class AutoRecoverySettings
             "The previous request was interrupted because the service was unavailable. Please continue the unfinished task.",
         (AutoRecoveryPromptLanguage.English, AutoRecoveryIncidentType.OtherHttp) =>
             "The previous request was interrupted by an HTTP error. Please continue the unfinished task.",
-        _ => "The previous request was interrupted due to model capacity limits. Please continue the unfinished task.",
+        (AutoRecoveryPromptLanguage.English, AutoRecoveryIncidentType.ModelCapacity) =>
+            "The previous request was interrupted due to model capacity limits. Please continue the unfinished task.",
+        _ => "The connection was interrupted and all retries failed. Please continue the unfinished task.",
     };
 }

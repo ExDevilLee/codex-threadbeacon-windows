@@ -48,6 +48,55 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_KeepsExhaustedReconnectAsWarningBeforeFinalError()
+    {
+        LogEventRecord[] records =
+        [
+            Record(275, "codex_core::responses_retry",
+                "turn{turn.id=turn-disconnect-warning}: stream disconnected - retrying sampling request (5/5 in 3s)..."),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Retrying, incident.Phase);
+        Assert.Equal(5, incident.RetryAttempt);
+        Assert.Equal(5, incident.RetryLimit);
+    }
+
+    [Fact]
+    public void LatestIncidents_TurnsExhaustedReconnectFollowedByFinalDisconnectIntoFailure()
+    {
+        LogEventRecord[] records =
+        [
+            Record(280, "codex_core::responses_retry",
+                "turn{turn.id=turn-disconnect}: stream disconnected - retrying sampling request (5/5 in 3s)..."),
+            Record(281, "codex_core::session::turn",
+                "turn{turn.id=turn-disconnect}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)"),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.StreamDisconnected, incident.Kind);
+        Assert.Null(incident.HttpStatusCode);
+        Assert.Equal(5, incident.RetryAttempt);
+        Assert.Equal(5, incident.RetryLimit);
+        Assert.Equal(At(281), incident.OccurredAt);
+    }
+
+    [Fact]
+    public void LatestIncidents_IgnoresFinalDisconnectWithoutExhaustedReconnect()
+    {
+        LogEventRecord[] records =
+        [
+            Record(290, "codex_core::session::turn",
+                "turn{turn.id=turn-disconnect-unmatched}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)"),
+        ];
+
+        Assert.Empty(new LogEventParser().LatestIncidents(records));
+    }
+
+    [Fact]
     public void LatestIncidents_RecognizesModelCapacityFailure()
     {
         LogEventRecord[] records =

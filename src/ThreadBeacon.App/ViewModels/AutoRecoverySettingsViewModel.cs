@@ -211,12 +211,14 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
             (AppLanguage.English, AutoRecoveryIncidentType.Http429) => "HTTP 429",
             (AppLanguage.English, AutoRecoveryIncidentType.Http503) => "HTTP 503",
             (AppLanguage.English, AutoRecoveryIncidentType.OtherHttp) => "Other HTTP errors",
-            (AppLanguage.English, _) => "Model capacity",
+            (AppLanguage.English, AutoRecoveryIncidentType.ModelCapacity) => "Model capacity",
+            (AppLanguage.English, _) => "Connection interrupted",
             (_, AutoRecoveryIncidentType.Http400) => "HTTP 400",
             (_, AutoRecoveryIncidentType.Http429) => "HTTP 429",
             (_, AutoRecoveryIncidentType.Http503) => "HTTP 503",
             (_, AutoRecoveryIncidentType.OtherHttp) => "其他 HTTP 错误",
-            _ => "模型容量限制",
+            (_, AutoRecoveryIncidentType.ModelCapacity) => "模型容量限制",
+            _ => "连接中断",
         };
 
     private string StatusName(AutoRecoveryHistoryStatus status) =>

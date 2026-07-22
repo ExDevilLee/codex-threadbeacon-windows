@@ -16,6 +16,26 @@ public sealed class AutoRecoverySettingsTests
         Assert.False(settings.RuleFor(AutoRecoveryIncidentType.Http503).IsEnabled);
         Assert.True(settings.RuleFor(AutoRecoveryIncidentType.OtherHttp).IsEnabled);
         Assert.True(settings.RuleFor(AutoRecoveryIncidentType.ModelCapacity).IsEnabled);
+        Assert.True(settings.RuleFor(AutoRecoveryIncidentType.StreamDisconnected).IsEnabled);
+        Assert.Equal(
+            "The connection was interrupted and all retries failed. Please continue the unfinished task.",
+            settings.RuleFor(AutoRecoveryIncidentType.StreamDisconnected).Prompt);
+    }
+
+    [Fact]
+    public void Constructor_MissingStreamDisconnectRuleUsesLocalizedDefault()
+    {
+        var legacyRules = Enum.GetValues<AutoRecoveryIncidentType>()
+            .Where(type => type is not AutoRecoveryIncidentType.StreamDisconnected)
+            .ToDictionary(
+                type => type,
+                type => AutoRecoverySettings.DefaultRule(type, AutoRecoveryPromptLanguage.English));
+
+        var settings = new AutoRecoverySettings(false, legacyRules);
+
+        Assert.True(settings.RuleFor(AutoRecoveryIncidentType.StreamDisconnected).IsEnabled);
+        Assert.False(string.IsNullOrWhiteSpace(
+            settings.RuleFor(AutoRecoveryIncidentType.StreamDisconnected).Prompt));
     }
 
     [Fact]

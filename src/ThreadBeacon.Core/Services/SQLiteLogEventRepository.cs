@@ -74,6 +74,7 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
                   AND (
                     feedback_log_body GLOB '*status[ =][45][0-9][0-9]*'
                     OR feedback_log_body LIKE '%Selected model is at capacity%'
+                    OR feedback_log_body LIKE '%Turn error: stream disconnected before completion:%'
                   )
                 )
               )

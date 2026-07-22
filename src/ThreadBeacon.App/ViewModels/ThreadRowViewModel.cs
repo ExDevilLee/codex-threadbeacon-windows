@@ -384,12 +384,20 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
                 : "Model at capacity");
         }
 
+        if (incident.Kind is ServiceIncidentKind.StreamDisconnected)
+        {
+            parts.Add(language is AppLanguage.SimplifiedChinese
+                ? "连接中断"
+                : "Connection interrupted");
+        }
+
         if (incident.HttpStatusCode is int statusCode)
         {
             parts.Add($"HTTP {statusCode.ToString(CultureInfo.InvariantCulture)}");
         }
 
-        if (incident.Phase is ServiceIncidentPhase.Retrying
+        if ((incident.Phase is ServiceIncidentPhase.Retrying
+                || incident.Kind is ServiceIncidentKind.StreamDisconnected)
             && incident.RetryAttempt is int attempt
             && incident.RetryLimit is int limit)
         {

@@ -79,6 +79,17 @@ public sealed partial class LogEventParser
                         episode.HttpStatusCode = null;
                         episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
                     }
+                    else if (record.Body.Contains(
+                            "Turn error: stream disconnected before completion:",
+                            StringComparison.Ordinal)
+                        && episode.RetryAttempt is int retryAttempt
+                        && episode.RetryLimit is int retryLimit
+                        && retryAttempt == retryLimit)
+                    {
+                        episode.Kind = ServiceIncidentKind.StreamDisconnected;
+                        episode.HttpStatusCode = null;
+                        episode.FailedAt = Later(episode.FailedAt, record.OccurredAt);
+                    }
                     else if (record.Body.Contains("Turn error:", StringComparison.Ordinal)
                         && TryStatusCode(record.Body) is >= 400 and <= 599)
                     {

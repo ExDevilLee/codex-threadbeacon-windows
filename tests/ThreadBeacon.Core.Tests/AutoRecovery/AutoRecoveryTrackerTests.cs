@@ -58,11 +58,28 @@ public sealed class AutoRecoveryTrackerTests
         Assert.Empty(result);
     }
 
+    [Fact]
+    public void Observe_StreamDisconnectFailureCreatesDedicatedCandidateOnce()
+    {
+        var tracker = new AutoRecoveryTracker();
+
+        IReadOnlyList<AutoRecoveryCandidate> first = tracker.Observe(
+            [Snapshot(ServiceIncidentPhase.Failed, kind: ServiceIncidentKind.StreamDisconnected)],
+            RefreshNotificationPolicy.Notify);
+        IReadOnlyList<AutoRecoveryCandidate> duplicate = tracker.Observe(
+            [Snapshot(ServiceIncidentPhase.Failed, kind: ServiceIncidentKind.StreamDisconnected)],
+            RefreshNotificationPolicy.Notify);
+
+        Assert.Equal(AutoRecoveryIncidentType.StreamDisconnected, Assert.Single(first).IncidentType);
+        Assert.Empty(duplicate);
+    }
+
     private static ThreadSnapshot Snapshot(
         ServiceIncidentPhase phase,
         bool isArchived = false,
         string? rolloutPath = @"C:\Codex\rollout.jsonl",
-        string id = "thread-1") => new(
+        string id = "thread-1",
+        ServiceIncidentKind kind = ServiceIncidentKind.ServiceUnavailable) => new(
             id,
             "Renamed title",
             phase is ServiceIncidentPhase.Failed ? ThreadStatus.Error : ThreadStatus.Warning,
@@ -80,7 +97,8 @@ public sealed class AutoRecoveryTrackerTests
                 503,
                 5,
                 5,
-                DateTimeOffset.UnixEpoch),
+                DateTimeOffset.UnixEpoch,
+                kind),
             isArchived: isArchived,
             rolloutPath: rolloutPath);
 }

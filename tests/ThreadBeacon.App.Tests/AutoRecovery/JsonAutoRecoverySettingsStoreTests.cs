@@ -57,7 +57,7 @@ public sealed class JsonAutoRecoverySettingsStoreTests
             AutoRecoverySettings settings = store.Load(AutoRecoveryPromptLanguage.English);
 
             Assert.False(settings.IsEnabled);
-            Assert.Equal(5, settings.Rules.Count);
+            Assert.Equal(6, settings.Rules.Count);
         }
         finally
         {
@@ -77,8 +77,11 @@ public sealed class JsonAutoRecoverySettingsStoreTests
             AutoRecoverySettings settings = store.Load(AutoRecoveryPromptLanguage.English);
 
             Assert.True(settings.IsEnabled);
-            Assert.Equal(5, settings.Rules.Count);
+            Assert.Equal(6, settings.Rules.Count);
             Assert.StartsWith("The previous request", settings.RuleFor(AutoRecoveryIncidentType.Http400).Prompt);
+            Assert.Equal(
+                "The connection was interrupted and all retries failed. Please continue the unfinished task.",
+                settings.RuleFor(AutoRecoveryIncidentType.StreamDisconnected).Prompt);
         }
         finally
         {

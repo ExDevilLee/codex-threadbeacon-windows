@@ -13,6 +13,7 @@ public enum ServiceIncidentKind
     HttpRateLimit,
     ModelCapacity,
     OtherHttp,
+    StreamDisconnected,
 }
 
 public sealed record ServiceIncident(

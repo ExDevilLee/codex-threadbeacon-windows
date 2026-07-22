@@ -7,6 +7,17 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-22
+
+### Added
+
+- 识别同一 turn 中重连次数耗尽后出现的最终连接中断，显示“连接中断 · 重试 5/5”，并增加独立的自动恢复规则和中英文默认提示词。
+- 保持自动恢复总开关默认关闭；单独的 `5/5` 仍为重试警告，缺少耗尽证据的断流文本不会被误判为终止失败。
+
+### Security
+
+- 最终断流仍只从白名单日志 target 只读解析；任务快照、界面、设置和恢复记录均不保留日志正文、URL 或本机路径。
+
 ## [0.12.1] - 2026-07-21
 
 ### Added
@@ -124,7 +135,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.10.3...v0.11.0

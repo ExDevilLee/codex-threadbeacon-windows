@@ -223,7 +223,7 @@
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,12">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="180" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <CheckBox VerticalAlignment="Top"
@@ -263,18 +263,34 @@
                                   HeadersVisibility="Column"
                                   ItemsSource="{Binding AutoRecovery.History}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Width="*"
-                                                    Header="{DynamicResource RecoveryTaskId}"
-                                                    Binding="{Binding ThreadId}" />
-                                <DataGridTextColumn Width="130"
-                                                    Header="{DynamicResource RecoveryIncident}"
-                                                    Binding="{Binding Incident}" />
-                                <DataGridTextColumn Width="80"
-                                                    Header="{DynamicResource RecoveryStatus}"
-                                                    Binding="{Binding Status}" />
-                                <DataGridTextColumn Width="145"
-                                                    Header="{DynamicResource RecoveryUpdatedAt}"
-                                                    Binding="{Binding UpdatedAt}" />
+                                <DataGridTextColumn Width="*" Binding="{Binding ThreadId}">
+                                    <DataGridTextColumn.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{DynamicResource RecoveryTaskId}" />
+                                        </DataTemplate>
+                                    </DataGridTextColumn.HeaderTemplate>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="130" Binding="{Binding Incident}">
+                                    <DataGridTextColumn.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{DynamicResource RecoveryIncident}" />
+                                        </DataTemplate>
+                                    </DataGridTextColumn.HeaderTemplate>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="80" Binding="{Binding Status}">
+                                    <DataGridTextColumn.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{DynamicResource RecoveryStatus}" />
+                                        </DataTemplate>
+                                    </DataGridTextColumn.HeaderTemplate>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Width="145" Binding="{Binding UpdatedAt}">
+                                    <DataGridTextColumn.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{DynamicResource RecoveryUpdatedAt}" />
+                                        </DataTemplate>
+                                    </DataGridTextColumn.HeaderTemplate>
+                                </DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </StackPanel>

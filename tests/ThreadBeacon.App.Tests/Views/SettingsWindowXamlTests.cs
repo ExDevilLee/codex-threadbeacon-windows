@@ -84,6 +84,44 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
+    public void AutoRecoveryTab_ReservesEnoughWidthForEnglishRuleNames()
+    {
+        XDocument document = LoadDocument();
+        XElement rules = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "ItemsControl"
+                && (string?)element.Attribute("ItemsSource") == "{Binding AutoRecovery.Rules}");
+        XElement labelColumn = rules.Descendants()
+            .First(element => element.Name.LocalName == "ColumnDefinition");
+
+        Assert.Equal("180", (string?)labelColumn.Attribute("Width"));
+    }
+
+    [Fact]
+    public void AutoRecoveryHistory_UsesLiveLocalizedHeaderTemplates()
+    {
+        XDocument document = LoadDocument();
+        XElement dataGrid = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "DataGrid"
+                && (string?)element.Attribute("ItemsSource") == "{Binding AutoRecovery.History}");
+        string[] resources = dataGrid.Descendants()
+            .Where(element => element.Name.LocalName == "TextBlock")
+            .Select(element => (string?)element.Attribute("Text"))
+            .OfType<string>()
+            .ToArray();
+
+        Assert.Equal(
+            [
+                "{DynamicResource RecoveryTaskId}",
+                "{DynamicResource RecoveryIncident}",
+                "{DynamicResource RecoveryStatus}",
+                "{DynamicResource RecoveryUpdatedAt}",
+            ],
+            resources);
+    }
+
+    [Fact]
     public void ComboBoxes_VerticallyCenterSelectedText()
     {
         XElement[] comboBoxes = LoadDocument()

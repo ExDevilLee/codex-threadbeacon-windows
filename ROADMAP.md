@@ -54,6 +54,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Show active retries as warnings and exhausted retries as failures with HTTP/retry detail.
 - [x] Detect model-capacity failures and show a dedicated privacy-safe detail label.
 - [x] Detect terminal HTTP 400 failures and show the status code without retaining the log body.
+- [x] Require same-turn exhausted retries before treating a final stream disconnect as terminal.
 - [x] Clear stale incidents after same-turn recovery or newer rollout lifecycle evidence.
 - [x] Suppress misleading completion sounds while an incident is active.
 - [x] Play one independently configurable warning sound per incident episode.
@@ -168,7 +169,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 
 - [x] Validate Windows Codex task selection and composer control with two same-title dedicated test tasks.
 - [x] Keep automatic recovery disabled by default and baseline historical incidents at startup.
-- [x] Configure HTTP 400, HTTP 429, HTTP 503, other HTTP, and model-capacity rules independently, with HTTP 503 disabled by default.
+- [x] Configure HTTP 400, HTTP 429, HTTP 503, other HTTP, model-capacity, and exhausted connection-interruption rules independently, with HTTP 503 disabled by default.
 - [x] Require ID deep-link navigation, exact Rename header identity, a changed empty composer, and one structural send-button match.
 - [x] Invoke Send once without retry and verify the exact user message plus `task_started` in the target rollout.
 - [x] Persist localized/custom prompts and bounded privacy-safe attempt history locally.

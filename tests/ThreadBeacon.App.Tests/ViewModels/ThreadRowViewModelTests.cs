@@ -148,6 +148,27 @@ public sealed class ThreadRowViewModelTests
     }
 
     [Fact]
+    public void Constructor_StreamDisconnectFailureShowsConnectionAndRetryDetail()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(
+                subagentCount: 0,
+                serviceIncident: new ServiceIncident(
+                    "turn-disconnect",
+                    ServiceIncidentPhase.Failed,
+                    null,
+                    5,
+                    5,
+                    Now.AddSeconds(-10),
+                    ServiceIncidentKind.StreamDisconnected)),
+            Now,
+            language: AppLanguage.English);
+
+        Assert.Equal("Service failed", viewModel.StatusLabel);
+        Assert.Equal("Connection interrupted · Retry 5/5", viewModel.IncidentDetailText);
+    }
+
+    [Fact]
     public void Constructor_NormalTaskHasNoIncidentPresentation()
     {
         var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 0), Now);
