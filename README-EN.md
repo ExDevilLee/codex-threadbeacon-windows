@@ -130,7 +130,7 @@ Other failure/warning sounds, Subagent alerts and Token aggregation, and the sys
 - `tests/ThreadBeacon.Core.Tests`: core behavior and compatibility tests.
 - `tests/ThreadBeacon.App.Tests`: local settings and window interaction state tests.
 - `tools/ThreadBeacon.Probe`: a local probe that only reports source health and thread count.
-- `docs`: Windows probe and design notes.
+- `docs`: Windows probe, design notes, and the [macOS parity ledger](docs/macos-parity.md).
 
 The macOS repository is a behavioral reference only and is not a source dependency.
 
