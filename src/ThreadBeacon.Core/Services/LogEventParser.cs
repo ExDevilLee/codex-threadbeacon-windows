@@ -9,8 +9,10 @@ public sealed partial class LogEventParser
     public static IReadOnlySet<string> AllowedTargets { get; } = new HashSet<string>(
         [
             "codex_http_client::default_client",
+            "codex_http_client::transport",
             "codex_core::responses_retry",
             "codex_core::session::turn",
+            "codex_core::stream_events_utils",
         ],
         StringComparer.Ordinal);
 
@@ -56,12 +58,9 @@ public sealed partial class LogEventParser
 
                     break;
 
+                case "codex_http_client::transport":
                 case "codex_core::responses_retry":
-                    Match progress = RetryProgressRegex().Match(record.Body);
-                    if (progress.Success
-                        && TryPositiveInt(progress.Groups[1].Value) is int attempt
-                        && TryPositiveInt(progress.Groups[2].Value) is int limit
-                        && attempt <= limit)
+                    if (TryRetryProgress(record.Body) is (int attempt, int limit))
                     {
                         episode.RetryAttempt = attempt;
                         episode.RetryLimit = limit;
@@ -71,6 +70,7 @@ public sealed partial class LogEventParser
                     break;
 
                 case "codex_core::session::turn":
+                case "codex_core::stream_events_utils":
                     if (record.Body.Contains(
                         "Turn error: Selected model is at capacity. Please try a different model.",
                         StringComparison.Ordinal))
@@ -139,6 +139,27 @@ public sealed partial class LogEventParser
             && result > 0
                 ? result
                 : null;
+
+    private static (int Attempt, int Limit)? TryRetryProgress(string body)
+    {
+        (int Attempt, int Limit)? latest = null;
+        foreach (Match progress in RetryProgressRegex().Matches(body))
+        {
+            if (TryPositiveInt(progress.Groups[1].Value) is not int attempt
+                || TryPositiveInt(progress.Groups[2].Value) is not int limit
+                || attempt > limit)
+            {
+                continue;
+            }
+
+            if (latest is null || attempt > latest.Value.Attempt)
+            {
+                latest = (attempt, limit);
+            }
+        }
+
+        return latest;
+    }
 
     private static string? TryCapture(Regex expression, string value)
     {

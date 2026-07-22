@@ -85,6 +85,26 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_RecognizesCurrentTransportAndStreamTargets()
+    {
+        LogEventRecord[] records =
+        [
+            Record(282, "codex_http_client::transport",
+                "turn{turn.id=turn-current}: retrying sampling request (3/5 in 1s); nested retrying sampling request (5/5 in 3s)"),
+            Record(283, "codex_core::stream_events_utils",
+                "turn{turn.id=turn-current}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)"),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.StreamDisconnected, incident.Kind);
+        Assert.Equal(5, incident.RetryAttempt);
+        Assert.Equal(5, incident.RetryLimit);
+        Assert.Equal(At(283), incident.OccurredAt);
+    }
+
+    [Fact]
     public void LatestIncidents_IgnoresFinalDisconnectWithoutExhaustedReconnect()
     {
         LogEventRecord[] records =

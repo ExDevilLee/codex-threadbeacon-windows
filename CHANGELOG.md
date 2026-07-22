@@ -7,6 +7,20 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-07-23
+
+### Fixed
+
+- Restored exhausted stream-disconnect detection for current Codex log targets,
+  so a failed 5/5 reconnect is shown as a service failure instead of a recently
+  completed task.
+
+### Privacy
+
+- Transport logs remain restricted to exact retry and final-error signatures.
+  ThreadBeacon ignores lower-level SSE failures that do not contain a task ID
+  and never retains request URLs or log bodies.
+
 ## [0.21.0] - 2026-07-23
 
 ### Added

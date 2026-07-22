@@ -65,11 +65,11 @@ public sealed class SQLiteLogEventRepository : ILogEventRepository
                   )
                 )
                 OR (
-                  target = 'codex_core::responses_retry'
+                  target IN ('codex_core::responses_retry', 'codex_http_client::transport')
                   AND feedback_log_body LIKE '%retrying sampling request (%/%'
                 )
                 OR (
-                  target = 'codex_core::session::turn'
+                  target IN ('codex_core::session::turn', 'codex_core::stream_events_utils')
                   AND feedback_log_body LIKE '%Turn error:%'
                   AND (
                     feedback_log_body GLOB '*status[ =][45][0-9][0-9]*'
