@@ -467,7 +467,8 @@ public sealed class ThreadStatusLoader
             record.AgentRole,
             record.Model,
             record.ReasoningEffort,
-            rollout.Status);
+            rollout.Status,
+            record.AgentPath);
     }
 
     private static SubagentActivityLoadResult EmptySubagentActivityResult(

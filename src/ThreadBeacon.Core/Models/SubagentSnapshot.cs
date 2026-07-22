@@ -12,4 +12,5 @@ public sealed record SubagentSnapshot(
     string? AgentRole,
     string? Model,
     string? ReasoningEffort,
-    RolloutSourceStatus RolloutSourceStatus);
+    RolloutSourceStatus RolloutSourceStatus,
+    string? AgentPath = null);

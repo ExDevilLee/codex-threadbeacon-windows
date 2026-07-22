@@ -336,7 +336,7 @@ public sealed class ThreadStatusLoaderTests
         SubagentRecord[] children =
         [
             new("idle-child", "parent", "Idle child", "idle-child", Now.AddMinutes(-3), 20, null, "explorer", null, null),
-            new("running-child", "parent", "Running child", "running-child", Now.AddMinutes(-2), 10, "worker", "reviewer", "gpt-test", "high"),
+            new("running-child", "parent", "Running child", "running-child", Now.AddMinutes(-2), 10, "worker", "reviewer", "gpt-test", "high", "/root/audit_running_task"),
         ];
         var repository = new TrackingThreadRepository(
             new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [parent]),
@@ -378,6 +378,7 @@ public sealed class ThreadStatusLoaderTests
         Assert.Equal("reviewer", snapshot.Subagents[0].AgentRole);
         Assert.Equal("gpt-test", snapshot.Subagents[0].Model);
         Assert.Equal("high", snapshot.Subagents[0].ReasoningEffort);
+        Assert.Equal("/root/audit_running_task", snapshot.Subagents[0].AgentPath);
     }
 
     [Fact]

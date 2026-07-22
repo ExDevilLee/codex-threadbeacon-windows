@@ -116,7 +116,7 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
         Title = string.IsNullOrWhiteSpace(snapshot.Title)
             ? language is AppLanguage.SimplifiedChinese ? "未命名 Subagent" : "Unnamed Subagent"
             : snapshot.Title;
-        Alias = SubagentAliasFormatter.Format(snapshot.AgentNickname, Title);
+        Alias = SubagentAliasFormatter.Format(snapshot.AgentPath, snapshot.AgentNickname, Title);
         StatusLabel = SubagentDetailViewModel.StatusLabel(snapshot.Status, language);
         StatusBrush = StatusBrushFor(snapshot.Status);
         StatusGlyph = StatusGlyphFormatter.Format(snapshot.Status);

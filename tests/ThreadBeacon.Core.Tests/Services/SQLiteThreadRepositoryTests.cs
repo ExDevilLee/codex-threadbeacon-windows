@@ -210,6 +210,32 @@ public sealed class SQLiteThreadRepositoryTests
     }
 
     [Fact]
+    public void LoadDirectSubagents_ReadsAgentPathWhenColumnExists()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create(includeAgentPath: true);
+
+        SubagentLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDirectSubagents(new HashSet<string>(StringComparer.Ordinal) { "new-thread" });
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Equal(
+            "/root/archive_cleanup",
+            result.SubagentsByParent["new-thread"][0].AgentPath);
+    }
+
+    [Fact]
+    public void LoadDirectSubagents_OldSchemaWithoutAgentPathRemainsHealthy()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+
+        SubagentLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadDirectSubagents(new HashSet<string>(StringComparer.Ordinal) { "new-thread" });
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.All(result.SubagentsByParent["new-thread"], record => Assert.Null(record.AgentPath));
+    }
+
+    [Fact]
     public void LoadDirectSubagents_ReturnsEmptyForEmptyParentSet()
     {
         using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
@@ -272,13 +298,17 @@ public sealed class SQLiteThreadRepositoryTests
 
         public string Path { get; }
 
-        public static TemporaryThreadDatabase Create(bool includeSpawnEdges = true)
+        public static TemporaryThreadDatabase Create(
+            bool includeSpawnEdges = true,
+            bool includeAgentPath = false)
         {
             TemporaryThreadDatabase database = CreateEmpty();
             using var connection = OpenConnection(database.Path);
             connection.Open();
             using SqliteCommand command = connection.CreateCommand();
-            command.CommandText = SchemaSql + (includeSpawnEdges ? SpawnEdgesSql : string.Empty);
+            command.CommandText = SchemaSql
+                + (includeSpawnEdges ? SpawnEdgesSql : string.Empty)
+                + (includeAgentPath ? AgentPathSql : string.Empty);
             command.ExecuteNonQuery();
             return database;
         }
@@ -351,6 +381,12 @@ public sealed class SQLiteThreadRepositoryTests
                 ('new-thread', 'subagent-thread', 'open'),
                 ('new-thread', 'legacy-child', 'closed'),
                 ('new-thread', 'archived-child', 'closed');
+            """;
+
+        private const string AgentPathSql = """
+            ALTER TABLE threads ADD COLUMN agent_path TEXT;
+            UPDATE threads SET agent_path = '/root/archive_cleanup' WHERE id = 'archived-child';
+            UPDATE threads SET agent_path = '/root/worker_task' WHERE id = 'subagent-thread';
             """;
     }
 }

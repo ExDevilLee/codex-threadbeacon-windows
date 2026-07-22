@@ -539,12 +539,12 @@
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="*" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock MaxWidth="86"
+                                                        <TextBlock MaxWidth="120"
                                                                    FontSize="11"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                                                    Text="{Binding Alias}"
-                                                                   TextTrimming="CharacterEllipsis"
+                                                                   TextTrimming="WordEllipsis"
                                                                    ToolTip="{Binding Alias}"
                                                                    Visibility="{Binding HasAlias, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                         <TextBlock Grid.Column="1"

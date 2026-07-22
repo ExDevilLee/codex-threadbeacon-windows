@@ -7,6 +7,21 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-07-22
+
+### Changed
+
+- Subagent 展开行优先使用 `agent_path` 最后一段生成表意别名，例如将 `/root/fix_external_sync` 显示为 `Fix external sync`；缺少该字段的旧记录继续回退到 Agent nickname。
+- 表意别名采用更宽但有上限的显示区域，并按单词截断，在最小窗口宽度下仍为任务标题保留空间。
+
+### Compatibility
+
+- 查询 Subagent 前会先检测 `agent_path` 列；旧版 Codex 数据库缺少该列时返回空值而不是让整个 Subagent 数据源失败。
+
+### Privacy
+
+- `agent_path` 只在当前刷新生成的内存快照中使用，不写入 ThreadBeacon 设置、历史或日志。
+
 ## [0.18.0] - 2026-07-22
 
 ### Added
@@ -201,7 +216,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...v0.16.0

@@ -233,6 +233,10 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                 return SubagentResult(ThreadRepositoryStatus.Healthy);
             }
 
+            string agentPathProjection = HasColumn(connection, "threads", "agent_path")
+                ? "child.agent_path"
+                : "NULL";
+
             string[] requestedIds = parentIds
                 .Where(id => !string.IsNullOrWhiteSpace(id))
                 .Distinct(StringComparer.Ordinal)
@@ -260,6 +264,7 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                        COALESCE(child.tokens_used, 0),
                        child.agent_nickname,
                        child.agent_role,
+                       {agentPathProjection},
                        child.model,
                        child.reasoning_effort
                 FROM thread_spawn_edges AS edge
@@ -290,8 +295,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                     reader.GetInt64(5),
                     ReadOptionalString(reader, 6),
                     ReadOptionalString(reader, 7),
-                    ReadOptionalString(reader, 8),
-                    ReadOptionalString(reader, 9)));
+                    ReadOptionalString(reader, 9),
+                    ReadOptionalString(reader, 10),
+                    ReadOptionalString(reader, 8)));
             }
 
             IReadOnlyDictionary<string, IReadOnlyList<SubagentRecord>> result = mutable
@@ -460,6 +466,25 @@ public sealed class SQLiteThreadRepository : IThreadRepository
             """;
         command.Parameters.AddWithValue("$tableName", tableName);
         return command.ExecuteScalar() is not null;
+    }
+
+    private static bool HasColumn(
+        SqliteConnection connection,
+        string tableName,
+        string columnName)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({tableName});";
+        using SqliteDataReader reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            if (StringComparer.OrdinalIgnoreCase.Equals(reader.GetString(1), columnName))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ThreadRecord ReadRecord(SqliteDataReader reader)

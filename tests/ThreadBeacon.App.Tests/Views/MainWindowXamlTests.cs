@@ -23,6 +23,19 @@ public sealed class MainWindowXamlTests
         Assert.Contains("AutomationProperties.Name=\"{Binding StatusLabel}\"", markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SubagentAliasUsesBoundedSemanticLabelWidth()
+    {
+        XDocument document = LoadDocument();
+        XElement alias = Assert.Single(
+            document.Descendants(),
+            element => element.Name.LocalName == "TextBlock"
+                && (string?)element.Attribute("Text") == "{Binding Alias}");
+
+        Assert.Equal("120", (string?)alias.Attribute("MaxWidth"));
+        Assert.Equal("WordEllipsis", (string?)alias.Attribute("TextTrimming"));
+    }
+
     private static int Count(string value, string token)
     {
         int count = 0;

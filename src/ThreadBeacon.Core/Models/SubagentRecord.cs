@@ -10,4 +10,5 @@ public sealed record SubagentRecord(
     string? AgentNickname,
     string? AgentRole,
     string? Model,
-    string? ReasoningEffort);
+    string? ReasoningEffort,
+    string? AgentPath = null);

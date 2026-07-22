@@ -101,4 +101,27 @@ public sealed class SubagentRowViewModelTests
         Assert.Equal("reviewer", row.Details.Rows.Single(item => item.Label == "Role").Value);
         Assert.Contains(row.Details.Rows, item => item.Label == "Latest activity");
     }
+
+    [Fact]
+    public void Constructor_PrefersSemanticAgentPathAlias()
+    {
+        var snapshot = new SubagentSnapshot(
+            "child",
+            "Review workspace",
+            ThreadStatus.Running,
+            Now,
+            Now,
+            Now,
+            null,
+            "Lagrange",
+            "reviewer",
+            "gpt-test",
+            "high",
+            RolloutSourceStatus.Healthy,
+            "/root/fix_external_sync");
+
+        var row = new SubagentRowViewModel(snapshot, Now, AppLanguage.English);
+
+        Assert.Equal("Fix external sync", row.Alias);
+    }
 }
