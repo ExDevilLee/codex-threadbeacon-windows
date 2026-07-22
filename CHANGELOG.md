@@ -7,6 +7,28 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-07-23
+
+### Added
+
+- Added an opt-in Codex Hook bridge for live `Compacting` / `压缩中` task status.
+- Added structured install, status check, and selective uninstall controls to
+  the General settings tab.
+- Bundled the self-contained Hook Bridge in both portable and single-file
+  release outputs.
+
+### Security
+
+- Existing `hooks.json` content is parsed and merged structurally, backed up,
+  written atomically, and never overwritten after a concurrent change.
+- Unsafe files, malformed JSON, and inline `config.toml` Hooks fail closed.
+
+### Privacy
+
+- Activity markers contain only session ID, turn ID, trigger, and local start
+  time. Hook payload fields such as transcript path, working directory, model,
+  conversation text, summaries, and Reasoning are not retained.
+
 ## [0.20.0] - 2026-07-23
 
 ### Added

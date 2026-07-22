@@ -48,6 +48,25 @@ public sealed class VersioningTests
     }
 
     [Fact]
+    public void ReleaseScript_PublishesAndBundlesHookBridge()
+    {
+        string releaseScript = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            "script",
+            "publish_release.ps1"));
+        string appProject = File.ReadAllText(Path.Combine(
+            RepositoryRoot,
+            "src",
+            "ThreadBeacon.App",
+            "ThreadBeacon.App.csproj"));
+
+        Assert.Contains("ThreadBeacon.HookBridge.csproj", releaseScript, StringComparison.Ordinal);
+        Assert.Contains("HookBridgePath", releaseScript, StringComparison.Ordinal);
+        Assert.Contains("$(HookBridgePath)", appProject, StringComparison.Ordinal);
+        Assert.Contains("ExcludeFromSingleFile", appProject, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReleaseScript_RetriesAndValidatesZipArchive()
     {
         string releaseScript = File.ReadAllText(Path.Combine(

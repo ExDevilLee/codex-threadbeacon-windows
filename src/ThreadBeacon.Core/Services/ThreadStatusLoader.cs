@@ -11,6 +11,7 @@ public sealed class ThreadStatusLoader
     private readonly TimeSpan completedRetention;
     private readonly TimeSpan runningFreshness;
     private readonly ILogEventRepository? logEventRepository;
+    private readonly CompactionActivityRepository compactionActivityRepository;
 
     public ThreadStatusLoader(
         IThreadRepository threadRepository,
@@ -19,7 +20,8 @@ public sealed class ThreadStatusLoader
         TimeProvider? timeProvider = null,
         TimeSpan? completedRetention = null,
         TimeSpan? runningFreshness = null,
-        ILogEventRepository? logEventRepository = null)
+        ILogEventRepository? logEventRepository = null,
+        CompactionActivityRepository? compactionActivityRepository = null)
     {
         this.threadRepository = threadRepository ?? throw new ArgumentNullException(nameof(threadRepository));
         this.titleRepository = titleRepository ?? throw new ArgumentNullException(nameof(titleRepository));
@@ -28,6 +30,7 @@ public sealed class ThreadStatusLoader
         this.completedRetention = completedRetention ?? TimeSpan.FromSeconds(60);
         this.runningFreshness = runningFreshness ?? TimeSpan.FromSeconds(120);
         this.logEventRepository = logEventRepository;
+        this.compactionActivityRepository = compactionActivityRepository ?? new CompactionActivityRepository();
     }
 
     public ThreadSnapshotLoadResult Load(
@@ -183,22 +186,31 @@ public sealed class ThreadStatusLoader
         IReadOnlyDictionary<string, RolloutLoadResult> activityRollouts)
     {
         RolloutLoadResult rollout = rolloutParser.Parse(record.RolloutPath);
+        incident = record.IsArchived
+            ? null
+            : ClearResolvedIncident(incident, rollout.Observation);
+        CompactionActivity? compactionActivity = record.IsArchived || incident is not null
+            ? null
+            : compactionActivityRepository.Read(
+                record.Id,
+                Later(
+                    rollout.Observation.CompletionEventAt,
+                    rollout.Observation.CompactionHistory.LastCompletedAt),
+                rollout.Observation.InterruptionEventAt,
+                now);
         ThreadDisplayState displayState = ThreadStatusPolicy.Evaluate(
             rollout.Observation,
             record.UpdatedAt,
             now,
             completedRetention,
             runningFreshness);
-        incident = record.IsArchived
-            ? null
-            : ClearResolvedIncident(incident, rollout.Observation);
         ThreadStatus status = incident?.Phase switch
         {
             ServiceIncidentPhase.Retrying => ThreadStatus.Warning,
             ServiceIncidentPhase.Failed => ThreadStatus.Error,
             _ => displayState.Status,
         };
-        DateTimeOffset statusChangedAt = incident?.OccurredAt ?? displayState.ChangedAt;
+        DateTimeOffset statusChangedAt = compactionActivity?.StartedAt ?? incident?.OccurredAt ?? displayState.ChangedAt;
         DateTimeOffset? latestEventAt = Later(
             rollout.Observation.LatestEventAt,
             incident?.OccurredAt);
@@ -212,6 +224,11 @@ public sealed class ThreadStatusLoader
             statusChangedAt = record.UpdatedAt;
             latestEventAt = record.UpdatedAt;
             latestTaskStartedAt = null;
+            completionEventAt = null;
+        }
+        else if (compactionActivity is not null)
+        {
+            status = ThreadStatus.Running;
             completionEventAt = null;
         }
         TokenUsageSnapshot? tokenUsage = rollout.Observation.TokenUsage
@@ -250,7 +267,8 @@ public sealed class ThreadStatusLoader
             record.Model ?? rollout.Observation.Model,
             record.ReasoningEffort ?? rollout.Observation.ReasoningEffort,
             record.IsArchived ? 0 : activeSubagentCount,
-            rollout.Observation.CompactionHistory);
+            rollout.Observation.CompactionHistory,
+            compactionActivity);
     }
 
     private ServiceLogLoadResult LoadIncidents(

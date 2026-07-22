@@ -71,7 +71,11 @@ The middle header button temporarily pauses or resumes automatic monitoring. Man
 
 The info button beside cumulative Token usage now opens Task details. It shows the primary task's model and reasoning effort before session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Model and reasoning effort prefer the read-only task database and independently fall back to the latest valid rollout `turn_context`; hover opens a transient popover and clicking pins it, and a pinned popover remains stable across automatic task refreshes.
 
-Token details also show read-only rollout compression history: the completed compression count and the latest completion time. A task without compression events shows `0` and `-`. This first Windows phase does not install or modify Codex Hooks and does not read compression summaries, conversation text, Reasoning, working directories, or transcripts; live `Compacting` status will be a separate opt-in phase.
+Token details also show read-only rollout compression history: the completed compression count and the latest completion time. A task without compression events shows `0` and `-`.
+
+The General settings tab also provides live compaction status as an opt-in feature. Enabling it structurally merges `PreCompact` and `PostCompact` into `%CODEX_HOME%\hooks.json` and installs a separate bridge under `%LOCALAPPDATA%\ThreadBeacon\hooks\v1`. Existing configuration is backed up before installation; Check validates the current state; Disable removes only ThreadBeacon-owned handlers and preserves every other Hook. Invalid JSON, reparse points, concurrent edits, and inline Hooks in `config.toml` fail closed without overwriting the source configuration.
+
+Each active marker contains only session ID, turn ID, the `manual`/`auto` trigger, and a local start time, with a 15-minute stale-marker limit. The bridge discards transcript paths, working directories, model names, compression summaries, conversation text, and Reasoning. Codex may still ask the user to review and trust the Hook command.
 
 The gear button opens a separate settings window. Its General tab offers 1, 2, 5, or 10-second refresh intervals, maximum task counts of 4, 8, 12, or 20, and a Launch at login switch; changes are saved and applied immediately without altering the paused state. Launch at login writes only the current-user `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\ThreadBeacon` value and removes it when disabled; an unavailable registry is handled as a non-blocking settings failure. The Sounds tab provides the same eight built-in tones as the macOS version, including preview playback. New installations default to Chime for task completion and Alert for 429/503 incidents; either notification can independently use any of the eight sounds. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, monitoring resume, and task-count changes establish a baseline and never replay historical completions. Display preferences are stored in `%LOCALAPPDATA%\ThreadBeacon\display-settings.json`; sound preferences and at most 256 derived event IDs also stay local. These files contain no task titles, conversation bodies, Token details, or Codex paths.
 
@@ -154,7 +158,7 @@ The repository root `VERSION` file is the single source of truth for the app ver
 .\script\publish_release.ps1
 ```
 
-The script writes a portable package ZIP and the published executable under `artifacts/release/<tag>`. The ZIP is the recommended distribution because it includes the bundled sound assets alongside the executable.
+The script writes a portable package ZIP and the published executable under `artifacts/release/<tag>`. The ZIP is the recommended distribution because it includes the bundled sound assets and optional live-compaction Hook Bridge alongside the executable; the single-file executable extracts the same Bridge at runtime.
 
 Pushing a `v*` tag also starts the repository GitHub Actions release workflow. It rebuilds the assets on a clean Windows runner and publishes both files to the matching GitHub Release.
 

@@ -15,7 +15,9 @@
         <TabControl Background="Transparent"
                     BorderBrush="{DynamicResource ControlBorderBrush}">
             <TabItem Header="{DynamicResource GeneralTab}">
-                <Grid Margin="18">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="18">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="150" />
@@ -133,6 +135,53 @@
                               SelectedValuePath="Value"
                               SelectedValue="{Binding Display.MaximumTaskCount, Mode=TwoWay}" />
                 </Grid>
+                <Separator Margin="0,18,0,14" />
+                <StackPanel>
+                    <TextBlock FontSize="14"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource CompactionHookTitle}" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"
+                               Text="{DynamicResource CompactionHookDescription}" />
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock DockPanel.Dock="Left"
+                                   FontWeight="SemiBold"
+                                   Text="{DynamicResource CompactionHookStatus}" />
+                        <TextBlock Margin="8,0,0,0"
+                                   Text="{Binding Hook.StatusText}" />
+                    </DockPanel>
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button Padding="12,4"
+                                Command="{Binding Hook.EnableCommand}"
+                                Content="{DynamicResource CompactionHookEnable}" />
+                        <Button Margin="8,0,0,0"
+                                Padding="12,4"
+                                Command="{Binding Hook.RefreshCommand}"
+                                Content="{DynamicResource CompactionHookCheck}" />
+                        <Button Margin="8,0,0,0"
+                                Padding="12,4"
+                                Command="{Binding Hook.DisableCommand}"
+                                Content="{DynamicResource CompactionHookDisable}" />
+                    </WrapPanel>
+                    <TextBlock Margin="0,8,0,0"
+                               Foreground="#FFD13438"
+                               TextWrapping="Wrap"
+                               Text="{Binding Hook.ErrorText}" />
+                    <TextBlock Margin="0,6,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"
+                               Text="{DynamicResource CompactionHookDisclosure}" />
+                    <TextBlock Margin="0,4,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"
+                               Text="{DynamicResource CompactionHookTrust}" />
+                </StackPanel>
+                </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem Header="{DynamicResource SoundsTab}">

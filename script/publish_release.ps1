@@ -18,6 +18,7 @@ if ($env:GITHUB_REF_NAME -and $env:GITHUB_REF_NAME -ne $tag) {
 $releaseRoot = Join-Path $repositoryRoot "artifacts\release\$tag"
 $publishRoot = Join-Path $releaseRoot "ThreadBeacon"
 $singleFileRoot = Join-Path $releaseRoot "_single"
+$hookBridgeRoot = Join-Path $releaseRoot "_hook-bridge"
 $archivePath = Join-Path $releaseRoot "ThreadBeacon-$tag-$Runtime.zip"
 $exeAssetPath = Join-Path $releaseRoot "ThreadBeacon-$tag-$Runtime.exe"
 
@@ -34,6 +35,28 @@ if (Test-Path $exeAssetPath) {
 if (Test-Path $singleFileRoot) {
     Remove-Item -Recurse -Force -LiteralPath $singleFileRoot
 }
+if (Test-Path $hookBridgeRoot) {
+    Remove-Item -Recurse -Force -LiteralPath $hookBridgeRoot
+}
+
+dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.HookBridge\ThreadBeacon.HookBridge.csproj") `
+    --configuration $Configuration `
+    --runtime $Runtime `
+    --self-contained true `
+    --output $hookBridgeRoot `
+    -p:Version=$version `
+    -p:AssemblyVersion="$version.0" `
+    -p:FileVersion="$version.0" `
+    -p:InformationalVersion=$version `
+    -p:PublishSingleFile=true `
+    -p:EnableCompressionInSingleFile=true `
+    -p:DebugType=None `
+    -p:DebugSymbols=false
+
+$hookBridgePath = Join-Path $hookBridgeRoot "ThreadBeacon.HookBridge.exe"
+if (-not (Test-Path $hookBridgePath -PathType Leaf)) {
+    throw "Hook Bridge publish did not produce ThreadBeacon.HookBridge.exe."
+}
 
 dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App.csproj") `
     --configuration $Configuration `
@@ -43,7 +66,8 @@ dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App
     -p:Version=$version `
     -p:AssemblyVersion="$version.0" `
     -p:FileVersion="$version.0" `
-    -p:InformationalVersion=$version
+    -p:InformationalVersion=$version `
+    -p:HookBridgePath=$hookBridgePath
 
 function Test-ReleaseArchive([string]$Path, [string]$SourceDirectory) {
     try {
@@ -117,6 +141,7 @@ dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App
     -p:AssemblyVersion="$version.0" `
     -p:FileVersion="$version.0" `
     -p:InformationalVersion=$version `
+    -p:HookBridgePath=$hookBridgePath `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:IncludeAllContentForSelfExtract=true `
@@ -126,6 +151,7 @@ dotnet publish (Join-Path $repositoryRoot "src\ThreadBeacon.App\ThreadBeacon.App
 
 Copy-Item (Join-Path $singleFileRoot "ThreadBeacon.App.exe") $exeAssetPath
 Remove-Item -Recurse -Force -LiteralPath $singleFileRoot
+Remove-Item -Recurse -Force -LiteralPath $hookBridgeRoot
 
 [pscustomobject]@{
     Version = $version

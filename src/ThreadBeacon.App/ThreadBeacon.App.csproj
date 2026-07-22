@@ -25,4 +25,12 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(HookBridgePath)' != ''">
+    <Content Include="$(HookBridgePath)" Link="ThreadBeacon.HookBridge.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>false</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -9,12 +9,14 @@ public sealed record RolloutObservation(
     TokenUsageSnapshot? TokenUsage,
     string? Model = null,
     string? ReasoningEffort = null,
-    CompactionHistory? CompactionHistory = null)
+    CompactionHistory? CompactionHistory = null,
+    DateTimeOffset? InterruptionEventAt = null)
 {
     public CompactionHistory CompactionHistory { get; } = CompactionHistory ?? new();
 
     public static RolloutObservation Empty { get; } = new(
         ThreadStatus.Unknown,
+        null,
         null,
         null,
         null,

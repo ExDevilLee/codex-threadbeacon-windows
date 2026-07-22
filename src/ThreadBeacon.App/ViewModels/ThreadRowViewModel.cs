@@ -291,7 +291,9 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
         IsArchived = snapshot.IsArchived;
         StatusLabel = IsArchived
             ? language is AppLanguage.SimplifiedChinese ? "已归档" : "Archived"
-            : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident, language);
+            : snapshot.CompactionActivity is not null
+                ? AppLanguageText.Compacting(language)
+                : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident, language);
         StatusBrush = IsArchived ? IdleBrush : GetStatusBrush(snapshot.Status);
         StatusGlyph = StatusGlyphFormatter.Format(IsArchived ? ThreadStatus.Idle : snapshot.Status);
         IncidentDetailText = IsArchived

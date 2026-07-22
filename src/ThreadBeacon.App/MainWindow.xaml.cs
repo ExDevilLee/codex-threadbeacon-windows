@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
+using System.IO;
 using Microsoft.Win32;
 using ThreadBeacon.App.AutoRecovery;
 using ThreadBeacon.App.Settings;
@@ -76,11 +77,22 @@ public partial class MainWindow : Window
                 new WindowsRecoveryForegroundSessionFactory()),
             autoRecoveryHistoryStore);
         loginStartupService = new WindowsLoginStartupService();
+        string localSupportPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "ThreadBeacon");
+        var hookSettings = new CompactionHookSettingsViewModel(
+            new CompactionHookConfigurationManager(
+                Path.Combine(paths.CodexHome, "hooks.json"),
+                Path.Combine(paths.CodexHome, "config.toml"),
+                localSupportPath),
+            Path.Combine(AppContext.BaseDirectory, "ThreadBeacon.HookBridge.exe"),
+            App.LanguageState);
         settingsViewModel = new SettingsWindowViewModel(
             displaySettings,
             soundSettings,
             new LoginStartupViewModel(loginStartupService),
-            autoRecoverySettings);
+            autoRecoverySettings,
+            hookSettings);
         windowPlacementCoordinator = new WindowPlacementCoordinator(
             JsonWindowPlacementStore.CreateDefault(),
             new NativeWindowPlacementPlatform());

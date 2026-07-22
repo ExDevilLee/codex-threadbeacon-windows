@@ -78,4 +78,12 @@
     <sys:String x:Key="RecoveryIncident">异常</sys:String>
     <sys:String x:Key="RecoveryStatus">状态</sys:String>
     <sys:String x:Key="RecoveryUpdatedAt">更新时间</sys:String>
+    <sys:String x:Key="CompactionHookTitle">实时压缩状态</sys:String>
+    <sys:String x:Key="CompactionHookDescription">可选的 Codex Hooks 可在上下文压缩期间显示“压缩中”。</sys:String>
+    <sys:String x:Key="CompactionHookStatus">状态：</sys:String>
+    <sys:String x:Key="CompactionHookEnable">启用</sys:String>
+    <sys:String x:Key="CompactionHookCheck">检查</sys:String>
+    <sys:String x:Key="CompactionHookDisable">停用</sys:String>
+    <sys:String x:Key="CompactionHookDisclosure">Bridge 只保存会话 ID、turn ID、触发方式和本地开始时间，不保存正文、模型名称或工作目录。</sys:String>
+    <sys:String x:Key="CompactionHookTrust">Codex 可能会要求你审核并信任该 Hook 命令。</sys:String>
 </ResourceDictionary>

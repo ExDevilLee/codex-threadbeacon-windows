@@ -179,6 +179,9 @@ public static class AppLanguageText
             ? new[] { "\u538b\u7f29\u6b21\u6570", "\u6700\u8fd1\u538b\u7f29" }[index]
             : new[] { "Compactions", "Last compaction" }[index];
 
+    public static string Compacting(AppLanguage language) =>
+        language is AppLanguage.SimplifiedChinese ? "\u538b\u7f29\u4e2d" : "Compacting";
+
     public static string TaskMetadataLabel(AppLanguage language, int index) =>
         language is AppLanguage.SimplifiedChinese
             ? new[] { "模型", "推理强度" }[index]

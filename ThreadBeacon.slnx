@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/ThreadBeacon.App/ThreadBeacon.App.csproj" />
     <Project Path="src/ThreadBeacon.Core/ThreadBeacon.Core.csproj" />
+    <Project Path="src/ThreadBeacon.HookBridge/ThreadBeacon.HookBridge.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ThreadBeacon.App.Tests/ThreadBeacon.App.Tests.csproj" />

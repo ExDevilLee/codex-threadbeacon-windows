@@ -78,4 +78,12 @@
     <sys:String x:Key="RecoveryIncident">Incident</sys:String>
     <sys:String x:Key="RecoveryStatus">Status</sys:String>
     <sys:String x:Key="RecoveryUpdatedAt">Updated</sys:String>
+    <sys:String x:Key="CompactionHookTitle">Live compaction status</sys:String>
+    <sys:String x:Key="CompactionHookDescription">Optional Codex Hooks can show Compacting while context is being compressed.</sys:String>
+    <sys:String x:Key="CompactionHookStatus">Status:</sys:String>
+    <sys:String x:Key="CompactionHookEnable">Enable</sys:String>
+    <sys:String x:Key="CompactionHookCheck">Check</sys:String>
+    <sys:String x:Key="CompactionHookDisable">Disable</sys:String>
+    <sys:String x:Key="CompactionHookDisclosure">The bridge stores only session ID, turn ID, trigger, and local start time. It never stores transcript content, model names, or working directories.</sys:String>
+    <sys:String x:Key="CompactionHookTrust">Codex may ask you to review and trust the Hook command.</sys:String>
 </ResourceDictionary>

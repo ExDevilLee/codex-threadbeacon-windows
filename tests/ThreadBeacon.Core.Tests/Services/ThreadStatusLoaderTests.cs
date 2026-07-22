@@ -481,6 +481,47 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_ResolvedIncidentDoesNotSuppressNewerCompaction()
+    {
+        using var fixture = new CompactionActivityFixture();
+        DateTimeOffset startedAt = Now.AddSeconds(-10);
+        fixture.Repository.WritePreCompact(new CompactionActivity("thread", "turn", "auto", startedAt));
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("thread", "Thread")])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = HealthyObservation(
+                    ThreadStatus.Running,
+                    Now.AddSeconds(-20),
+                    Now.AddSeconds(-20),
+                    latestTaskStartedAt: Now.AddSeconds(-20)),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: new TrackingLogEventRepository(
+                new Dictionary<string, ServiceIncident>
+                {
+                    ["thread"] = Incident(
+                        "old-incident",
+                        ServiceIncidentPhase.Failed,
+                        Now.AddSeconds(-30),
+                        503),
+                }),
+            compactionActivityRepository: fixture.Repository);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Null(snapshot.ServiceIncident);
+        Assert.NotNull(snapshot.CompactionActivity);
+        Assert.Equal(ThreadStatus.Running, snapshot.Status);
+        Assert.Equal(startedAt, snapshot.StatusChangedAt);
+    }
+
+    [Fact]
     public void Load_LogRepositoryFailureDoesNotDropMainThreads()
     {
         var loader = new ThreadStatusLoader(
@@ -698,6 +739,115 @@ public sealed class ThreadStatusLoaderTests
         Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.Rollout.Level);
     }
 
+    [Fact]
+    public void Load_ActiveCompactionPromotesTaskToRunning()
+    {
+        using var fixture = new CompactionActivityFixture();
+        DateTimeOffset startedAt = Now.AddSeconds(-15);
+        fixture.Repository.WritePreCompact(new CompactionActivity("thread", "turn", "auto", startedAt));
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("thread", "Thread")])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = HealthyObservation(ThreadStatus.Idle, Now.AddMinutes(-2), Now.AddMinutes(-2)),
+            }),
+            new FixedTimeProvider(Now),
+            compactionActivityRepository: fixture.Repository);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(ThreadStatus.Running, snapshot.Status);
+        Assert.Equal(startedAt, snapshot.StatusChangedAt);
+        Assert.NotNull(snapshot.CompactionActivity);
+        Assert.Null(snapshot.CompletionEventAt);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Load_CompletionOrInterruptionEvidenceClearsCompaction(
+        bool hasCompletion,
+        bool hasInterruption)
+    {
+        using var fixture = new CompactionActivityFixture();
+        fixture.Repository.WritePreCompact(new CompactionActivity(
+            "thread",
+            "turn",
+            "manual",
+            Now.AddSeconds(-15)));
+        var observation = new RolloutObservation(
+            ThreadStatus.JustCompleted,
+            Now.AddSeconds(-5),
+            Now.AddSeconds(-5),
+            hasCompletion ? Now.AddSeconds(-5) : null,
+            Now.AddMinutes(-1),
+            null,
+            InterruptionEventAt: hasInterruption ? Now.AddSeconds(-5) : null);
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                [Record("thread", "Thread")])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = new(RolloutSourceStatus.Healthy, observation),
+            }),
+            new FixedTimeProvider(Now),
+            compactionActivityRepository: fixture.Repository);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Null(snapshot.CompactionActivity);
+        Assert.NotEqual(ThreadStatus.Running, snapshot.Status);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Load_ArchivedOrIncidentTaskSuppressesCompaction(bool archived, bool incident)
+    {
+        using var fixture = new CompactionActivityFixture();
+        fixture.Repository.WritePreCompact(new CompactionActivity(
+            "thread",
+            "turn",
+            "auto",
+            Now.AddSeconds(-15)));
+        ThreadRecord record = Record("thread", "Thread") with { IsArchived = archived };
+        var loader = new ThreadStatusLoader(
+            new StubThreadRepository(new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [record])),
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["thread"] = HealthyObservation(ThreadStatus.Idle, Now.AddMinutes(-2), Now.AddMinutes(-2)),
+            }),
+            new FixedTimeProvider(Now),
+            logEventRepository: incident
+                ? new TrackingLogEventRepository(new Dictionary<string, ServiceIncident>
+                {
+                    ["thread"] = Incident("episode", ServiceIncidentPhase.Failed, Now.AddSeconds(-5), 503),
+                })
+                : null,
+            compactionActivityRepository: fixture.Repository);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(),
+            new HashSet<string>(),
+            archived ? new HashSet<string> { "thread" } : null)).Threads);
+
+        Assert.Null(snapshot.CompactionActivity);
+        Assert.Equal(archived ? ThreadStatus.Idle : ThreadStatus.Error, snapshot.Status);
+    }
+
     private static ThreadStatusLoader CreateLoader(
         IReadOnlyList<ThreadRecord> records,
         IReadOnlyDictionary<string, string> titles,
@@ -765,6 +915,24 @@ public sealed class ThreadStatusLoaderTests
     private sealed class StubThreadRepository(ThreadLoadResult result) : IThreadRepository
     {
         public ThreadLoadResult LoadRecent(int limit = 8) => result;
+    }
+
+    private sealed class CompactionActivityFixture : IDisposable
+    {
+        private readonly string directory = Path.Combine(
+            Path.GetTempPath(),
+            "ThreadBeaconCompactionLoader",
+            Guid.NewGuid().ToString("N"));
+
+        public CompactionActivityRepository Repository => new(directory);
+
+        public void Dispose()
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
     }
 
     private sealed class ActiveCandidateThreadRepository(

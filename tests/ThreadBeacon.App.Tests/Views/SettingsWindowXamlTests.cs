@@ -170,6 +170,20 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
+    public void GeneralTab_BindsCompactionHookStatusAndCommands()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Contains("Hook.StatusText", markup, StringComparison.Ordinal);
+        Assert.Contains("Hook.ErrorText", markup, StringComparison.Ordinal);
+        Assert.Contains("Hook.EnableCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("Hook.RefreshCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("Hook.DisableCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource CompactionHookDisclosure}", markup, StringComparison.Ordinal);
+        Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GeneralTab_UsesDedicatedRowsForAllSettings()
     {
         XDocument document = LoadDocument();

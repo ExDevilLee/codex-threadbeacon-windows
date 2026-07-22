@@ -228,7 +228,8 @@ public sealed class RolloutTailParser : IRolloutTailParser
             latestReasoningEffort,
             new CompactionHistory(
                 distinctCompactions.Length,
-                distinctCompactions.Length == 0 ? null : distinctCompactions[^1]));
+                distinctCompactions.Length == 0 ? null : distinctCompactions[^1]),
+            latestInterruption);
     }
 
     private static IReadOnlyList<string> ReadLines(ReadOnlySpan<byte> content)

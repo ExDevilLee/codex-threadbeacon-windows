@@ -229,6 +229,28 @@ public sealed class ThreadRowViewModelTests
         Assert.False(viewModel.HasIncidentDetail);
     }
 
+    [Theory]
+    [InlineData(AppLanguage.English, "Compacting")]
+    [InlineData(AppLanguage.SimplifiedChinese, "\u538b\u7f29\u4e2d")]
+    public void Constructor_ActiveCompactionUsesLocalizedRunningPresentation(
+        AppLanguage language,
+        string expectedLabel)
+    {
+        ThreadSnapshot snapshot = Snapshot(
+            subagentCount: 0,
+            status: ThreadStatus.Running,
+            compactionActivity: new CompactionActivity(
+                "thread-1",
+                "turn-1",
+                "auto",
+                Now.AddSeconds(-20)));
+
+        var viewModel = new ThreadRowViewModel(snapshot, Now, language: language);
+
+        Assert.Equal(expectedLabel, viewModel.StatusLabel);
+        Assert.Equal("#FF30A46C", viewModel.StatusBrush.ToString());
+    }
+
     [Fact]
     public void Constructor_UsesEnglishPresentationWhenRequested()
     {
@@ -314,7 +336,8 @@ public sealed class ThreadRowViewModelTests
         ThreadStatus status = ThreadStatus.Running,
         string? model = null,
         string? reasoningEffort = null,
-        int activeSubagentCount = 0) =>
+        int activeSubagentCount = 0,
+        CompactionActivity? compactionActivity = null) =>
         new(
             "thread-1",
             "Task",
@@ -332,5 +355,6 @@ public sealed class ThreadRowViewModelTests
             isArchived: isArchived,
             model: model,
             reasoningEffort: reasoningEffort,
-            activeSubagentCount: activeSubagentCount);
+            activeSubagentCount: activeSubagentCount,
+            compactionActivity: compactionActivity);
 }
