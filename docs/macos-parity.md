@@ -7,15 +7,15 @@ which macOS commits have been inspected and what they contained.
 ## Current Checkpoint
 
 - Reference repository: `ExDevilLee/codex-threadbeacon-macos`
-- Last analyzed macOS commit: `a25b6cb` (`v0.1.8`)
+- Last analyzed macOS commit: `648719f` (`origin/main` after `v0.1.8`)
 - Last analyzed on: 2026-07-23
-- Windows repository commit at checkpoint: `98a012f`
-- Next analysis starts at: commits after `a25b6cb`
+- Windows repository commit at checkpoint: `345edc4`
+- Next analysis starts at: commits after `648719f`
 
 When the macOS repository advances, inspect only commits after the recorded
 checkpoint, then update this section even when no Windows change is required.
 
-## Analysis Through `a25b6cb`
+## Analysis Through `648719f`
 
 ### Implemented on Windows
 
@@ -44,10 +44,25 @@ checkpoint, then update this section even when no Windows change is required.
 - macOS distribution details, signing, notarization, Homebrew packaging, and
   App Store behavior are not part of the Windows parity target.
 
-### Not Yet Published by macOS at This Checkpoint
+### Newly Pending on Windows
 
-- Compression history/observability remains a macOS roadmap candidate, so it is
-  deliberately not implemented ahead of the reference version.
+- **Compression observability** (`8b4b441` through `50a6d7e`): macOS now shows
+  historical completion count and last-completed time in Token details. An
+  opt-in, user-level Codex Hook bridge can additionally show a live
+  `Compacting` phase on the primary task row. The Hook uses structured JSON
+  merge, backs up existing configuration, removes only ThreadBeacon entries on
+  uninstall, and keeps conversation text, summaries, Reasoning, paths, and
+  transcripts out of storage. Windows has no equivalent yet.
+- **Confirmed foreground recovery** (`648719f`): automatic recovery may proceed
+  without navigating when the already-frontmost Codex task is the exact
+  confirmed target and its composer is empty. Drafts and ambiguous composer
+  states still fail closed. Recovery results also expose stable privacy-safe
+  diagnostic codes. Windows currently keeps the stricter frontmost stop policy.
+
+### Reference-Only or Not Yet Published by macOS at This Checkpoint
+
+- Compression percentage, estimated remaining time, and live progress are not
+  provided by macOS and should not be invented on Windows.
 
 ## Update Procedure
 
@@ -73,3 +88,13 @@ reference advances.
 - Confirmed no new published macOS feature remains to implement at this
   checkpoint.
 - Windows completion commit: `98a012f`.
+
+### 2026-07-23 - Through `648719f`
+
+- Inspected macOS commits `2ad5d2b` through `648719f`.
+- Found new compression observability: rollout history plus opt-in Codex
+  `PreCompact`/`PostCompact` Hook lifecycle tracking.
+- Found a recovery safety refinement: allow confirmed frontmost target recovery
+  only with an empty composer, and add stable diagnostic codes.
+- Windows implementation status: both items pending; no Windows code changed in
+  this comparison.
