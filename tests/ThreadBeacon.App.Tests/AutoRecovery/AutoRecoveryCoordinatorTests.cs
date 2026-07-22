@@ -144,6 +144,47 @@ public sealed class AutoRecoveryCoordinatorTests
         await coordinator.ObserveAsync([FailedSnapshot()], RefreshNotificationPolicy.Notify);
 
         Assert.Equal(AutoRecoveryHistoryStatus.Failed, history.Writes[^1].Status);
+        Assert.Equal("unexpected_error", history.Writes[^1].DiagnosticCode);
+    }
+
+    [Fact]
+    public async Task ObserveAsync_RecordsStableSenderDiagnosticWithoutPromptOrPath()
+    {
+        var sender = new RecordingRecoverySender
+        {
+            Result = AutoRecoverySendResult.Failed("codex_frontmost"),
+        };
+        var history = new RecordingRecoveryHistoryStore();
+        AutoRecoverySettings settings = AutoRecoverySettings.CreateDefault(
+            AutoRecoveryPromptLanguage.English);
+        settings.IsEnabled = true;
+        var coordinator = new AutoRecoveryCoordinator(() => settings, sender, history);
+
+        await coordinator.ObserveAsync([FailedSnapshot()], RefreshNotificationPolicy.Notify);
+
+        AutoRecoveryHistoryEntry failed = history.Writes[^1];
+        Assert.Equal(AutoRecoveryHistoryStatus.Failed, failed.Status);
+        Assert.Equal("codex_frontmost", failed.DiagnosticCode);
+        Assert.DoesNotContain("Continue", failed.DiagnosticCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Codex", failed.DiagnosticCode, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ObserveAsync_NormalizesArbitrarySenderDetail()
+    {
+        var sender = new RecordingRecoverySender
+        {
+            Result = AutoRecoverySendResult.Failed("untrusted_free_text"),
+        };
+        var history = new RecordingRecoveryHistoryStore();
+        AutoRecoverySettings settings = AutoRecoverySettings.CreateDefault(
+            AutoRecoveryPromptLanguage.English);
+        settings.IsEnabled = true;
+        var coordinator = new AutoRecoveryCoordinator(() => settings, sender, history);
+
+        await coordinator.ObserveAsync([FailedSnapshot()], RefreshNotificationPolicy.Notify);
+
+        Assert.Equal("unexpected_error", history.Writes[^1].DiagnosticCode);
     }
 
     private static AutoRecoveryCoordinator Coordinator(
@@ -191,6 +232,8 @@ internal sealed class RecordingRecoverySender : IAutoRecoverySender
 
     public TimeSpan Delay { get; init; }
 
+    public AutoRecoverySendResult Result { get; init; } = AutoRecoverySendResult.Sent;
+
     public int MaximumConcurrency { get; private set; }
 
     public async Task<AutoRecoverySendResult> SendAsync(
@@ -212,7 +255,7 @@ internal sealed class RecordingRecoverySender : IAutoRecoverySender
                 throw new InvalidOperationException("Synthetic sender failure.");
             }
 
-            return AutoRecoverySendResult.Sent;
+            return Result;
         }
         finally
         {

@@ -29,11 +29,12 @@ public sealed class WindowsCodexThreadOpener : ICodexThreadOpener
 
         try
         {
-            CodexComposerSession? session = await automation.SelectEmptyTargetAsync(
+            CodexTargetSelectionResult selection = await automation.SelectEmptyTargetAsync(
                 threadId,
                 expectedTitle,
+                CodexTargetSelectionMode.Interactive,
                 cancellationToken).ConfigureAwait(false);
-            return session is not null
+            return selection.Session is CodexComposerSession session
                 && await automation.FocusAsync(session, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

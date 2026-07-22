@@ -66,6 +66,9 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
                             ? AutoRecoveryHistoryStatus.Sent
                             : AutoRecoveryHistoryStatus.Failed,
                         UpdatedAt = timeProvider.GetUtcNow(),
+                        DiagnosticCode = result.Status is AutoRecoverySendStatus.Sent
+                            ? null
+                            : AutoRecoveryDiagnosticCodes.Normalize(result.DiagnosticCode),
                     });
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -78,6 +81,7 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
                     {
                         Status = AutoRecoveryHistoryStatus.Failed,
                         UpdatedAt = timeProvider.GetUtcNow(),
+                        DiagnosticCode = AutoRecoveryDiagnosticCodes.UnexpectedError,
                     });
                     // Recovery is best effort and must never break the refresh loop.
                 }

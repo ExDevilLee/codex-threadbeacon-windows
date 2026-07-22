@@ -24,15 +24,43 @@ public sealed class JsonAutoRecoveryHistoryStoreTests
             store.Upsert(sending);
             store.Upsert(sending with
             {
-                Status = AutoRecoveryHistoryStatus.Sent,
+                Status = AutoRecoveryHistoryStatus.Failed,
+                DiagnosticCode = "source_composer_not_empty",
                 UpdatedAt = DateTimeOffset.UnixEpoch.AddSeconds(2),
             });
 
             AutoRecoveryHistoryEntry entry = Assert.Single(store.Load());
-            Assert.Equal(AutoRecoveryHistoryStatus.Sent, entry.Status);
+            Assert.Equal(AutoRecoveryHistoryStatus.Failed, entry.Status);
+            Assert.Equal("source_composer_not_empty", entry.DiagnosticCode);
             string json = File.ReadAllText(path);
             Assert.DoesNotContain("rollout", json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("prompt", json, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Upsert_RejectsArbitraryDiagnosticText()
+    {
+        string path = TempPath();
+        try
+        {
+            var store = new JsonAutoRecoveryHistoryStore(path);
+            var entry = new AutoRecoveryHistoryEntry(
+                "attempt-private",
+                "thread-private",
+                "episode-private",
+                AutoRecoveryIncidentType.Http400,
+                AutoRecoveryHistoryStatus.Failed,
+                DateTimeOffset.UnixEpoch,
+                DateTimeOffset.UnixEpoch,
+                "draft text must not be stored");
+
+            Assert.False(store.Upsert(entry));
+            Assert.False(File.Exists(path));
         }
         finally
         {

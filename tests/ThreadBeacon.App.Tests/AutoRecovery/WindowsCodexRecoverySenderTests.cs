@@ -8,12 +8,18 @@ public sealed class WindowsCodexRecoverySenderTests
     [Fact]
     public async Task SendAsync_StopsBeforeTypingWhenTargetCannotBeSelected()
     {
-        var automation = new FakeCodexComposerAutomation { Selection = null };
+        var automation = new FakeCodexComposerAutomation
+        {
+            Selection = CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.CodexForeground),
+        };
         var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
 
         AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
 
         Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
+        Assert.Equal("codex_frontmost", result.DiagnosticCode);
+        Assert.Equal(CodexTargetSelectionMode.Unattended, automation.SelectionMode);
         Assert.Equal(0, automation.TypeCount);
         Assert.Equal(0, automation.InvokeCount);
     }
@@ -118,18 +124,25 @@ public sealed class WindowsCodexRecoverySenderTests
 
 internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
 {
-    public CodexComposerSession? Selection { get; init; } = new("session-1");
+    public CodexTargetSelectionResult Selection { get; init; } =
+        CodexTargetSelectionResult.Selected(new CodexComposerSession("session-1"));
     public bool CanInvoke { get; init; } = true;
     public string? Readback { get; init; }
     public int TypeCount { get; private set; }
     public int ClearCount { get; private set; }
     public int InvokeCount { get; private set; }
     public CancellationTokenSource? CancelOnType { get; init; }
+    public CodexTargetSelectionMode? SelectionMode { get; private set; }
 
-    public Task<CodexComposerSession?> SelectEmptyTargetAsync(
+    public Task<CodexTargetSelectionResult> SelectEmptyTargetAsync(
         string threadId,
         string expectedTitle,
-        CancellationToken cancellationToken) => Task.FromResult(Selection);
+        CodexTargetSelectionMode mode,
+        CancellationToken cancellationToken)
+    {
+        SelectionMode = mode;
+        return Task.FromResult(Selection);
+    }
 
     public Task<bool> FocusAsync(CodexComposerSession session, CancellationToken cancellationToken) =>
         Task.FromResult(true);

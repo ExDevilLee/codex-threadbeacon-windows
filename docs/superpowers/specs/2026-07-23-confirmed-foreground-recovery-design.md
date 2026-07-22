@@ -43,4 +43,3 @@ target confirmation failures, and successful selection. Counts are bounded to
 - Use Windows UI Automation against the installed Codex app to verify the
   current task title is uniquely detectable and that a non-empty draft is not
   changed. Do not send a real message during this verification.
-

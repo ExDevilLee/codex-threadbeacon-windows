@@ -75,4 +75,3 @@
   is detectable and a draft remains unchanged, without sending a message.
 - [ ] **Step 6: Scan the diff for secrets and machine-specific data, commit,
   push `main`, and record the Windows completion commit in the parity ledger.**
-

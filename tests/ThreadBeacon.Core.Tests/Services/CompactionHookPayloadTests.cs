@@ -5,8 +5,8 @@ namespace ThreadBeacon.Core.Tests.Services;
 public sealed class CompactionHookPayloadTests
 {
     private static readonly DateTimeOffset Now = new(2026, 7, 23, 9, 30, 0, TimeSpan.Zero);
-    private const string SessionId = "019f8902-a543-7ab0-8833-81d2ce9f5780";
-    private const string TurnId = "019f8902-a543-7ab0-8833-81d2ce9f5781";
+    private const string SessionId = "11111111-2222-4333-8444-555555555555";
+    private const string TurnId = "66666666-7777-4888-8999-aaaaaaaaaaaa";
 
     [Fact]
     public void Handle_PreCompactWritesOnlyMinimalActivityFields()
@@ -62,7 +62,7 @@ public sealed class CompactionHookPayloadTests
         Assert.True(handler.TryHandle(Payload(
             "PostCompact",
             SessionId,
-            "019f8902-a543-7ab0-8833-81d2ce9f5799",
+            "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff",
             "auto")));
         Assert.NotNull(fixture.Repository.Read(SessionId, null, null, Now));
 

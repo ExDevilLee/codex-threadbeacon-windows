@@ -15,61 +15,138 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
 
     private readonly Dictionary<string, SessionState> sessions = new(StringComparer.Ordinal);
 
-    public Task<CodexComposerSession?> SelectEmptyTargetAsync(
+    public Task<CodexTargetSelectionResult> SelectEmptyTargetAsync(
         string threadId,
         string expectedTitle,
+        CodexTargetSelectionMode mode,
         CancellationToken cancellationToken) => Task.Run(() =>
     {
         if (!Guid.TryParse(threadId, out _) || string.IsNullOrWhiteSpace(expectedTitle))
         {
-            return null;
+            return CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.InvalidThreadId);
         }
 
-        IntPtr windowHandle = FindUniqueCodexWindow();
-        if (windowHandle == IntPtr.Zero || NativeMethods.GetForegroundWindow() == windowHandle)
+        IntPtr[] windowHandles = FindCodexWindowHandles();
+        if (windowHandles.Length == 0)
         {
-            return null;
+            return CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.CodexNotRunning);
         }
+        if (windowHandles.Length != 1)
+        {
+            return CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.CodexWindowNotUnique,
+                windowHandles.Length);
+        }
+
+        IntPtr windowHandle = windowHandles[0];
 
         AutomationElement root = AutomationElement.FromHandle(windowHandle);
-        ComposerState? preflight = TryGetUniqueComposer(root);
-        if (preflight is not { IsEmptyPlaceholder: true })
+        ComposerSnapshot source = GetComposerSnapshot(root);
+        CodexTargetPreflightResult preflight = CodexTargetSelectionPolicy.Evaluate(
+            mode,
+            NativeMethods.GetForegroundWindow() == windowHandle,
+            CountHeaderTitleMatches(root, expectedTitle),
+            source.Count,
+            source.ValueState);
+        if (preflight.Action is CodexTargetPreflightAction.Reject)
         {
-            return null;
+            return CodexTargetSelectionResult.Failed(
+                preflight.Failure!.Value,
+                preflight.ObservedCount);
         }
 
-        int[] previousRuntimeId = preflight.Element.GetRuntimeId();
-        Process.Start(new ProcessStartInfo($"codex://threads/{threadId}")
+        if (preflight.Action is CodexTargetPreflightAction.UseCurrent)
         {
-            UseShellExecute = true,
-        });
+            return Select(windowHandle, source.Element!, expectedTitle, preserveCurrentForeground: true);
+        }
 
-        AutomationElement? target = WaitForTarget(
+        int[] previousRuntimeId = source.Element!.GetRuntimeId();
+        try
+        {
+            Process.Start(new ProcessStartInfo($"codex://threads/{threadId}")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            return CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.DeepLinkFailed);
+        }
+
+        TargetWaitResult target = WaitForTarget(
             windowHandle,
             expectedTitle,
             previousRuntimeId,
             cancellationToken);
-        if (target is null || ReadComposer(target) is not { IsEmptyPlaceholder: true })
+        if (target.Element is null)
         {
-            return null;
+            return CodexTargetSelectionResult.Failed(
+                target.Failure ?? CodexTargetSelectionFailure.SelectionTimedOut,
+                target.ObservedCount);
         }
 
+        return target.ValueState switch
+        {
+            CodexComposerValueState.Empty => Select(
+                windowHandle,
+                target.Element,
+                expectedTitle,
+                preserveCurrentForeground: false),
+            CodexComposerValueState.Unavailable => CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.TargetComposerValueUnavailable),
+            _ => CodexTargetSelectionResult.Failed(
+                CodexTargetSelectionFailure.TargetComposerNotEmpty),
+        };
+    }, cancellationToken);
+
+    private CodexTargetSelectionResult Select(
+        IntPtr windowHandle,
+        AutomationElement composer,
+        string expectedTitle,
+        bool preserveCurrentForeground)
+    {
         string sessionId = Guid.NewGuid().ToString("N");
         lock (sessions)
         {
             sessions.Clear();
-            sessions[sessionId] = new SessionState(windowHandle, target);
+            sessions[sessionId] = new SessionState(
+                windowHandle,
+                composer,
+                expectedTitle,
+                preserveCurrentForeground);
         }
 
-        return new CodexComposerSession(sessionId);
-    }, cancellationToken);
+        return CodexTargetSelectionResult.Selected(new CodexComposerSession(sessionId));
+    }
 
     public Task<bool> FocusAsync(
         CodexComposerSession session,
         CancellationToken cancellationToken) => Task.Run(() =>
     {
         if (!TryGetSession(session, out SessionState? state)
-            || !NativeMethods.SetForegroundWindow(state.WindowHandle))
+            || !IsSessionCurrentAndEmpty(state))
+        {
+            return false;
+        }
+
+        if (state.PreserveCurrentForeground)
+        {
+            if (NativeMethods.GetForegroundWindow() != state.WindowHandle)
+            {
+                return false;
+            }
+        }
+        else if (!NativeMethods.SetForegroundWindow(state.WindowHandle)
+            || !IsSessionCurrentAndEmpty(state))
+        {
+            return false;
+        }
+
+        if (NativeMethods.GetForegroundWindow() != state.WindowHandle
+            || !IsSessionCurrentAndEmpty(state))
         {
             return false;
         }
@@ -88,6 +165,8 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!TryGetSession(session, out SessionState? state)
+            || !IsSessionCurrentAndEmpty(state)
+            || NativeMethods.GetForegroundWindow() != state.WindowHandle
             || !state.Composer.Current.HasKeyboardFocus)
         {
             throw new InvalidOperationException("Codex composer is not focused.");
@@ -116,6 +195,12 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
             return false;
         }
 
+        if (!IsSessionCurrent(state)
+            || NativeMethods.GetForegroundWindow() != state.WindowHandle)
+        {
+            return false;
+        }
+
         AutomationElement root = AutomationElement.FromHandle(state.WindowHandle);
         AutomationElement[] buttons = root.FindAll(
                 TreeScope.Descendants,
@@ -137,6 +222,8 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!TryGetSession(session, out SessionState? state)
+            || !IsSessionCurrent(state)
+            || NativeMethods.GetForegroundWindow() != state.WindowHandle
             || state.SendButton is null
             || !state.SendButton.TryGetCurrentPattern(InvokePattern.Pattern, out object? pattern))
         {
@@ -152,6 +239,8 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
         CancellationToken cancellationToken) => Task.Run(() =>
     {
         if (!TryGetSession(session, out SessionState? state)
+            || !IsSessionCurrent(state)
+            || NativeMethods.GetForegroundWindow() != state.WindowHandle
             || !SubmittedTextMatches(ReadText(state.Composer), expectedText))
         {
             return false;
@@ -166,6 +255,12 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
             return false;
         }
 
+        if (!IsSessionCurrent(state)
+            || NativeMethods.GetForegroundWindow() != state.WindowHandle)
+        {
+            return false;
+        }
+
         NativeMethods.ClearFocusedText();
         return WaitUntil(
             () => ReadComposer(state.Composer).IsEmptyPlaceholder,
@@ -173,15 +268,12 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
             cancellationToken);
     }, cancellationToken);
 
-    private static IntPtr FindUniqueCodexWindow()
-    {
-        IntPtr[] handles = Process.GetProcessesByName("ChatGPT")
+    private static IntPtr[] FindCodexWindowHandles() =>
+        Process.GetProcessesByName("ChatGPT")
             .Select(TryGetCodexWindowHandle)
             .Where(handle => handle != IntPtr.Zero)
             .Distinct()
             .ToArray();
-        return handles.Length == 1 ? handles[0] : IntPtr.Zero;
-    }
 
     private static IntPtr TryGetCodexWindowHandle(Process process)
     {
@@ -205,39 +297,53 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
         }
     }
 
-    private static AutomationElement? WaitForTarget(
+    private static TargetWaitResult WaitForTarget(
         IntPtr windowHandle,
         string expectedTitle,
         int[] previousRuntimeId,
         CancellationToken cancellationToken)
     {
-        AutomationElement? result = null;
+        TargetWaitResult result = new(
+            null,
+            CodexComposerValueState.Unavailable,
+            CodexTargetSelectionFailure.SelectionTimedOut);
         WaitUntil(() =>
         {
             try
             {
                 AutomationElement root = AutomationElement.FromHandle(windowHandle);
-                AutomationElement[] titles = root.FindAll(
-                        TreeScope.Descendants,
-                        new AndCondition(
-                            new PropertyCondition(
-                                AutomationElement.ControlTypeProperty,
-                                ControlType.Text),
-                            new PropertyCondition(
-                                AutomationElement.NameProperty,
-                                expectedTitle)))
-                    .Cast<AutomationElement>()
-                    .Where(IsAppHeaderTitle)
-                    .ToArray();
-                ComposerState? composer = TryGetUniqueComposer(root);
-                if (titles.Length != 1
-                    || composer is null
-                    || composer.Element.GetRuntimeId().SequenceEqual(previousRuntimeId))
+                int titleCount = CountHeaderTitleMatches(root, expectedTitle);
+                if (titleCount != 1)
                 {
+                    result = new TargetWaitResult(
+                        null,
+                        CodexComposerValueState.Unavailable,
+                        CodexTargetSelectionFailure.TargetHeaderNotUnique,
+                        titleCount);
                     return false;
                 }
 
-                result = composer.Element;
+                ComposerSnapshot composer = GetComposerSnapshot(root);
+                if (composer.Count != 1)
+                {
+                    result = new TargetWaitResult(
+                        null,
+                        composer.ValueState,
+                        CodexTargetSelectionFailure.TargetComposerNotUnique,
+                        composer.Count);
+                    return false;
+                }
+
+                if (composer.Element!.GetRuntimeId().SequenceEqual(previousRuntimeId))
+                {
+                    result = new TargetWaitResult(
+                        null,
+                        composer.ValueState,
+                        CodexTargetSelectionFailure.TargetDidNotChange);
+                    return false;
+                }
+
+                result = new TargetWaitResult(composer.Element, composer.ValueState);
                 return true;
             }
             catch (ElementNotAvailableException)
@@ -247,6 +353,20 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
         }, NavigationTimeout, cancellationToken);
         return result;
     }
+
+    private static int CountHeaderTitleMatches(
+        AutomationElement root,
+        string expectedTitle) => root.FindAll(
+            TreeScope.Descendants,
+            new AndCondition(
+                new PropertyCondition(
+                    AutomationElement.ControlTypeProperty,
+                    ControlType.Text),
+                new PropertyCondition(
+                    AutomationElement.NameProperty,
+                    expectedTitle)))
+        .Cast<AutomationElement>()
+        .Count(IsAppHeaderTitle);
 
     private static bool IsAppHeaderTitle(AutomationElement element)
     {
@@ -265,7 +385,7 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
         return false;
     }
 
-    private static ComposerState? TryGetUniqueComposer(AutomationElement root)
+    private static ComposerSnapshot GetComposerSnapshot(AutomationElement root)
     {
         AutomationElement[] composers = root.FindAll(
                 TreeScope.Descendants,
@@ -275,7 +395,58 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
                 ComposerClassPrefix,
                 StringComparison.Ordinal))
             .ToArray();
-        return composers.Length == 1 ? ReadComposer(composers[0]) : null;
+        if (composers.Length != 1)
+        {
+            return new ComposerSnapshot(
+                composers.Length,
+                null,
+                CodexComposerValueState.Unavailable);
+        }
+
+        try
+        {
+            ComposerState state = ReadComposer(composers[0]);
+            return new ComposerSnapshot(
+                1,
+                state.Element,
+                state.IsEmptyPlaceholder
+                    ? CodexComposerValueState.Empty
+                    : CodexComposerValueState.NotEmpty);
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or ElementNotAvailableException)
+        {
+            return new ComposerSnapshot(
+                1,
+                composers[0],
+                CodexComposerValueState.Unavailable);
+        }
+    }
+
+    private static bool IsSessionCurrentAndEmpty(SessionState state)
+        => IsSessionCurrent(state, requireEmpty: true);
+
+    private static bool IsSessionCurrent(SessionState state)
+        => IsSessionCurrent(state, requireEmpty: false);
+
+    private static bool IsSessionCurrent(SessionState state, bool requireEmpty)
+    {
+        try
+        {
+            AutomationElement root = AutomationElement.FromHandle(state.WindowHandle);
+            ComposerSnapshot composer = GetComposerSnapshot(root);
+            bool valueMatches = composer.Count == 1
+                && composer.Element is not null
+                && (!requireEmpty || composer.ValueState == CodexComposerValueState.Empty);
+            return CountHeaderTitleMatches(root, state.ExpectedTitle) == 1
+                && valueMatches
+                && composer.Element!.GetRuntimeId().SequenceEqual(state.ComposerRuntimeId);
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or ElementNotAvailableException)
+        {
+            return false;
+        }
     }
 
     private static ComposerState ReadComposer(AutomationElement composer)
@@ -363,13 +534,32 @@ public sealed class WindowsCodexComposerAutomation : ICodexComposerAutomation
         AutomationElement Element,
         bool IsEmptyPlaceholder);
 
+    private sealed record ComposerSnapshot(
+        int Count,
+        AutomationElement? Element,
+        CodexComposerValueState ValueState);
+
+    private sealed record TargetWaitResult(
+        AutomationElement? Element,
+        CodexComposerValueState ValueState,
+        CodexTargetSelectionFailure? Failure = null,
+        int? ObservedCount = null);
+
     private sealed class SessionState(
         IntPtr windowHandle,
-        AutomationElement composer)
+        AutomationElement composer,
+        string expectedTitle,
+        bool preserveCurrentForeground)
     {
         public IntPtr WindowHandle { get; } = windowHandle;
 
         public AutomationElement Composer { get; } = composer;
+
+        public int[] ComposerRuntimeId { get; } = composer.GetRuntimeId();
+
+        public string ExpectedTitle { get; } = expectedTitle;
+
+        public bool PreserveCurrentForeground { get; } = preserveCurrentForeground;
 
         public AutomationElement? SendButton { get; set; }
     }

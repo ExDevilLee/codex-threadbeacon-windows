@@ -7,6 +7,29 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-07-23
+
+### Changed
+
+- Automatic recovery can reuse the already-frontmost Codex task without deep
+  link navigation when exactly one app-header title matches the target and the
+  only composer is readable and empty.
+- Recovery history now records stable, privacy-safe diagnostic codes for failed
+  target selection and sending steps.
+
+### Security
+
+- A draft, unreadable composer, ambiguous title, multiple composers, or
+  multiple Codex windows still fails closed without typing or sending.
+- Interactive task opening and unattended recovery use separate selection
+  modes; the foreground shortcut is available only to unattended recovery.
+
+### Privacy
+
+- Diagnostic counts are bounded to `0`, `1`, or `many`. History never stores
+  composer text, prompts, titles, rollout paths, UI trees, window titles, or
+  exception messages.
+
 ## [0.21.1] - 2026-07-23
 
 ### Fixed

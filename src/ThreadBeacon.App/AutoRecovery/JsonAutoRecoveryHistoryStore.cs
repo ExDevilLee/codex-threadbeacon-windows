@@ -108,7 +108,9 @@ public sealed class JsonAutoRecoveryHistoryStore : IAutoRecoveryHistoryStore
     private static bool IsValid(AutoRecoveryHistoryEntry entry) =>
         !string.IsNullOrWhiteSpace(entry.AttemptId)
         && !string.IsNullOrWhiteSpace(entry.ThreadId)
-        && !string.IsNullOrWhiteSpace(entry.EpisodeId);
+        && !string.IsNullOrWhiteSpace(entry.EpisodeId)
+        && (entry.DiagnosticCode is null
+            || AutoRecoveryDiagnosticCodes.IsAllowed(entry.DiagnosticCode));
 
     private static bool IsStorageException(Exception exception) =>
         exception is IOException

@@ -17,7 +17,8 @@ public sealed record AutoRecoveryHistoryEntry(
     AutoRecoveryIncidentType IncidentType,
     AutoRecoveryHistoryStatus Status,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? DiagnosticCode = null);
 
 public interface IAutoRecoveryHistoryStore
 {

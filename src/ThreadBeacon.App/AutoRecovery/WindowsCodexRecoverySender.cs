@@ -45,9 +45,10 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
         {
             throw;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
-            return AutoRecoverySendResult.Failed(exception.Message);
+            return AutoRecoverySendResult.Failed(
+                AutoRecoveryDiagnosticCodes.UnexpectedError);
         }
         finally
         {
@@ -70,21 +71,27 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
     {
         RolloutRecoveryCheckpoint checkpoint = evidenceMonitor.Capture(
             request.Candidate.RolloutPath);
-        CodexComposerSession? session = await automation.SelectEmptyTargetAsync(
+        CodexTargetSelectionResult selection = await automation.SelectEmptyTargetAsync(
             request.Candidate.ThreadId,
             request.Candidate.Title,
+            CodexTargetSelectionMode.Unattended,
             cancellationToken).ConfigureAwait(false);
-        if (session is null
-            || !await automation.FocusAsync(session, cancellationToken).ConfigureAwait(false))
+        if (!selection.IsSelected)
         {
-            return AutoRecoverySendResult.Failed("Codex target was not safely selectable.");
+            return AutoRecoverySendResult.Failed(selection.DiagnosticCode);
+        }
+
+        CodexComposerSession session = selection.Session!;
+        if (!await automation.FocusAsync(session, cancellationToken).ConfigureAwait(false))
+        {
+            return AutoRecoverySendResult.Failed("composer_focus_failed");
         }
 
         await automation.TypeAsync(session, request.Prompt, cancellationToken).ConfigureAwait(false);
         string readback = await automation.ReadTextAsync(session, cancellationToken).ConfigureAwait(false);
         if (!MatchesPrompt(readback, request.Prompt))
         {
-            return AutoRecoverySendResult.Failed("Composer readback did not match the recovery prompt.");
+            return AutoRecoverySendResult.Failed("composer_readback_mismatch");
         }
 
         if (!await automation.CanInvokeUniqueSendButtonAsync(
@@ -95,7 +102,7 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
                 session,
                 request.Prompt,
                 cancellationToken).ConfigureAwait(false);
-            return AutoRecoverySendResult.Failed("A unique send button was not available.");
+            return AutoRecoverySendResult.Failed("send_button_unavailable");
         }
 
         string finalReadback = await automation.ReadTextAsync(
@@ -103,7 +110,7 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
             cancellationToken).ConfigureAwait(false);
         if (!MatchesPrompt(finalReadback, request.Prompt))
         {
-            return AutoRecoverySendResult.Failed("Composer changed before sending.");
+            return AutoRecoverySendResult.Failed("composer_changed_before_send");
         }
 
         // Invoke exactly once. Evidence timeout is reported as failure and is never retried.
@@ -115,7 +122,7 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
             cancellationToken).ConfigureAwait(false);
         return verified
             ? AutoRecoverySendResult.Sent
-            : AutoRecoverySendResult.Failed("Send was invoked but rollout evidence was not observed.");
+            : AutoRecoverySendResult.Failed("rollout_evidence_missing");
     }
 
     private static bool MatchesPrompt(string actual, string expected)

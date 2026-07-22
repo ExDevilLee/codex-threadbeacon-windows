@@ -14,12 +14,12 @@ public enum AutoRecoverySendStatus
 
 public sealed record AutoRecoverySendResult(
     AutoRecoverySendStatus Status,
-    string? Detail = null)
+    string? DiagnosticCode = null)
 {
     public static AutoRecoverySendResult Sent { get; } = new(
         AutoRecoverySendStatus.Sent);
 
-    public static AutoRecoverySendResult Failed(string? detail = null) => new(
+    public static AutoRecoverySendResult Failed(string? diagnosticCode = null) => new(
         AutoRecoverySendStatus.Failed,
-        detail);
+        diagnosticCode);
 }

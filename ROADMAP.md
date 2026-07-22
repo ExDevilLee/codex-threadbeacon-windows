@@ -173,6 +173,9 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Require ID deep-link navigation, exact Rename header identity, a changed empty composer, and one structural send-button match.
 - [x] Invoke Send once without retry and verify the exact user message plus `task_started` in the target rollout.
 - [x] Persist localized/custom prompts and bounded privacy-safe attempt history locally.
+- [x] Reuse a confirmed foreground target only when its exact Rename header and unique empty composer are verified.
+- [x] Keep foreground drafts and ambiguous or unreadable composer states fail-closed without navigation or input.
+- [x] Record only allowlisted, bounded diagnostic codes for failed recovery attempts.
 - [x] Keep Core independent from WPF and cover policy, tracking, rollout evidence, persistence, coordination, and sender behavior with tests.
 
 ## Phase 19: Open Codex Task

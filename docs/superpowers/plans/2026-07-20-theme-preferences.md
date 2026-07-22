@@ -190,7 +190,7 @@ Publish with:
 dotnet publish src/ThreadBeacon.App/ThreadBeacon.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish
 ```
 
-Install into `C:\Users\Administrator\AppData\Local\ThreadBeacon`, launch the installed EXE, and use the Settings window to select Light, Dark, System, and English. Verify the main window, Settings, Token popup, health popup, and context menu update without restarting; close/reopen the app and verify the selected theme persists.
+Install into `%LOCALAPPDATA%\ThreadBeacon`, launch the installed EXE, and use the Settings window to select Light, Dark, System, and English. Verify the main window, Settings, Token popup, health popup, and context menu update without restarting; close/reopen the app and verify the selected theme persists.
 
 - [ ] **Step 4: Update documentation**
 
