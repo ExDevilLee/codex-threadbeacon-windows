@@ -58,7 +58,7 @@ checkpoint, then update this section even when no Windows change is required.
   without navigating when the already-frontmost Codex task is the exact
   confirmed target and its composer is empty. Drafts and ambiguous composer
   states still fail closed. Recovery results also expose stable privacy-safe
-  diagnostic codes. Windows currently keeps the stricter frontmost stop policy.
+  diagnostic codes. Windows implementation is complete in `73e5796`.
 
 ### Reference-Only or Not Yet Published by macOS at This Checkpoint
 
@@ -112,3 +112,15 @@ reference advances.
 - Verified the packaged bridge lifecycle, installed Release UI in Chinese and
   English, and the primary-row transition into and out of the compacting state.
 - Windows completion commit: `e48a057`.
+
+### 2026-07-23 - Confirmed foreground recovery completion
+
+- Implemented the macOS `648719f` behavior on Windows: an exact, unique,
+  frontmost Codex task with one readable empty composer can reuse the current
+  composer without navigation.
+- Drafts, ambiguous targets, unreadable composers, changed runtime IDs, and
+  focus changes fail closed. Interactive task opening remains separate from
+  unattended recovery.
+- Added allowlisted, bounded diagnostic codes to recovery history and sender
+  results without persisting UI text, prompts, or paths.
+- Windows completion commit: `73e5796`.
