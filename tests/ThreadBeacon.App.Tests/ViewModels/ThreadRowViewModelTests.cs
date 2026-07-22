@@ -9,6 +9,19 @@ public sealed class ThreadRowViewModelTests
     private static readonly DateTimeOffset Now = new(2026, 7, 19, 12, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void Constructor_MetadataWithoutTokensStillExposesTaskDetails()
+    {
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 0, model: "gpt-main", reasoningEffort: "high"),
+            Now,
+            language: AppLanguage.English);
+
+        Assert.True(viewModel.HasTokenDetails);
+        Assert.Equal("gpt-main", viewModel.TokenDetails?.MetadataRows[0].Value);
+        Assert.False(viewModel.TokenDetails?.HasTokenUsage);
+    }
+
+    [Fact]
     public void Constructor_ZeroCountHidesSubagentPresentation()
     {
         var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 0), Now);
@@ -260,7 +273,9 @@ public sealed class ThreadRowViewModelTests
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
         ServiceIncident? serviceIncident = null,
         bool isArchived = false,
-        ThreadStatus status = ThreadStatus.Running) =>
+        ThreadStatus status = ThreadStatus.Running,
+        string? model = null,
+        string? reasoningEffort = null) =>
         new(
             "thread-1",
             "Task",
@@ -275,5 +290,7 @@ public sealed class ThreadRowViewModelTests
             RolloutSourceStatus.Healthy,
             subagentSourceStatus: subagentSourceStatus,
             serviceIncident: serviceIncident,
-            isArchived: isArchived);
+            isArchived: isArchived,
+            model: model,
+            reasoningEffort: reasoningEffort);
 }

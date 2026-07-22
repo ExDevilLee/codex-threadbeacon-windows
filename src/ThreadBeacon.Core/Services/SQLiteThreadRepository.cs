@@ -120,7 +120,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                        COALESCE(t.updated_at_ms, t.updated_at * 1000),
                        COALESCE(t.tokens_used, 0),
                        {subagentCount},
-                       t.archived
+                       t.archived,
+                       t.model,
+                       t.reasoning_effort
                 FROM threads AS t
                 WHERE t.id IN ({string.Join(", ", parameterNames)})
                   {archiveFilter}
@@ -380,7 +382,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
             DateTimeOffset.FromUnixTimeMilliseconds(updatedAtMilliseconds),
             reader.GetInt64(4),
             subagentCount,
-            reader.GetInt64(6) != 0);
+            reader.GetInt64(6) != 0,
+            ReadOptionalString(reader, 7),
+            ReadOptionalString(reader, 8));
     }
 
     private static ThreadLoadResult Result(ThreadRepositoryStatus status) =>
@@ -403,7 +407,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                COALESCE(t.updated_at_ms, t.updated_at * 1000),
                COALESCE(t.tokens_used, 0),
                COALESCE(children.child_count, 0),
-               t.archived
+               t.archived,
+               t.model,
+               t.reasoning_effort
         FROM threads AS t
         LEFT JOIN (
             SELECT parent_thread_id, COUNT(*) AS child_count
@@ -428,7 +434,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                COALESCE(updated_at_ms, updated_at * 1000),
                COALESCE(tokens_used, 0),
                0,
-               archived
+               archived,
+               model,
+               reasoning_effort
         FROM threads
         WHERE archived = 0
           AND COALESCE(thread_source, '') <> 'subagent'
@@ -443,7 +451,9 @@ public sealed class SQLiteThreadRepository : IThreadRepository
                COALESCE(t.updated_at_ms, t.updated_at * 1000),
                COALESCE(t.tokens_used, 0),
                0,
-               t.archived
+               t.archived,
+               t.model,
+               t.reasoning_effort
         FROM threads AS t
         WHERE t.archived = 0
           AND COALESCE(t.thread_source, '') = 'subagent'

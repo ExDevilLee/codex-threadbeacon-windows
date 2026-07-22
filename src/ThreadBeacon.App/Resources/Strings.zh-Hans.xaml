@@ -58,6 +58,8 @@
     <sys:String x:Key="DataSourceHealth">数据源健康</sys:String>
     <sys:String x:Key="TokenDetails">Token 详情</sys:String>
     <sys:String x:Key="ViewTokenDetails">查看 Token 详情</sys:String>
+    <sys:String x:Key="TaskDetails">任务详情</sys:String>
+    <sys:String x:Key="ViewTaskDetails">查看任务详情</sys:String>
     <sys:String x:Key="SubagentDetails">Subagent 详情</sys:String>
     <sys:String x:Key="IgnoreTask">忽略此任务</sys:String>
     <sys:String x:Key="PinnedTask">已置顶</sys:String>

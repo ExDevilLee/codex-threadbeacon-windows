@@ -58,6 +58,8 @@
     <sys:String x:Key="DataSourceHealth">Data source health</sys:String>
     <sys:String x:Key="TokenDetails">Token details</sys:String>
     <sys:String x:Key="ViewTokenDetails">View token details</sys:String>
+    <sys:String x:Key="TaskDetails">Task details</sys:String>
+    <sys:String x:Key="ViewTaskDetails">View task details</sys:String>
     <sys:String x:Key="SubagentDetails">Subagent details</sys:String>
     <sys:String x:Key="IgnoreTask">Ignore this task</sys:String>
     <sys:String x:Key="PinnedTask">Pinned</sys:String>

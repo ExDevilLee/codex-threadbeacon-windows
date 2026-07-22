@@ -18,7 +18,9 @@ public sealed record ThreadSnapshot
         ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy,
         ServiceIncident? serviceIncident = null,
         bool isArchived = false,
-        string? rolloutPath = null)
+        string? rolloutPath = null,
+        string? model = null,
+        string? reasoningEffort = null)
     {
         Id = id;
         Title = title;
@@ -36,6 +38,8 @@ public sealed record ThreadSnapshot
         ServiceIncident = serviceIncident;
         IsArchived = isArchived;
         RolloutPath = rolloutPath;
+        Model = model;
+        ReasoningEffort = reasoningEffort;
     }
 
     public string Id { get; }
@@ -54,4 +58,6 @@ public sealed record ThreadSnapshot
     public ServiceIncident? ServiceIncident { get; }
     public bool IsArchived { get; }
     public string? RolloutPath { get; }
+    public string? Model { get; }
+    public string? ReasoningEffort { get; }
 }

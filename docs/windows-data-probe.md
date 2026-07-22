@@ -29,7 +29,7 @@ The repository returns stable health states for a missing, busy, incompatible, o
 
 The local probe confirmed that the session index was healthy and that current visible primary threads had matching rename records. It reported only the match count and did not print IDs or titles.
 
-`RolloutTailParser` opens rollout JSONL with Windows read/write/delete sharing and reads at most the final 2 MiB. When the read starts in the middle of a line, the truncated first line is discarded. Parsing retains only event types, timestamps, and numeric Token counters; reasoning summaries, messages, and `last_agent_message` are never placed in the observation model.
+`RolloutTailParser` opens rollout JSONL with Windows read/write/delete sharing and reads at most the final 2 MiB. When the read starts in the middle of a line, the truncated first line is discarded. Parsing retains only event types, timestamps, `turn_context` model/effort, and numeric Token counters; reasoning summaries, messages, and `last_agent_message` are never placed in the observation model. SQLite model and reasoning values take per-field precedence, while rollout metadata fills missing fields.
 
 The status policy keeps a completion visible for 60 seconds and changes it to idle afterward. An unresolved running turn becomes unknown after 120 seconds without a newer event. The local probe found every visible rollout available and produced aggregate status counts without printing thread identifiers, titles, paths, Token values, or message content.
 

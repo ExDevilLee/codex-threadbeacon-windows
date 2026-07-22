@@ -14,7 +14,7 @@
                 Padding="0"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
-                AutomationProperties.Name="{DynamicResource ViewTokenDetails}"
+                AutomationProperties.Name="{DynamicResource ViewTaskDetails}"
                 Background="Transparent"
                 BorderBrush="Transparent"
                 BorderThickness="0"
@@ -37,7 +37,7 @@
                PopupAnimation="Fade"
                StaysOpen="False">
             <Border x:Name="PopupContent"
-                    Width="270"
+                    Width="290"
                     Padding="12"
                     Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource ControlBorderBrush}"
@@ -54,16 +54,16 @@
                 <StackPanel>
                     <TextBlock FontSize="14"
                                FontWeight="SemiBold"
-                               Text="{DynamicResource TokenDetails}" />
+                               Text="{DynamicResource TaskDetails}" />
 
                     <ItemsControl Margin="0,10,0,0"
                                   Grid.IsSharedSizeScope="True"
-                                  ItemsSource="{Binding Rows}">
+                                  ItemsSource="{Binding MetadataRows}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" SharedSizeGroup="TokenLabel" />
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabel" />
                                         <ColumnDefinition Width="18" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
@@ -82,12 +82,38 @@
 
                     <Border Height="1"
                             Margin="0,4,0,8"
-                            Background="{DynamicResource ControlBorderBrush}" />
+                            Background="{DynamicResource ControlBorderBrush}"
+                            Visibility="{Binding TokenDividerVisibility}" />
+
+                    <ItemsControl Grid.IsSharedSizeScope="True"
+                                  ItemsSource="{Binding TokenRows}"
+                                  Visibility="{Binding TokenSectionVisibility}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabel" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock FontSize="12"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               Text="{Binding Label}" />
+                                    <TextBlock Grid.Column="2"
+                                               HorizontalAlignment="Right"
+                                               FontFamily="Cascadia Mono, Consolas"
+                                               FontSize="12"
+                                               Text="{Binding Value}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <TextBlock FontSize="10"
                                Foreground="{DynamicResource SecondaryTextBrush}"
                                Text="{Binding Note}"
-                               TextWrapping="Wrap" />
+                               TextWrapping="Wrap"
+                               Visibility="{Binding TokenSectionVisibility}" />
                 </StackPanel>
             </Border>
         </Popup>

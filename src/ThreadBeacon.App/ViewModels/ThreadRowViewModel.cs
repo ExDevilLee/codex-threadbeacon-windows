@@ -273,8 +273,10 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             : GetIncidentDetail(snapshot.ServiceIncident, language);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         TokenDetails = snapshot.TokenUsage is null
+                && string.IsNullOrWhiteSpace(snapshot.Model)
+                && string.IsNullOrWhiteSpace(snapshot.ReasoningEffort)
             ? null
-            : new TokenDetailViewModel(snapshot.TokenUsage, language);
+            : new TokenDetailViewModel(snapshot, language);
         SubagentCount = snapshot.SubagentCount;
         SetSubagentSourceStatus(snapshot.SubagentSourceStatus);
         ReconcileSubagents(snapshot.Subagents, now);

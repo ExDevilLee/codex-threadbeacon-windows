@@ -156,6 +156,31 @@ public static class AppLanguageText
             ? new[] { "会话总量", "输入", "缓存输入", "非缓存输入", "输出", "Reasoning", "当前 turn", "缓存率", "更新时间" }[index]
             : new[] { "Session total", "Input", "Cached input", "Uncached input", "Output", "Reasoning", "Current turn", "Cache ratio", "Updated" }[index];
 
+    public static string TaskMetadataLabel(AppLanguage language, int index) =>
+        language is AppLanguage.SimplifiedChinese
+            ? new[] { "模型", "推理强度" }[index]
+            : new[] { "Model", "Reasoning" }[index];
+
+    public static string ReasoningEffort(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "—";
+        }
+
+        string normalized = value.Trim();
+        return normalized.ToLowerInvariant() switch
+        {
+            "xhigh" => "XHigh",
+            "high" => "High",
+            "medium" => "Medium",
+            "low" => "Low",
+            "minimal" => "Minimal",
+            "none" => "None",
+            _ => normalized,
+        };
+    }
+
     public static string TokenNote(AppLanguage language) =>
         language is AppLanguage.SimplifiedChinese
             ? "缓存输入已包含在输入中；Reasoning 已包含在输出中。"

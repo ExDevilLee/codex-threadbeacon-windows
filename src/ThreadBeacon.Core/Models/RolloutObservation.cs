@@ -6,7 +6,9 @@ public sealed record RolloutObservation(
     DateTimeOffset? LatestEventAt,
     DateTimeOffset? CompletionEventAt,
     DateTimeOffset? LatestTaskStartedAt,
-    TokenUsageSnapshot? TokenUsage)
+    TokenUsageSnapshot? TokenUsage,
+    string? Model = null,
+    string? ReasoningEffort = null)
 {
     public static RolloutObservation Empty { get; } = new(
         ThreadStatus.Unknown,

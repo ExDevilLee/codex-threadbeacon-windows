@@ -7,6 +7,24 @@ namespace ThreadBeacon.App.Tests.ViewModels;
 public sealed class TokenDetailViewModelTests
 {
     [Fact]
+    public void Constructor_MapsTaskMetadataAndNormalizesReasoningEffort()
+    {
+        var details = new TokenDetailViewModel(
+            new ThreadSnapshot(
+                "task", "Task", ThreadStatus.Idle, DateTimeOffset.Now,
+                DateTimeOffset.Now, null, null, null, null, 0,
+                RolloutSourceStatus.Healthy,
+                model: "gpt-main",
+                reasoningEffort: "xhigh"),
+            AppLanguage.English);
+
+        Assert.Equal(["Model", "Reasoning"], details.MetadataRows.Select(row => row.Label));
+        Assert.Equal(["gpt-main", "XHigh"], details.MetadataRows.Select(row => row.Value));
+        Assert.False(details.HasTokenUsage);
+        Assert.Empty(details.TokenRows);
+    }
+
+    [Fact]
     public void Constructor_MapsFieldsInMacCompatibleOrder()
     {
         var updatedAt = new DateTimeOffset(2026, 7, 18, 12, 34, 56, TimeSpan.Zero);

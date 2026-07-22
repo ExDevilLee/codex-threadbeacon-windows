@@ -7,6 +7,17 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-22
+
+### Added
+
+- 主任务详情现在显示模型与推理强度；SQLite 字段逐项优先，缺失时由 rollout 最近有效的 `turn_context` 补充。
+- 只有模型或推理强度而没有 Token 数据时仍可打开详情；详情弹窗继续支持悬停、点击固定与中英文即时切换。
+
+### Privacy
+
+- 新增字段仅为模型名称与推理强度，不读取或保留消息正文、回答、reasoning summary 或工具输出。
+
 ## [0.13.1] - 2026-07-22
 
 ### Fixed
@@ -141,7 +152,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.0...v0.12.1

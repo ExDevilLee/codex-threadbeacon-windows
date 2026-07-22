@@ -200,7 +200,9 @@ public sealed class ThreadStatusLoader
             subagentSourceStatus,
             incident,
             record.IsArchived,
-            record.RolloutPath);
+            record.RolloutPath,
+            record.Model ?? rollout.Observation.Model,
+            record.ReasoningEffort ?? rollout.Observation.ReasoningEffort);
     }
 
     private ServiceLogLoadResult LoadIncidents(

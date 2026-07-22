@@ -7,4 +7,6 @@ public sealed record ThreadRecord(
     DateTimeOffset UpdatedAt,
     long TokensUsed,
     int SubagentCount,
-    bool IsArchived = false);
+    bool IsArchived = false,
+    string? Model = null,
+    string? ReasoningEffort = null);

@@ -67,7 +67,7 @@ Right-clicking also favorites a primary task independently of pin and ignore. Th
 
 The middle header button temporarily pauses or resumes automatic monitoring. Manual refresh remains available while paused; resuming refreshes immediately, and every App launch starts with monitoring active. This control only affects ThreadBeacon's local read-only refresh and does not pause Codex tasks.
 
-The info button beside cumulative Token usage shows session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Hover opens a transient detail popover and clicking pins it; a pinned popover remains stable across automatic task refreshes.
+The info button beside cumulative Token usage now opens Task details. It shows the primary task's model and reasoning effort before session total, input, cached input, non-cached input, output, Reasoning, current turn, cache rate, and update time. Model and reasoning effort prefer the read-only task database and independently fall back to the latest valid rollout `turn_context`; hover opens a transient popover and clicking pins it, and a pinned popover remains stable across automatic task refreshes.
 
 The gear button opens a separate settings window. Its General tab offers 1, 2, 5, or 10-second refresh intervals, maximum task counts of 4, 8, 12, or 20, and a Launch at login switch; changes are saved and applied immediately without altering the paused state. Launch at login writes only the current-user `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\ThreadBeacon` value and removes it when disabled; an unavailable registry is handled as a non-blocking settings failure. The Sounds tab provides the same eight built-in tones as the macOS version, including preview playback. New installations default to Chime for task completion and Alert for 429/503 incidents; either notification can independently use any of the eight sounds. A sound plays once only when an automatic refresh observes a new reliable `task_complete` event; multiple completions in one refresh batch are coalesced. App startup, manual refresh, monitoring resume, and task-count changes establish a baseline and never replay historical completions. Display preferences are stored in `%LOCALAPPDATA%\ThreadBeacon\display-settings.json`; sound preferences and at most 256 derived event IDs also stay local. These files contain no task titles, conversation bodies, Token details, or Codex paths.
 
@@ -96,7 +96,7 @@ The first POC is deliberately limited to:
 - Reading 8 recent unarchived primary threads by default, with configurable limits of 4, 8, 12, or 20, while excluding genuine Subagents and restoring only unlinked records with a visible Rename.
 - Using the latest renamed title from `session_index.jsonl`.
 - Deriving task status from rollout JSONL tails.
-- Displaying cumulative Token usage with a numeric-only detail popover.
+- Displaying the primary task model, reasoning effort, and cumulative Token usage in a body-free details popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
 - Detecting HTTP 400/429/503 and model-capacity incidents for visible primary tasks from read-only local logs.
 - Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
@@ -174,6 +174,8 @@ Beacon, Chime, Pulse, Alert, Resolve, and Knock are generated deterministically 
 ## Privacy
 
 Service-incident monitoring transiently parses only three allow-listed log targets and retains only the turn episode ID, HTTP status, retry progress, phase, and timestamp. It explicitly excludes transport logs that may contain request context. Conversation messages, responses, reasoning summaries, and complete requests are never read or displayed.
+
+Task details retain only model names, reasoning effort, and numeric Token fields. Later blank rollout fields never erase the latest valid metadata.
 
 See [PRIVACY.md](PRIVACY.md) for the exact local data scope and processing boundaries.
 

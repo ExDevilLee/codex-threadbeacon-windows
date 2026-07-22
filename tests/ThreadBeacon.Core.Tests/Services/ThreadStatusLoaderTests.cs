@@ -72,6 +72,30 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_PrefersDatabaseModelAndFillsMissingReasoningFromRollout()
+    {
+        ThreadRecord record = Record("task", "Task") with { Model = "db-model" };
+        var observations = new Dictionary<string, RolloutLoadResult>
+        {
+            ["task"] = HealthyObservation(
+                ThreadStatus.Running,
+                Now,
+                Now,
+                model: "rollout-model",
+                reasoningEffort: "medium"),
+        };
+        ThreadStatusLoader loader = CreateLoader(
+            [record],
+            new Dictionary<string, string>(),
+            observations);
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal("db-model", snapshot.Model);
+        Assert.Equal("medium", snapshot.ReasoningEffort);
+    }
+
+    [Fact]
     public void Load_MergesExplicitlyIncludedThreadsWithoutDuplicates()
     {
         ThreadRecord recent = Record("recent", "Recent");
@@ -623,7 +647,9 @@ public sealed class ThreadStatusLoaderTests
         DateTimeOffset latestEventAt,
         TokenUsageSnapshot? tokenUsage = null,
         DateTimeOffset? completionEventAt = null,
-        DateTimeOffset? latestTaskStartedAt = null) =>
+        DateTimeOffset? latestTaskStartedAt = null,
+        string? model = null,
+        string? reasoningEffort = null) =>
         new(
             RolloutSourceStatus.Healthy,
             new RolloutObservation(
@@ -632,7 +658,9 @@ public sealed class ThreadStatusLoaderTests
                 latestEventAt,
                 completionEventAt,
                 latestTaskStartedAt,
-                tokenUsage));
+                tokenUsage,
+                model,
+                reasoningEffort));
 
     private static ServiceIncident Incident(
         string episodeId,

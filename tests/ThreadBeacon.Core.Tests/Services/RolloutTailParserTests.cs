@@ -40,6 +40,22 @@ public sealed class RolloutTailParserTests
         Assert.Equal(ParseDate("2026-07-16T01:01:00Z"), result.StatusChangedAt);
     }
 
+    [Fact]
+    public void ParseLines_RetainsLatestNonEmptyTaskMetadata()
+    {
+        string[] lines =
+        [
+            """{"timestamp":"2026-07-16T01:00:00Z","type":"turn_context","payload":{"model":"gpt-old","effort":"low"}}""",
+            """{"timestamp":"2026-07-16T01:01:00Z","type":"turn_context","payload":{"model":"gpt-current","effort":"high"}}""",
+            """{"timestamp":"2026-07-16T01:02:00Z","type":"turn_context","payload":{"model":"  ","effort":""}}""",
+        ];
+
+        RolloutObservation result = parser.ParseLines(lines);
+
+        Assert.Equal("gpt-current", result.Model);
+        Assert.Equal("high", result.ReasoningEffort);
+    }
+
     [Theory]
     [InlineData("final")]
     [InlineData("final_answer")]

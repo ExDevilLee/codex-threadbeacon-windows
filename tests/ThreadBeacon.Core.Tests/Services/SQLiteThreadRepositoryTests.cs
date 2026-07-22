@@ -23,6 +23,8 @@ public sealed class SQLiteThreadRepositoryTests
                 Assert.Equal(Path.Combine("D:\\rollouts", "new.jsonl"), record.RolloutPath);
                 Assert.Equal(70_808_875, record.TokensUsed);
                 Assert.Equal(3, record.SubagentCount);
+                Assert.Equal("gpt-main", record.Model);
+                Assert.Equal("xhigh", record.ReasoningEffort);
             },
             record => Assert.Equal("older-thread", record.Id));
     }
@@ -300,7 +302,7 @@ public sealed class SQLiteThreadRepositoryTests
             );
             INSERT INTO threads VALUES
                 ('older-thread', 'Older', 'D:\rollouts\older.jsonl', 100, 100000, 100000, 0, 'user', 1, NULL, NULL, NULL, NULL),
-                ('new-thread', 'New', 'D:\rollouts\new.jsonl', 200, 200000, 300000, 0, 'user', 70808875, NULL, NULL, NULL, NULL),
+                ('new-thread', 'New', 'D:\rollouts\new.jsonl', 200, 200000, 300000, 0, 'user', 70808875, NULL, NULL, 'gpt-main', 'xhigh'),
                 ('subagent-thread', 'Child', 'D:\rollouts\child.jsonl', 300, 300000, 500000, 0, 'subagent', 2, 'worker', 'reviewer', 'gpt-test', 'medium'),
                 ('orphan-subagent', 'Detached', 'D:\rollouts\detached.jsonl', 330, 330000, 530000, 0, 'subagent', 6, NULL, NULL, NULL, NULL),
                 ('archived-orphan-subagent', 'Archived Detached', 'D:\rollouts\archived-detached.jsonl', 340, 340000, 540000, 1, 'subagent', 7, NULL, NULL, NULL, NULL),

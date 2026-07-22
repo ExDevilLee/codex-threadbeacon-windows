@@ -78,6 +78,8 @@ public sealed class RolloutTailParser : IRolloutTailParser
         TokenUsage? latestTokenUsage = null;
         DateTimeOffset? latestTokenEvent = null;
         TokenUsage? currentTurnBaseline = null;
+        string? latestModel = null;
+        string? latestReasoningEffort = null;
 
         foreach (string line in lines)
         {
@@ -102,6 +104,13 @@ public sealed class RolloutTailParser : IRolloutTailParser
                     || payload.ValueKind is not JsonValueKind.Object)
                 {
                     continue;
+                }
+
+                if (envelopeType is "turn_context")
+                {
+                    latestModel = NonEmpty(GetString(payload, "model")) ?? latestModel;
+                    latestReasoningEffort = NonEmpty(GetString(payload, "effort"))
+                        ?? latestReasoningEffort;
                 }
 
                 string? payloadType = GetString(payload, "type");
@@ -165,7 +174,9 @@ public sealed class RolloutTailParser : IRolloutTailParser
             latestEvent,
             latestCompletion,
             latestTaskStarted,
-            tokenSnapshot);
+            tokenSnapshot,
+            latestModel,
+            latestReasoningEffort);
     }
 
     private static IReadOnlyList<string> ReadLines(ReadOnlySpan<byte> content)
@@ -254,6 +265,9 @@ public sealed class RolloutTailParser : IRolloutTailParser
             && property.ValueKind is JsonValueKind.String
             ? property.GetString()
             : null;
+
+    private static string? NonEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static DateTimeOffset Latest(DateTimeOffset? current, DateTimeOffset candidate) =>
         current is null || candidate > current ? candidate : current.Value;
