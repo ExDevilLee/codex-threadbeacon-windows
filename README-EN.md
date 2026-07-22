@@ -87,7 +87,7 @@ The App now also monitors HTTP 400/429/503 service incidents, model-capacity fai
 
 The Sounds tab supports choosing, previewing, and clearing a local WAV file independently for completion and service-incident notifications. If a custom file is unavailable or invalid, playback automatically falls back to the selected built-in tone.
 
-A primary task that created Subagents shows a neutral branch icon and its direct Subagent count after the title. This is a historical parent-child relationship count, not a live running count; zero reserves no space. Clicking the count expands direct children inline with `Agent alias | title`, derived status, recent activity, and cumulative Token usage. The detail button shows role, model, reasoning effort, and numeric Token fields. Child records and rollout tails are read only for visible expanded parents; collapsing stops those reads. Conversation bodies and deeper descendants are never read or displayed.
+A primary task that created Subagents shows a neutral branch icon and `running/history total`, such as `2/27`; zero total reserves no space. The numerator counts only direct children whose rollout remains confirmed `Running` by the existing 120-second freshness policy. It does not use the relationship table's `open` value and does not recurse. To keep the two-second refresh bounded, a collapsed row queries only children updated in the last 120 seconds and reads those rollout tails; expanding loads full direct-child details on demand and reuses observations already parsed in that refresh. Expanded rows show `Agent alias | title`, derived status, recent activity, cumulative Token usage, and details for role, model, reasoning effort, and numeric Token fields. Conversation bodies and deeper descendants are never read or displayed.
 
 The window subtitle shows `running tasks/current visible tasks`, such as `1/7`. Only primary snapshots with the derived `Running` status contribute to the numerator, and the denominator matches the primary snapshots currently displayed. Pausing preserves the last successful count; manual refresh or monitoring resume recalculates it.
 
@@ -99,7 +99,7 @@ The first POC is deliberately limited to:
 - Displaying the primary task model, reasoning effort, and cumulative Token usage in a body-free details popover.
 - Playing a configurable built-in sound for new task completions observed by automatic refresh.
 - Detecting HTTP 400/429/503 and model-capacity incidents for visible primary tasks from read-only local logs.
-- Showing a non-zero historical direct-Subagent count and expanding direct children on demand.
+- Showing running direct Subagents over their historical total and expanding direct children on demand.
 - Showing running primary tasks over currently visible primary tasks in the subtitle.
 - Pinning, temporarily ignoring, automatically restoring on a newer turn, and manually restoring primary tasks.
 - Favoriting independently, filtering to favorites, and watching archived favorites.

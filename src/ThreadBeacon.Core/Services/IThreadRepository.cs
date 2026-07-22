@@ -31,4 +31,14 @@ public interface IThreadRepository
             ThreadRepositoryStatus.Healthy,
             new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal));
     }
+
+    SubagentActivityLoadResult LoadRecentSubagentCandidates(
+        IReadOnlySet<string> parentIds,
+        DateTimeOffset updatedAfter)
+    {
+        ArgumentNullException.ThrowIfNull(parentIds);
+        return new SubagentActivityLoadResult(
+            ThreadRepositoryStatus.Healthy,
+            new Dictionary<string, IReadOnlyList<SubagentActivityCandidate>>(StringComparer.Ordinal));
+    }
 }

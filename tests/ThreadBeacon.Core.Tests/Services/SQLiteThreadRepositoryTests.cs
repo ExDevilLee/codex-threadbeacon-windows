@@ -233,6 +233,36 @@ public sealed class SQLiteThreadRepositoryTests
         Assert.Empty(result.SubagentsByParent);
     }
 
+    [Fact]
+    public void LoadRecentSubagentCandidates_ReturnsOnlyFreshRequestedDirectChildren()
+    {
+        using TemporaryThreadDatabase database = TemporaryThreadDatabase.Create();
+
+        SubagentActivityLoadResult result = new SQLiteThreadRepository(database.Path)
+            .LoadRecentSubagentCandidates(
+                new HashSet<string>(StringComparer.Ordinal) { "new-thread" },
+                DateTimeOffset.FromUnixTimeSeconds(305));
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Equal(
+            ["archived-child", "legacy-child"],
+            result.CandidatesByParent["new-thread"].Select(candidate => candidate.Id));
+    }
+
+    [Fact]
+    public void LoadRecentSubagentCandidates_EmptyParentsDoesNotAccessDatabase()
+    {
+        string missing = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.sqlite");
+
+        SubagentActivityLoadResult result = new SQLiteThreadRepository(missing)
+            .LoadRecentSubagentCandidates(
+                new HashSet<string>(StringComparer.Ordinal),
+                DateTimeOffset.MinValue);
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.Status);
+        Assert.Empty(result.CandidatesByParent);
+    }
+
     private sealed class TemporaryThreadDatabase : IDisposable
     {
         private TemporaryThreadDatabase(string path)

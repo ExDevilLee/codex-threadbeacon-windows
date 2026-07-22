@@ -35,12 +35,14 @@ public sealed class ThreadRowViewModelTests
     [Fact]
     public void Constructor_PositiveCountExposesExactSubagentPresentation()
     {
-        var viewModel = new ThreadRowViewModel(Snapshot(subagentCount: 3), Now);
+        var viewModel = new ThreadRowViewModel(
+            Snapshot(subagentCount: 3, activeSubagentCount: 2),
+            Now);
 
         Assert.Equal(3, viewModel.SubagentCount);
         Assert.True(viewModel.HasSubagents);
-        Assert.Equal("3", viewModel.SubagentCountText);
-        Assert.Equal("3 个 Subagent", viewModel.SubagentAccessibilityLabel);
+        Assert.Equal("2/3", viewModel.SubagentCountText);
+        Assert.Equal("运行中 2 个，共 3 个 Subagent", viewModel.SubagentAccessibilityLabel);
     }
 
     [Fact]
@@ -57,7 +59,7 @@ public sealed class ThreadRowViewModelTests
     {
         string? toggledId = null;
         var viewModel = new ThreadRowViewModel(
-            Snapshot(subagentCount: 3),
+            Snapshot(subagentCount: 3, activeSubagentCount: 2),
             Now,
             id =>
             {
@@ -66,14 +68,14 @@ public sealed class ThreadRowViewModelTests
             });
 
         Assert.False(viewModel.IsSubagentExpanded);
-        Assert.Equal("展开 3 个 Subagent", viewModel.SubagentToggleAccessibilityLabel);
+        Assert.Equal("运行中 2 个，共 3 个 Subagent；点击展开", viewModel.SubagentToggleAccessibilityLabel);
 
         viewModel.SetSubagentExpanded(true, isLoading: true);
         viewModel.ToggleSubagentsCommand.Execute(null);
 
         Assert.True(viewModel.IsSubagentExpanded);
         Assert.True(viewModel.IsSubagentLoading);
-        Assert.Equal("收起 3 个 Subagent", viewModel.SubagentToggleAccessibilityLabel);
+        Assert.Equal("运行中 2 个，共 3 个 Subagent；点击收起", viewModel.SubagentToggleAccessibilityLabel);
         Assert.Equal("thread-1", toggledId);
     }
 
@@ -195,14 +197,14 @@ public sealed class ThreadRowViewModelTests
     public void Constructor_UsesEnglishPresentationWhenRequested()
     {
         var viewModel = new ThreadRowViewModel(
-            Snapshot(subagentCount: 3),
+            Snapshot(subagentCount: 3, activeSubagentCount: 2),
             Now,
             language: AppLanguage.English);
 
         Assert.Equal("Running", viewModel.StatusLabel);
         Assert.Equal("Pin task", viewModel.PinCommandLabel);
         Assert.Equal("Favorite task", viewModel.FavoriteCommandLabel);
-        Assert.Equal("3 Subagents", viewModel.SubagentAccessibilityLabel);
+        Assert.Equal("2 running, 3 Subagents total", viewModel.SubagentAccessibilityLabel);
         Assert.Equal("1 min", viewModel.DurationText);
     }
 
@@ -275,7 +277,8 @@ public sealed class ThreadRowViewModelTests
         bool isArchived = false,
         ThreadStatus status = ThreadStatus.Running,
         string? model = null,
-        string? reasoningEffort = null) =>
+        string? reasoningEffort = null,
+        int activeSubagentCount = 0) =>
         new(
             "thread-1",
             "Task",
@@ -292,5 +295,6 @@ public sealed class ThreadRowViewModelTests
             serviceIncident: serviceIncident,
             isArchived: isArchived,
             model: model,
-            reasoningEffort: reasoningEffort);
+            reasoningEffort: reasoningEffort,
+            activeSubagentCount: activeSubagentCount);
 }

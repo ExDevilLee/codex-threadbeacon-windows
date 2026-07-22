@@ -20,7 +20,8 @@ public sealed record ThreadSnapshot
         bool isArchived = false,
         string? rolloutPath = null,
         string? model = null,
-        string? reasoningEffort = null)
+        string? reasoningEffort = null,
+        int activeSubagentCount = 0)
     {
         Id = id;
         Title = title;
@@ -40,6 +41,7 @@ public sealed record ThreadSnapshot
         RolloutPath = rolloutPath;
         Model = model;
         ReasoningEffort = reasoningEffort;
+        ActiveSubagentCount = Math.Min(Math.Max(0, activeSubagentCount), SubagentCount);
     }
 
     public string Id { get; }
@@ -60,4 +62,5 @@ public sealed record ThreadSnapshot
     public string? RolloutPath { get; }
     public string? Model { get; }
     public string? ReasoningEffort { get; }
+    public int ActiveSubagentCount { get; }
 }

@@ -326,6 +326,103 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         }
     }
 
+    public SubagentActivityLoadResult LoadRecentSubagentCandidates(
+        IReadOnlySet<string> parentIds,
+        DateTimeOffset updatedAfter)
+    {
+        ArgumentNullException.ThrowIfNull(parentIds);
+        string[] requestedIds = parentIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        if (requestedIds.Length == 0)
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Healthy);
+        }
+
+        if (!File.Exists(databasePath))
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Missing);
+        }
+
+        try
+        {
+            using SqliteConnection connection = OpenReadOnlyConnection();
+            if (!HasTable(connection, "thread_spawn_edges"))
+            {
+                return SubagentActivityResult(ThreadRepositoryStatus.Healthy);
+            }
+
+            using SqliteCommand command = connection.CreateCommand();
+            string[] parameters = new string[requestedIds.Length];
+            for (int index = 0; index < requestedIds.Length; index++)
+            {
+                parameters[index] = $"$parent{index}";
+                command.Parameters.AddWithValue(parameters[index], requestedIds[index]);
+            }
+
+            command.Parameters.AddWithValue("$updatedAfter", updatedAfter.ToUnixTimeMilliseconds());
+            command.CommandText = $"""
+                SELECT edge.parent_thread_id,
+                       child.id,
+                       child.rollout_path,
+                       COALESCE(child.updated_at_ms, child.updated_at * 1000)
+                FROM thread_spawn_edges AS edge
+                JOIN threads AS child ON child.id = edge.child_thread_id
+                WHERE edge.parent_thread_id IN ({string.Join(", ", parameters)})
+                  AND COALESCE(child.updated_at_ms, child.updated_at * 1000) >= $updatedAfter
+                ORDER BY edge.parent_thread_id,
+                         COALESCE(child.updated_at_ms, child.updated_at * 1000) DESC,
+                         child.id DESC;
+                """;
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            var mutable = new Dictionary<string, List<SubagentActivityCandidate>>(StringComparer.Ordinal);
+            while (reader.Read())
+            {
+                string parentId = reader.GetString(0);
+                if (!mutable.TryGetValue(parentId, out List<SubagentActivityCandidate>? candidates))
+                {
+                    candidates = [];
+                    mutable.Add(parentId, candidates);
+                }
+
+                candidates.Add(new SubagentActivityCandidate(
+                    reader.GetString(1),
+                    parentId,
+                    reader.GetString(2),
+                    DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(3))));
+            }
+
+            return new SubagentActivityLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                mutable.ToDictionary(
+                    pair => pair.Key,
+                    pair => (IReadOnlyList<SubagentActivityCandidate>)pair.Value.ToArray(),
+                    StringComparer.Ordinal));
+        }
+        catch (SqliteException exception) when (
+            exception.SqliteErrorCode is SqliteBusy or SqliteLocked)
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Busy);
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode is SqliteSchemaError)
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Incompatible);
+        }
+        catch (Exception exception) when (
+            exception is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Unavailable);
+        }
+        catch (Exception exception) when (
+            exception is InvalidCastException or OverflowException or ArgumentOutOfRangeException)
+        {
+            return SubagentActivityResult(ThreadRepositoryStatus.Incompatible);
+        }
+    }
+
     private SqliteConnection OpenReadOnlyConnection()
     {
         var builder = new SqliteConnectionStringBuilder
@@ -394,6 +491,11 @@ public sealed class SQLiteThreadRepository : IThreadRepository
         new(
             status,
             new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal));
+
+    private static SubagentActivityLoadResult SubagentActivityResult(ThreadRepositoryStatus status) =>
+        new(
+            status,
+            new Dictionary<string, IReadOnlyList<SubagentActivityCandidate>>(StringComparer.Ordinal));
 
     private static string? ReadOptionalString(SqliteDataReader reader, int ordinal) =>
         reader.IsDBNull(ordinal) || string.IsNullOrWhiteSpace(reader.GetString(ordinal))

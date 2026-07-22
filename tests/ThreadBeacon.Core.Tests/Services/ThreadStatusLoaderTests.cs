@@ -96,6 +96,96 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_CountsFreshRunningSubagentsWhileParentIsCollapsed()
+    {
+        ThreadRecord parent = Record("parent", "Parent") with { SubagentCount = 3 };
+        var repository = new ActiveCandidateThreadRepository(
+            parent,
+            [
+                new("running-a", "parent", "running-a", Now),
+                new("running-b", "parent", "running-b", Now),
+                new("completed", "parent", "completed", Now),
+            ]);
+        var parser = new TrackingRolloutParser(new Dictionary<string, RolloutLoadResult>
+        {
+            ["parent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            ["running-a"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+            ["running-b"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+            ["completed"] = HealthyObservation(ThreadStatus.JustCompleted, Now, Now),
+        });
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            parser,
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load().Threads);
+
+        Assert.Equal(2, snapshot.ActiveSubagentCount);
+        Assert.Empty(snapshot.Subagents);
+        Assert.Equal(Now.AddSeconds(-120), repository.RequestedCutoff);
+        Assert.Equal(1, parser.ParseCounts["running-a"]);
+    }
+
+    [Fact]
+    public void Load_ArchivedParentDoesNotRequestActiveCandidates()
+    {
+        ThreadRecord parent = Record("archived", "Archived") with
+        {
+            IsArchived = true,
+            SubagentCount = 1,
+        };
+        var repository = new ActiveCandidateThreadRepository(parent, []);
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["archived"] = HealthyObservation(ThreadStatus.Running, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(),
+            new HashSet<string>(),
+            new HashSet<string> { "archived" })).Threads);
+
+        Assert.Null(repository.RequestedCutoff);
+        Assert.Equal(0, snapshot.ActiveSubagentCount);
+    }
+
+    [Fact]
+    public void Load_ActiveCandidateFailureDegradesWithoutDiscardingPrimaryList()
+    {
+        ThreadRecord parent = Record("parent", "Parent") with { SubagentCount = 1 };
+        var repository = new ActiveCandidateThreadRepository(
+            parent,
+            [],
+            ThreadRepositoryStatus.Busy);
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(new Dictionary<string, RolloutLoadResult>
+            {
+                ["parent"] = HealthyObservation(ThreadStatus.Idle, Now, Now),
+            }),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshotLoadResult result = loader.Load();
+
+        Assert.Equal(ThreadRepositoryStatus.Healthy, result.ThreadSourceStatus);
+        Assert.Single(result.Threads);
+        Assert.Equal(DataSourceHealthLevel.Degraded, result.Health.TaskDatabase.Level);
+    }
+
+    [Fact]
     public void Load_MergesExplicitlyIncludedThreadsWithoutDuplicates()
     {
         ThreadRecord recent = Record("recent", "Recent");
@@ -674,6 +764,45 @@ public sealed class ThreadStatusLoaderTests
     private sealed class StubThreadRepository(ThreadLoadResult result) : IThreadRepository
     {
         public ThreadLoadResult LoadRecent(int limit = 8) => result;
+    }
+
+    private sealed class ActiveCandidateThreadRepository(
+        ThreadRecord parent,
+        IReadOnlyList<SubagentActivityCandidate> candidates,
+        ThreadRepositoryStatus activityStatus = ThreadRepositoryStatus.Healthy) : IThreadRepository
+    {
+        public DateTimeOffset? RequestedCutoff { get; private set; }
+
+        public ThreadLoadResult LoadRecent(int limit = 8) =>
+            new(ThreadRepositoryStatus.Healthy, parent.IsArchived ? [] : [parent]);
+
+        public ThreadLoadResult LoadByIdsIncludingArchived(IReadOnlySet<string> threadIds) =>
+            new(ThreadRepositoryStatus.Healthy, threadIds.Contains(parent.Id) ? [parent] : []);
+
+        public SubagentActivityLoadResult LoadRecentSubagentCandidates(
+            IReadOnlySet<string> parentIds,
+            DateTimeOffset updatedAfter)
+        {
+            RequestedCutoff = updatedAfter;
+            return new(
+                activityStatus,
+                new Dictionary<string, IReadOnlyList<SubagentActivityCandidate>>
+                {
+                    [parent.Id] = candidates,
+                });
+        }
+    }
+
+    private sealed class TrackingRolloutParser(
+        IReadOnlyDictionary<string, RolloutLoadResult> observations) : IRolloutTailParser
+    {
+        public Dictionary<string, int> ParseCounts { get; } = new(StringComparer.Ordinal);
+
+        public RolloutLoadResult Parse(string filePath)
+        {
+            ParseCounts[filePath] = ParseCounts.GetValueOrDefault(filePath) + 1;
+            return observations[filePath];
+        }
     }
 
     private sealed class TrackingThreadRepository(

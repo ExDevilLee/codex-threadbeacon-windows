@@ -71,17 +71,52 @@ public sealed class ThreadStatusLoader
             recordsById[record.Id] = record;
         }
 
-        ThreadRepositoryStatus threadStatus = FirstUnhealthyStatus(
-            recentResult.Status,
-            includedResult.Status,
-            favoriteResult.Status,
-            detachedCandidateResult.Status);
         IReadOnlyList<ThreadRecord> records = ThreadTitleResolver.Resolve(
             recordsById.Values.ToArray(),
             titleResult.Titles);
         var activeVisibleIds = new HashSet<string>(
             records.Where(record => !record.IsArchived).Select(record => record.Id),
             StringComparer.Ordinal);
+        var activityParentIds = new HashSet<string>(
+            records
+                .Where(record => !record.IsArchived && record.SubagentCount > 0)
+                .Select(record => record.Id),
+            StringComparer.Ordinal);
+        SubagentActivityLoadResult activityResult = activityParentIds.Count == 0
+            ? EmptySubagentActivityResult(ThreadRepositoryStatus.Healthy)
+            : threadRepository.LoadRecentSubagentCandidates(
+                activityParentIds,
+                now - runningFreshness);
+        var activityRollouts = new Dictionary<string, RolloutLoadResult>(StringComparer.Ordinal);
+        var activeSubagentCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach ((string parentId, IReadOnlyList<SubagentActivityCandidate> candidates)
+            in activityResult.CandidatesByParent)
+        {
+            int activeCount = 0;
+            foreach (SubagentActivityCandidate candidate in candidates)
+            {
+                RolloutLoadResult childRollout = rolloutParser.Parse(candidate.RolloutPath);
+                activityRollouts[candidate.Id] = childRollout;
+                ThreadDisplayState childState = ThreadStatusPolicy.Evaluate(
+                    childRollout.Observation,
+                    candidate.UpdatedAt,
+                    now,
+                    completedRetention,
+                    runningFreshness);
+                if (childState.Status is ThreadStatus.Running)
+                {
+                    activeCount++;
+                }
+            }
+
+            activeSubagentCounts[parentId] = activeCount;
+        }
+
+        ThreadRepositoryStatus threadStatus = FirstUnhealthyStatus(
+            recentResult.Status,
+            includedResult.Status,
+            favoriteResult.Status,
+            detachedCandidateResult.Status);
         ServiceLogLoadResult incidentResult = LoadIncidents(activeVisibleIds);
         IReadOnlyDictionary<string, ServiceIncident> incidents = incidentResult.Incidents;
         var requestedParentIds = new HashSet<string>(StringComparer.Ordinal);
@@ -104,7 +139,9 @@ public sealed class ThreadStatusLoader
                     : null,
                 requestedParentIds.Contains(record.Id)
                     ? subagentResult.Status
-                    : ThreadRepositoryStatus.Healthy))
+                    : ThreadRepositoryStatus.Healthy,
+                activeSubagentCounts.GetValueOrDefault(record.Id),
+                activityRollouts))
             .OrderBy(snapshot => ThreadStatusPriority.Get(snapshot.Status))
             .ThenByDescending(snapshot => snapshot.LatestEventAt ?? DateTimeOffset.MinValue)
             .ThenBy(snapshot => snapshot.Id, StringComparer.Ordinal)
@@ -120,9 +157,12 @@ public sealed class ThreadStatusLoader
             detachedCandidatesWereUsed,
             subagentResult.Status,
             requestedParentIds.Count > 0,
+            activityResult.Status,
+            activityParentIds.Count > 0,
             titleResult.Status,
             snapshots,
-            incidentResult.Status);
+            incidentResult.Status,
+            activityRollouts);
 
         return new ThreadSnapshotLoadResult(
             threadStatus,
@@ -138,7 +178,9 @@ public sealed class ThreadStatusLoader
         IReadOnlyDictionary<string, string> titleOverrides,
         ServiceIncident? incident,
         IReadOnlyList<SubagentRecord>? subagentRecords,
-        ThreadRepositoryStatus subagentSourceStatus)
+        ThreadRepositoryStatus subagentSourceStatus,
+        int activeSubagentCount,
+        IReadOnlyDictionary<string, RolloutLoadResult> activityRollouts)
     {
         RolloutLoadResult rollout = rolloutParser.Parse(record.RolloutPath);
         ThreadDisplayState displayState = ThreadStatusPolicy.Evaluate(
@@ -178,7 +220,11 @@ public sealed class ThreadStatusLoader
                 : null);
 
         SubagentSnapshot[] subagents = (subagentRecords ?? Array.Empty<SubagentRecord>())
-            .Select(child => CreateSubagentSnapshot(child, titleOverrides, now))
+            .Select(child => CreateSubagentSnapshot(
+                child,
+                titleOverrides,
+                now,
+                activityRollouts.GetValueOrDefault(child.Id)))
             .OrderBy(child => ThreadStatusPriority.Get(child.Status))
             .ThenByDescending(child => child.LatestEventAt ?? DateTimeOffset.MinValue)
             .ThenBy(child => child.Id, StringComparer.Ordinal)
@@ -202,7 +248,8 @@ public sealed class ThreadStatusLoader
             record.IsArchived,
             record.RolloutPath,
             record.Model ?? rollout.Observation.Model,
-            record.ReasoningEffort ?? rollout.Observation.ReasoningEffort);
+            record.ReasoningEffort ?? rollout.Observation.ReasoningEffort,
+            record.IsArchived ? 0 : activeSubagentCount);
     }
 
     private ServiceLogLoadResult LoadIncidents(
@@ -233,14 +280,20 @@ public sealed class ThreadStatusLoader
         bool detachedCandidatesWereUsed,
         ThreadRepositoryStatus subagentStatus,
         bool subagentWasUsed,
+        ThreadRepositoryStatus activityStatus,
+        bool activityWasUsed,
         SessionIndexStatus titleStatus,
         IReadOnlyList<ThreadSnapshot> snapshots,
-        ServiceLogSourceStatus serviceLogStatus)
+        ServiceLogSourceStatus serviceLogStatus,
+        IReadOnlyDictionary<string, RolloutLoadResult> activityRollouts)
     {
+        var activeIds = new HashSet<string>(activityRollouts.Keys, StringComparer.Ordinal);
         RolloutSourceStatus[] rolloutStatuses = snapshots
             .SelectMany(snapshot => snapshot.Subagents
+                .Where(subagent => !activeIds.Contains(subagent.Id))
                 .Select(subagent => subagent.RolloutSourceStatus)
                 .Prepend(snapshot.RolloutSourceStatus))
+            .Concat(activityRollouts.Values.Select(result => result.Status))
             .ToArray();
         int rolloutSuccessCount = rolloutStatuses.Count(
             status => status is RolloutSourceStatus.Healthy);
@@ -256,7 +309,9 @@ public sealed class ThreadStatusLoader
                 detachedCandidateStatus,
                 detachedCandidatesWereUsed,
                 subagentStatus,
-                subagentWasUsed),
+                subagentWasUsed,
+                activityStatus,
+                activityWasUsed),
             RenameHealth(titleStatus),
             RolloutHealth(rolloutSuccessCount, rolloutFailureCount),
             ServiceLogHealth(serviceLogStatus),
@@ -274,7 +329,9 @@ public sealed class ThreadStatusLoader
         ThreadRepositoryStatus detachedCandidateStatus,
         bool detachedCandidatesWereUsed,
         ThreadRepositoryStatus subagentStatus,
-        bool subagentWasUsed)
+        bool subagentWasUsed,
+        ThreadRepositoryStatus activityStatus,
+        bool activityWasUsed)
     {
         if (recentStatus is not ThreadRepositoryStatus.Healthy)
         {
@@ -289,6 +346,7 @@ public sealed class ThreadStatusLoader
                 ? detachedCandidateStatus
                 : ThreadRepositoryStatus.Healthy,
             subagentWasUsed ? subagentStatus : ThreadRepositoryStatus.Healthy,
+            activityWasUsed ? activityStatus : ThreadRepositoryStatus.Healthy,
         ];
         ThreadRepositoryStatus supplementalFailure = FirstUnhealthyStatus(
             usedSupplementalStatuses);
@@ -375,9 +433,10 @@ public sealed class ThreadStatusLoader
     private SubagentSnapshot CreateSubagentSnapshot(
         SubagentRecord record,
         IReadOnlyDictionary<string, string> titleOverrides,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        RolloutLoadResult? cachedRollout = null)
     {
-        RolloutLoadResult rollout = rolloutParser.Parse(record.RolloutPath);
+        RolloutLoadResult rollout = cachedRollout ?? rolloutParser.Parse(record.RolloutPath);
         ThreadDisplayState displayState = ThreadStatusPolicy.Evaluate(
             rollout.Observation,
             record.UpdatedAt,
@@ -410,4 +469,10 @@ public sealed class ThreadStatusLoader
             record.ReasoningEffort,
             rollout.Status);
     }
+
+    private static SubagentActivityLoadResult EmptySubagentActivityResult(
+        ThreadRepositoryStatus status) =>
+        new(
+            status,
+            new Dictionary<string, IReadOnlyList<SubagentActivityCandidate>>(StringComparer.Ordinal));
 }

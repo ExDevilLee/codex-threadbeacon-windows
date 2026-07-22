@@ -67,14 +67,14 @@ public sealed class ThreadRowCollectionTests
         ThreadRowViewModel original = collection.Items.Single();
 
         collection.Reconcile(
-            [Snapshot("a", "Task", 100, subagentCount: 4)],
+            [Snapshot("a", "Task", 100, subagentCount: 4, activeSubagentCount: 2)],
             Now.AddSeconds(2));
 
         Assert.Same(original, collection.Items.Single());
         Assert.Equal(4, original.SubagentCount);
         Assert.True(original.HasSubagents);
-        Assert.Equal("4", original.SubagentCountText);
-        Assert.Equal("4 个 Subagent", original.SubagentAccessibilityLabel);
+        Assert.Equal("2/4", original.SubagentCountText);
+        Assert.Equal("运行中 2 个，共 4 个 Subagent", original.SubagentAccessibilityLabel);
     }
 
     [Fact]
@@ -123,7 +123,8 @@ public sealed class ThreadRowCollectionTests
         long tokens,
         int subagentCount = 0,
         IReadOnlyList<SubagentSnapshot>? subagents = null,
-        bool isArchived = false) =>
+        bool isArchived = false,
+        int activeSubagentCount = 0) =>
         new(
             id,
             title,
@@ -141,7 +142,8 @@ public sealed class ThreadRowCollectionTests
             subagentCount,
             RolloutSourceStatus.Healthy,
             subagents,
-            isArchived: isArchived);
+            isArchived: isArchived,
+            activeSubagentCount: activeSubagentCount);
 
     private static SubagentSnapshot Subagent(string id, string title) =>
         new(

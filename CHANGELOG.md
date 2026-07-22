@@ -7,6 +7,17 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-07-22
+
+### Added
+
+- 主任务 Subagent 徽标改为 `运行中数/历史总数`，例如 `2/27`；折叠状态也会随刷新更新。
+- 活跃数只统计最近 120 秒内由 rollout 确认仍为 Running 的直接 Subagent，展开时复用同轮解析结果。
+
+### Privacy
+
+- 活跃计数只读查询最近更新的直接子任务 ID、rollout 路径和时间，不读取标题、模型、Token 或正文。
+
 ## [0.14.0] - 2026-07-22
 
 ### Added
@@ -152,7 +163,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.12.1...v0.13.0

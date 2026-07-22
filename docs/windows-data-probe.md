@@ -35,6 +35,8 @@ The status policy keeps a completion visible for 60 seconds and changes it to id
 
 `ThreadStatusLoader` now merges the SQLite records, session index title overrides, rollout observations, status policy, and SQLite Token fallback into immutable task snapshots. Snapshots sort by status priority, then latest event time, then stable thread ID.
 
+For each visible unarchived parent, the repository also queries only direct Subagents updated within the 120-second running-freshness window. Their rollout observations derive the active numerator shown as `active/total`; expanded rows reuse the same per-refresh observations. A candidate-query failure degrades task-database health without discarding the last usable primary list.
+
 The WPF POC displays the real snapshot list with status lights, renamed titles, cumulative Token totals, and status duration. It refreshes every 2 seconds on a background worker and provides a manual refresh command. A local launch verified that four real tasks rendered without layout overlap while Codex remained active.
 
 ## Compatibility Boundary

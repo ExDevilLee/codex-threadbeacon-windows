@@ -27,6 +27,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private string tokenText = "—";
     private TokenDetailViewModel? tokenDetails;
     private int subagentCount;
+    private int activeSubagentCount;
     private bool isSubagentExpanded;
     private bool isSubagentLoading;
     private ThreadRepositoryStatus subagentSourceStatus = ThreadRepositoryStatus.Healthy;
@@ -182,12 +183,27 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     public bool HasSubagents => SubagentCount > 0;
 
     public string SubagentCountText => HasSubagents
-        ? SubagentCount.ToString(CultureInfo.InvariantCulture)
+        ? $"{ActiveSubagentCount.ToString(CultureInfo.InvariantCulture)}/{SubagentCount.ToString(CultureInfo.InvariantCulture)}"
         : string.Empty;
 
     public string SubagentAccessibilityLabel => HasSubagents
-        ? AppLanguageText.SubagentCount(language, SubagentCount)
+        ? AppLanguageText.SubagentCount(language, ActiveSubagentCount, SubagentCount)
         : string.Empty;
+
+    public int ActiveSubagentCount
+    {
+        get => activeSubagentCount;
+        private set
+        {
+            value = Math.Min(Math.Max(0, value), SubagentCount);
+            if (SetField(ref activeSubagentCount, value))
+            {
+                OnPropertyChanged(nameof(SubagentCountText));
+                OnPropertyChanged(nameof(SubagentAccessibilityLabel));
+                OnPropertyChanged(nameof(SubagentToggleAccessibilityLabel));
+            }
+        }
+    }
 
     public bool IsSubagentExpanded
     {
@@ -216,9 +232,11 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     }
 
     public string SubagentToggleAccessibilityLabel => HasSubagents
-        ? language is AppLanguage.SimplifiedChinese
-            ? $"{(IsSubagentExpanded ? "收起" : "展开")} {SubagentAccessibilityLabel}"
-            : $"{(IsSubagentExpanded ? "Collapse" : "Expand")} {SubagentAccessibilityLabel}"
+        ? AppLanguageText.SubagentToggle(
+            language,
+            ActiveSubagentCount,
+            SubagentCount,
+            IsSubagentExpanded)
         : string.Empty;
 
     public bool HasSubagentRows => Subagents.Count > 0;
@@ -278,6 +296,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             ? null
             : new TokenDetailViewModel(snapshot, language);
         SubagentCount = snapshot.SubagentCount;
+        ActiveSubagentCount = snapshot.ActiveSubagentCount;
         SetSubagentSourceStatus(snapshot.SubagentSourceStatus);
         ReconcileSubagents(snapshot.Subagents, now);
         DurationText = AppLanguageText.Duration(language, now - snapshot.StatusChangedAt);

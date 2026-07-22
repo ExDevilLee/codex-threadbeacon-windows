@@ -109,10 +109,19 @@ public static class AppLanguageText
             ? isFavorite ? "取消收藏" : "收藏任务"
             : isFavorite ? "Remove favorite" : "Favorite task";
 
-    public static string SubagentCount(AppLanguage language, int count) =>
+    public static string SubagentCount(AppLanguage language, int activeCount, int totalCount) =>
         language is AppLanguage.SimplifiedChinese
-            ? $"{count} 个 Subagent"
-            : $"{count} Subagents";
+            ? $"运行中 {activeCount} 个，共 {totalCount} 个 Subagent"
+            : $"{activeCount} running, {totalCount} Subagents total";
+
+    public static string SubagentToggle(
+        AppLanguage language,
+        int activeCount,
+        int totalCount,
+        bool isExpanded) =>
+        language is AppLanguage.SimplifiedChinese
+            ? $"{SubagentCount(language, activeCount, totalCount)}；点击{(isExpanded ? "收起" : "展开")}"
+            : $"{SubagentCount(language, activeCount, totalCount)}; click to {(isExpanded ? "collapse" : "expand")}";
 
     public static string HealthSummary(AppLanguage language, OverallDataSourceHealth status) =>
         language is AppLanguage.SimplifiedChinese
