@@ -12,6 +12,31 @@ public sealed class MainWindowXamlTests
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml.cs.txt"));
 
     [Fact]
+    public void TaskAndSubagentRows_BindColorBlindSafeStatusGlyphsInFixedSlots()
+    {
+        string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
+
+        Assert.Equal(2, Count(markup, "Text=\"{Binding StatusGlyph}\""));
+        Assert.Equal(4, Count(markup,
+            "DataContext.DisplaySettings.UseColorBlindSafeStatusIndicators"));
+        Assert.Contains("Width=\"18\" Height=\"18\"", markup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.Name=\"{Binding StatusLabel}\"", markup, StringComparison.Ordinal);
+    }
+
+    private static int Count(string value, string token)
+    {
+        int count = 0;
+        int offset = 0;
+        while ((offset = value.IndexOf(token, offset, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            offset += token.Length;
+        }
+
+        return count;
+    }
+
+    [Fact]
     public void Toolbar_PlacesFavoritesFilterBeforeWindowPinWithDynamicPresentation()
     {
         XDocument document = LoadDocument();

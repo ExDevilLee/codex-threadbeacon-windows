@@ -20,6 +20,7 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
     private string? alias;
     private string statusLabel = string.Empty;
     private Brush statusBrush = UnknownBrush;
+    private string statusGlyph = string.Empty;
     private string tokenText = "—";
     private string activityText = string.Empty;
     private string activityTooltip = string.Empty;
@@ -71,6 +72,12 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
         private set => SetField(ref statusBrush, value);
     }
 
+    public string StatusGlyph
+    {
+        get => statusGlyph;
+        private set => SetField(ref statusGlyph, value);
+    }
+
     public string TokenText
     {
         get => tokenText;
@@ -112,6 +119,7 @@ public sealed class SubagentRowViewModel : INotifyPropertyChanged
         Alias = SubagentAliasFormatter.Format(snapshot.AgentNickname, Title);
         StatusLabel = SubagentDetailViewModel.StatusLabel(snapshot.Status, language);
         StatusBrush = StatusBrushFor(snapshot.Status);
+        StatusGlyph = StatusGlyphFormatter.Format(snapshot.Status);
         TokenText = TokenUsageFormatter.FormatCount(snapshot.TokenUsage?.TotalTokens);
         DateTimeOffset activityAt = snapshot.LatestEventAt ?? snapshot.UpdatedAt;
         ActivityText = RelativeActivityFormatter.Format(activityAt, now, language);

@@ -137,6 +137,13 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
             if (languageState is not null)
             {
                 languageState.SetPreference(value);
+                settings = new DisplaySettings(
+                    settings.RefreshIntervalSeconds,
+                    settings.MaximumTaskCount,
+                    settings.Version,
+                    value,
+                    Theme,
+                    settings.UseColorBlindSafeStatusIndicators);
             }
             else
             {
@@ -145,7 +152,8 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
                     settings.MaximumTaskCount,
                     settings.Version,
                     value,
-                    settings.Theme);
+                    settings.Theme,
+                    settings.UseColorBlindSafeStatusIndicators);
                 settingsStore?.Save(settings);
             }
 
@@ -168,6 +176,13 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
             if (themeState is not null)
             {
                 themeState.SetPreference(value);
+                settings = new DisplaySettings(
+                    settings.RefreshIntervalSeconds,
+                    settings.MaximumTaskCount,
+                    settings.Version,
+                    Language,
+                    value,
+                    settings.UseColorBlindSafeStatusIndicators);
             }
             else
             {
@@ -176,7 +191,8 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
                     settings.MaximumTaskCount,
                     settings.Version,
                     settings.Language,
-                    value);
+                    value,
+                    settings.UseColorBlindSafeStatusIndicators);
                 settingsStore?.Save(settings);
             }
 
@@ -195,8 +211,9 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
                 value,
                 settings.MaximumTaskCount,
                 settings.Version,
-                settings.Language,
-                settings.Theme);
+                Language,
+                Theme,
+                settings.UseColorBlindSafeStatusIndicators);
             if (updated.RefreshIntervalSeconds == settings.RefreshIntervalSeconds)
             {
                 return;
@@ -220,14 +237,37 @@ public sealed class DisplaySettingsViewModel : INotifyPropertyChanged
                 settings.RefreshIntervalSeconds,
                 value,
                 settings.Version,
-                settings.Language,
-                settings.Theme);
+                Language,
+                Theme,
+                settings.UseColorBlindSafeStatusIndicators);
             if (updated.MaximumTaskCount == settings.MaximumTaskCount)
             {
                 return;
             }
 
             settings = updated;
+            settingsStore?.Save(settings);
+            OnPropertyChanged();
+        }
+    }
+
+    public bool UseColorBlindSafeStatusIndicators
+    {
+        get => settings.UseColorBlindSafeStatusIndicators;
+        set
+        {
+            if (settings.UseColorBlindSafeStatusIndicators == value)
+            {
+                return;
+            }
+
+            settings = new DisplaySettings(
+                settings.RefreshIntervalSeconds,
+                settings.MaximumTaskCount,
+                settings.Version,
+                Language,
+                Theme,
+                value);
             settingsStore?.Save(settings);
             OnPropertyChanged();
         }

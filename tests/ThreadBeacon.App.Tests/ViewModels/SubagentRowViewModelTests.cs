@@ -8,6 +8,41 @@ public sealed class SubagentRowViewModelTests
 {
     private static readonly DateTimeOffset Now = new(2026, 7, 19, 12, 0, 0, TimeSpan.Zero);
 
+    [Theory]
+    [InlineData(ThreadStatus.Error)]
+    [InlineData(ThreadStatus.NeedsAction)]
+    [InlineData(ThreadStatus.Warning)]
+    [InlineData(ThreadStatus.Running)]
+    [InlineData(ThreadStatus.JustCompleted)]
+    [InlineData(ThreadStatus.Idle)]
+    [InlineData(ThreadStatus.Unknown)]
+    public void Constructor_ExposesSameStatusGlyphContractAsMainRows(ThreadStatus status)
+    {
+        var snapshot = new SubagentSnapshot(
+            "child",
+            "Task",
+            status,
+            Now,
+            Now,
+            Now,
+            null,
+            null,
+            null,
+            null,
+            null,
+            RolloutSourceStatus.Healthy);
+
+        var subagent = new SubagentRowViewModel(snapshot, Now, AppLanguage.English);
+        var main = new ThreadRowViewModel(
+            new ThreadSnapshot(
+                "main", "Task", status, Now, Now, Now, Now, null, null, 0,
+                RolloutSourceStatus.Healthy),
+            Now,
+            language: AppLanguage.English);
+
+        Assert.Equal(main.StatusGlyph, subagent.StatusGlyph);
+    }
+
     [Fact]
     public void Constructor_MapsCompactRowAndDetailFields()
     {

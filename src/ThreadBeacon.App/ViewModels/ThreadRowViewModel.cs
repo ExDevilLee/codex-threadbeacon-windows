@@ -23,6 +23,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     private ThreadStatus status;
     private string statusLabel = string.Empty;
     private Brush statusBrush = UnknownBrush;
+    private string statusGlyph = string.Empty;
     private string incidentDetailText = string.Empty;
     private string tokenText = "—";
     private TokenDetailViewModel? tokenDetails;
@@ -128,6 +129,12 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
     {
         get => statusBrush;
         private set => SetField(ref statusBrush, value);
+    }
+
+    public string StatusGlyph
+    {
+        get => statusGlyph;
+        private set => SetField(ref statusGlyph, value);
     }
 
     public string IncidentDetailText
@@ -286,6 +293,7 @@ public sealed class ThreadRowViewModel : INotifyPropertyChanged
             ? language is AppLanguage.SimplifiedChinese ? "已归档" : "Archived"
             : GetStatusLabel(snapshot.Status, snapshot.ServiceIncident, language);
         StatusBrush = IsArchived ? IdleBrush : GetStatusBrush(snapshot.Status);
+        StatusGlyph = StatusGlyphFormatter.Format(IsArchived ? ThreadStatus.Idle : snapshot.Status);
         IncidentDetailText = IsArchived
             ? string.Empty
             : GetIncidentDetail(snapshot.ServiceIncident, language);

@@ -7,6 +7,17 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-07-22
+
+### Added
+
+- “通用”设置新增默认关闭的色盲安全状态标识，开启后主任务与 Subagent 会同时使用颜色、形状和文字区分七种状态。
+- 状态符号使用固定尺寸槽位，切换开关不会改变列表列宽；中英文、浅色和深色主题均即时生效。
+
+### Fixed
+
+- 显示设置保存时始终保留当前语言与主题，避免即时切换后由其他设置写回旧偏好。
+
 ## [0.15.0] - 2026-07-22
 
 ### Added
@@ -163,7 +174,8 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 - 只读访问 Codex SQLite、session index、rollout 尾部和白名单日志；不读取正文、不修改
   Codex 数据、不上传本机任务信息。
 
-[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/ExDevilLee/codex-threadbeacon-windows/compare/v0.13.0...v0.13.1

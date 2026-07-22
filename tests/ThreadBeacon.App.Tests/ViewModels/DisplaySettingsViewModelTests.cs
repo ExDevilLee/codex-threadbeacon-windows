@@ -92,6 +92,57 @@ public sealed class DisplaySettingsViewModelTests
     }
 
     [Fact]
+    public void ColorBlindSafeStatusPreference_SavesImmediatelyAndSurvivesOtherChanges()
+    {
+        var store = new MemoryDisplaySettingsStore(new DisplaySettings());
+        var viewModel = new DisplaySettingsViewModel(store);
+
+        viewModel.UseColorBlindSafeStatusIndicators = true;
+        viewModel.RefreshIntervalSeconds = 5;
+        viewModel.MaximumTaskCount = 12;
+        viewModel.Language = AppLanguage.English;
+        viewModel.Theme = AppTheme.Dark;
+
+        Assert.True(store.Current.UseColorBlindSafeStatusIndicators);
+        Assert.True(viewModel.UseColorBlindSafeStatusIndicators);
+    }
+
+    [Fact]
+    public void ColorBlindSafeStatusPreference_PreservesActiveLanguageAndThemeStates()
+    {
+        var store = new MemoryDisplaySettingsStore(new DisplaySettings());
+        var language = new AppLanguageState(
+            AppLanguage.System,
+            "zh-CN",
+            value => store.Save(new DisplaySettings(
+                store.Current.RefreshIntervalSeconds,
+                store.Current.MaximumTaskCount,
+                store.Current.Version,
+                value,
+                store.Current.Theme,
+                store.Current.UseColorBlindSafeStatusIndicators)));
+        var theme = new AppThemeState(
+            AppTheme.System,
+            new TestThemeDetector(AppTheme.Light),
+            value => store.Save(new DisplaySettings(
+                store.Current.RefreshIntervalSeconds,
+                store.Current.MaximumTaskCount,
+                store.Current.Version,
+                store.Current.Language,
+                value,
+                store.Current.UseColorBlindSafeStatusIndicators)));
+        var viewModel = new DisplaySettingsViewModel(store, language, theme);
+
+        viewModel.Language = AppLanguage.English;
+        viewModel.Theme = AppTheme.Dark;
+        viewModel.UseColorBlindSafeStatusIndicators = true;
+
+        Assert.Equal(AppLanguage.English, store.Current.Language);
+        Assert.Equal(AppTheme.Dark, store.Current.Theme);
+        Assert.True(store.Current.UseColorBlindSafeStatusIndicators);
+    }
+
+    [Fact]
     public void ThemeOptions_UseActiveLanguageAndPersistSelection()
     {
         var language = new AppLanguageState(AppLanguage.English, "en-US");

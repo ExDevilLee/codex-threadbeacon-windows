@@ -20,7 +20,8 @@ public sealed record DisplaySettings
         int maximumTaskCount = DefaultMaximumTaskCount,
         int version = 1,
         AppLanguage language = AppLanguage.System,
-        AppTheme theme = AppTheme.System)
+        AppTheme theme = AppTheme.System,
+        bool useColorBlindSafeStatusIndicators = false)
     {
         RefreshIntervalSeconds = RefreshIntervals.Contains(refreshIntervalSeconds)
             ? refreshIntervalSeconds
@@ -31,6 +32,7 @@ public sealed record DisplaySettings
         Version = version;
         Language = language;
         Theme = theme;
+        UseColorBlindSafeStatusIndicators = useColorBlindSafeStatusIndicators;
     }
 
     public static IReadOnlyList<int> SupportedRefreshIntervalSeconds => RefreshIntervals;
@@ -48,4 +50,6 @@ public sealed record DisplaySettings
 
     [JsonConverter(typeof(AppThemeJsonConverter))]
     public AppTheme Theme { get; }
+
+    public bool UseColorBlindSafeStatusIndicators { get; }
 }

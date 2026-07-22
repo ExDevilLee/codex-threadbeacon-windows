@@ -1,12 +1,48 @@
 using ThreadBeacon.App.ViewModels;
 using ThreadBeacon.App.Localization;
 using ThreadBeacon.Core.Models;
+using System.Windows;
+using System.Windows.Media;
 
 namespace ThreadBeacon.App.Tests.ViewModels;
 
 public sealed class ThreadRowViewModelTests
 {
     private static readonly DateTimeOffset Now = new(2026, 7, 19, 12, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public void StatusGlyphs_AreDistinctForEverySemanticStatus()
+    {
+        string[] glyphs = Enum.GetValues<ThreadStatus>()
+            .Select(status => new ThreadRowViewModel(
+                Snapshot(subagentCount: 0, status: status),
+                Now,
+                language: AppLanguage.English).StatusGlyph)
+            .ToArray();
+
+        Assert.DoesNotContain(glyphs, string.IsNullOrWhiteSpace);
+        Assert.Equal(glyphs.Length, glyphs.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void StatusGlyphs_ExistInWindowsFluentIconFont()
+    {
+        var typeface = new Typeface(
+            new FontFamily("Segoe Fluent Icons"),
+            FontStyles.Normal,
+            FontWeights.Normal,
+            FontStretches.Normal);
+
+        Assert.True(typeface.TryGetGlyphTypeface(out GlyphTypeface? glyphTypeface));
+        foreach (ThreadStatus status in Enum.GetValues<ThreadStatus>())
+        {
+            string glyph = new ThreadRowViewModel(
+                Snapshot(subagentCount: 0, status: status),
+                Now,
+                language: AppLanguage.English).StatusGlyph;
+            Assert.True(glyphTypeface.CharacterToGlyphMap.ContainsKey(glyph[0]));
+        }
+    }
 
     [Fact]
     public void Constructor_MetadataWithoutTokensStillExposesTaskDetails()

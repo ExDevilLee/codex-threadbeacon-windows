@@ -307,17 +307,51 @@
                                 </Border.ContextMenu>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="18" />
                                         <ColumnDefinition Width="66" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="92" />
                                         <ColumnDefinition Width="48" />
                                     </Grid.ColumnDefinitions>
 
-                                    <Ellipse Width="8"
-                                             Height="8"
-                                             HorizontalAlignment="Left"
-                                             Fill="{Binding StatusBrush}" />
+                                    <Grid Width="18" Height="18" HorizontalAlignment="Left">
+                                        <Ellipse Width="8"
+                                                 Height="8"
+                                                 HorizontalAlignment="Left"
+                                                 Fill="{Binding StatusBrush}">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DataContext.DisplaySettings.UseColorBlindSafeStatusIndicators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                     Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center"
+                                                   AutomationProperties.Name="{Binding StatusLabel}"
+                                                   FontFamily="Segoe Fluent Icons"
+                                                   FontSize="13"
+                                                   Foreground="{Binding StatusBrush}"
+                                                   Text="{Binding StatusGlyph}"
+                                                   ToolTip="{Binding StatusLabel}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DataContext.DisplaySettings.UseColorBlindSafeStatusIndicators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                     Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
                                     <TextBlock Grid.Column="1"
                                                VerticalAlignment="Center"
                                                FontSize="12"
@@ -450,7 +484,7 @@
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="18" />
-                                                    <ColumnDefinition Width="10" />
+                                                    <ColumnDefinition Width="18" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="72" />
                                                 </Grid.ColumnDefinitions>
@@ -459,13 +493,45 @@
                                                            FontSize="10"
                                                            Foreground="{DynamicResource SecondaryTextBrush}"
                                                            Text="&#xE72A;" />
-                                                <Ellipse Grid.Column="1"
-                                                         Width="6"
-                                                         Height="6"
-                                                         Margin="0,5,0,0"
-                                                         HorizontalAlignment="Left"
-                                                         VerticalAlignment="Top"
-                                                         Fill="{Binding StatusBrush}" />
+                                                <Grid Grid.Column="1" Width="18" Height="18" HorizontalAlignment="Left">
+                                                    <Ellipse Width="6"
+                                                             Height="6"
+                                                             HorizontalAlignment="Left"
+                                                             VerticalAlignment="Center"
+                                                             Fill="{Binding StatusBrush}">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding DataContext.DisplaySettings.UseColorBlindSafeStatusIndicators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                 Value="True">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <TextBlock HorizontalAlignment="Left"
+                                                               VerticalAlignment="Center"
+                                                               AutomationProperties.Name="{Binding StatusLabel}"
+                                                               FontFamily="Segoe Fluent Icons"
+                                                               FontSize="12"
+                                                               Foreground="{Binding StatusBrush}"
+                                                               Text="{Binding StatusGlyph}"
+                                                               ToolTip="{Binding StatusLabel}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding DataContext.DisplaySettings.UseColorBlindSafeStatusIndicators, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                 Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
                                                 <StackPanel Grid.Column="2" Margin="6,0,10,0">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>

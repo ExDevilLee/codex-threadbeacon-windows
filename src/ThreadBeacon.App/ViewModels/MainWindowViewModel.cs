@@ -95,6 +95,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public MonitoringState Monitoring { get; }
 
+    public DisplaySettingsViewModel DisplaySettings => displaySettings;
+
     public DataSourceHealthViewModel DataSourceHealth { get; } = new();
 
     public UpdateCheckViewModel? UpdateCheck { get; }

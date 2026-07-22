@@ -30,6 +30,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="16" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <StackPanel>
@@ -83,6 +85,22 @@
                     <StackPanel Grid.Row="6">
                         <TextBlock FontSize="14"
                                    FontWeight="SemiBold"
+                                   Text="{DynamicResource ColorBlindSafeStatusIndicators}" />
+                        <TextBlock Margin="0,4,18,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource ColorBlindSafeStatusIndicatorsDescription}" />
+                    </StackPanel>
+                    <CheckBox Grid.Row="6"
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              Content="{DynamicResource EnableLaunchAtLogin}"
+                              IsChecked="{Binding Display.UseColorBlindSafeStatusIndicators, Mode=TwoWay}" />
+
+                    <StackPanel Grid.Row="8">
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
                                    Text="{DynamicResource LaunchAtLogin}" />
                         <TextBlock Margin="0,4,18,0"
                                    FontSize="12"
@@ -90,13 +108,13 @@
                                    TextWrapping="Wrap"
                                    Text="{DynamicResource LaunchAtLoginDescription}" />
                     </StackPanel>
-                    <CheckBox Grid.Row="6"
+                    <CheckBox Grid.Row="8"
                               Grid.Column="1"
                               VerticalAlignment="Center"
                               Content="{DynamicResource EnableLaunchAtLogin}"
                               IsChecked="{Binding Startup.IsEnabled, Mode=TwoWay}" />
 
-                    <StackPanel Grid.Row="8">
+                    <StackPanel Grid.Row="10">
                         <TextBlock FontSize="14"
                                    FontWeight="SemiBold"
                                    Text="{DynamicResource MaximumTaskCount}" />
@@ -105,7 +123,7 @@
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    Text="{DynamicResource MaximumTaskCountDescription}" />
                     </StackPanel>
-                    <ComboBox Grid.Row="8"
+                    <ComboBox Grid.Row="10"
                               Grid.Column="1"
                               Height="30"
                               VerticalAlignment="Center"

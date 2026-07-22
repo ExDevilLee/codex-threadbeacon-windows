@@ -10,6 +10,8 @@
     <sys:String x:Key="MaximumTaskCountDescription">设置主窗口最多显示的任务数。</sys:String>
     <sys:String x:Key="Language">界面语言</sys:String>
     <sys:String x:Key="Theme">主题</sys:String>
+    <sys:String x:Key="ColorBlindSafeStatusIndicators">色盲安全状态标识</sys:String>
+    <sys:String x:Key="ColorBlindSafeStatusIndicatorsDescription">同时使用颜色、形状和文字区分任务状态。</sys:String>
     <sys:String x:Key="LaunchAtLogin">登录时启动</sys:String>
     <sys:String x:Key="LaunchAtLoginDescription">登录 Windows 后自动启动 ThreadBeacon。</sys:String>
     <sys:String x:Key="EnableLaunchAtLogin">启用</sys:String>

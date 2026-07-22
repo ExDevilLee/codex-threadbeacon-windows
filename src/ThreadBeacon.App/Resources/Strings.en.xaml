@@ -10,6 +10,8 @@
     <sys:String x:Key="MaximumTaskCountDescription">Maximum number of tasks shown in the main window.</sys:String>
     <sys:String x:Key="Language">Interface language</sys:String>
     <sys:String x:Key="Theme">Theme</sys:String>
+    <sys:String x:Key="ColorBlindSafeStatusIndicators">Color-blind-safe status indicators</sys:String>
+    <sys:String x:Key="ColorBlindSafeStatusIndicatorsDescription">Distinguish task status with color, shape, and text.</sys:String>
     <sys:String x:Key="LaunchAtLogin">Launch at login</sys:String>
     <sys:String x:Key="LaunchAtLoginDescription">Start ThreadBeacon automatically when you sign in to Windows.</sys:String>
     <sys:String x:Key="EnableLaunchAtLogin">Enable</sys:String>

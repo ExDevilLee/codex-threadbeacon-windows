@@ -32,6 +32,7 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(8, settings.MaximumTaskCount);
         Assert.Equal(1, settings.Version);
         Assert.Equal(AppTheme.System, settings.Theme);
+        Assert.False(settings.UseColorBlindSafeStatusIndicators);
     }
 
     [Fact]
@@ -76,6 +77,26 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(AppLanguage.English, settings.Language);
         Assert.Equal(AppTheme.Dark, settings.Theme);
         Assert.Contains("\"theme\": \"dark\"", File.ReadAllText(
+            Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SaveAndLoad_RoundTripsColorBlindSafeStatusPreference()
+    {
+        var store = Store();
+
+        Assert.True(store.Save(new DisplaySettings(
+            5,
+            20,
+            language: AppLanguage.English,
+            theme: AppTheme.Dark,
+            useColorBlindSafeStatusIndicators: true)));
+        DisplaySettings settings = store.Load();
+
+        Assert.True(settings.UseColorBlindSafeStatusIndicators);
+        Assert.Equal(AppLanguage.English, settings.Language);
+        Assert.Equal(AppTheme.Dark, settings.Theme);
+        Assert.Contains("\"useColorBlindSafeStatusIndicators\": true", File.ReadAllText(
             Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
     }
 

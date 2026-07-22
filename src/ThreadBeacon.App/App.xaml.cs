@@ -25,7 +25,8 @@ public partial class App : Application
                     current.MaximumTaskCount,
                     current.Version,
                     value,
-                    current.Theme));
+                    current.Theme,
+                    current.UseColorBlindSafeStatusIndicators));
             });
         LanguageState.ApplyResources(this);
         LanguageState.Changed += (_, _) => LanguageState.ApplyResources(this);
@@ -40,7 +41,8 @@ public partial class App : Application
                     current.MaximumTaskCount,
                     current.Version,
                     current.Language,
-                    value));
+                    value,
+                    current.UseColorBlindSafeStatusIndicators));
             });
         ThemeState.ApplyResources(this);
         ThemeState.Changed += (_, _) => ThemeState.ApplyResources(this);
