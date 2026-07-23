@@ -92,8 +92,7 @@ checkpoint, then update this section even when no Windows change is required.
   after three attempts, supports a per-rule enabled flag and limit from 1 to
   20, records an `open circuit` history state, lists currently open circuits,
   supports manual reset, and resets after a newer confirmed completion.
-  Windows deduplicates a single episode but has no persisted consecutive-attempt
-  limit or circuit-breaker UI.
+  Windows implementation is complete in `ced5de6`.
 
 ### Documentation, Release, or Merge-Only Changes
 
@@ -193,3 +192,15 @@ reference advances.
 - Added `status: NNN` parsing and strict read-only SQLite prefilter support.
 - Added positive parser/repository coverage and a negative SQL-boundary fixture.
 - Windows completion commit: `9f8b93a`.
+
+### 2026-07-23 - Automatic-recovery circuit-breaker completion
+
+- Added a persisted per-task/per-incident circuit breaker that counts distinct
+  recovery episodes and defaults to stopping after three attempts.
+- Added per-rule enablement and 1-20 limits, a localized open-circuit list,
+  manual reset, and automatic reset after a newer confirmed completion.
+- Preflight selection and focus failures do not consume attempts; counting starts
+  only after the exact target composer is selected and focused, before typing.
+- Circuit storage excludes titles, prompts, rollout paths, composer content, UI
+  trees, and raw errors, and degrades safely for duplicate or malformed state.
+- Windows completion commit: `ced5de6`.
