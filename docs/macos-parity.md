@@ -7,10 +7,10 @@ which macOS commits have been inspected and what they contained.
 ## Current Checkpoint
 
 - Reference repository: `ExDevilLee/codex-threadbeacon-macos`
-- Last analyzed macOS commit: `648719f` (`origin/main` after `v0.1.8`)
+- Last analyzed macOS commit: `d18a18c` (`origin/main` after `v0.1.10`)
 - Last analyzed on: 2026-07-23
-- Windows repository commit at checkpoint: `345edc4`
-- Next analysis starts at: commits after `648719f`
+- Windows repository commit at checkpoint: `6c2fb2b`
+- Next analysis starts at: commits after `d18a18c`
 
 When the macOS repository advances, inspect only commits after the recorded
 checkpoint, then update this section even when no Windows change is required.
@@ -64,6 +64,57 @@ checkpoint, then update this section even when no Windows change is required.
 
 - Compression percentage, estimated remaining time, and live progress are not
   provided by macOS and should not be invented on Windows.
+
+## Analysis Through `d18a18c`
+
+### Newly Pending on Windows
+
+- **Safe foreground navigation** (`c85db15`): when Codex is frontmost but the
+  failed task is not currently selected, unattended recovery may deep-link to
+  it only if the single readable source composer is empty. Windows currently
+  rejects every frontmost, unconfirmed target before inspecting the empty
+  composer, so this guarded navigation path is still missing.
+- **Configurable completed-state retention** (`c5d6667`): Settings offers a
+  persisted `1-5 minute` picker for the `Just completed` state. It applies to
+  primary tasks and Subagents, and changing it refreshes the baseline without
+  replaying completion notifications. Windows currently uses a fixed 60-second
+  retention and exposes no setting.
+- **Colon-formatted HTTP failures** (`3cea937`): incident parsing and the
+  read-only SQLite filter accept final errors such as `last status: 429`.
+  Windows currently accepts `status=429` and `status 429`, but its parser and
+  SQL prefilter both miss `status: 429`.
+- **Accessible status symbols enabled by default** (`c227ac8`): new installs
+  and settings files without an explicit value enable color-blind-safe status
+  shapes; an explicitly saved disabled value remains disabled. Windows already
+  implements the setting and shapes, but still defaults the option to off.
+- **Configurable automatic-recovery circuit breaker** (`d713304`): each task
+  and incident type tracks distinct recovery episodes, defaults to stopping
+  after three attempts, supports a per-rule enabled flag and limit from 1 to
+  20, records an `open circuit` history state, lists currently open circuits,
+  supports manual reset, and resets after a newer confirmed completion.
+  Windows deduplicates a single episode but has no persisted consecutive-attempt
+  limit or circuit-breaker UI.
+
+### Documentation, Release, or Merge-Only Changes
+
+- `d9de282`, `59433bc`, `880cee9`, and `20b9b98` are design or implementation
+  planning commits for the features above.
+- `32a5814` is the completed-retention merge commit.
+- `6defb27` and `a847ade` prepare macOS releases `v0.1.9` and `v0.1.10`.
+- `c7b4ef4`, `ca2d246`, `6ecf15c`, and `d18a18c` update screenshots, roadmap,
+  project status, and README structure without adding another runtime feature.
+
+### Recommended Windows Order
+
+1. Add colon-formatted HTTP failure detection because it is a narrow parser
+   compatibility fix and directly affects incident and recovery accuracy.
+2. Add the automatic-recovery circuit breaker before expanding unattended
+   navigation, limiting repeated sends if multiple failure episodes occur.
+3. Add guarded foreground navigation with draft, ambiguity, focus-change, and
+   target-identity UI tests.
+4. Add the completed-state retention picker and baseline refresh behavior.
+5. Enable accessible status symbols by default while preserving explicit user
+   choices.
 
 ## Update Procedure
 
@@ -124,3 +175,15 @@ reference advances.
 - Added allowlisted, bounded diagnostic codes to recovery history and sender
   results without persisting UI text, prompts, or paths.
 - Windows completion commit: `73e5796`.
+
+### 2026-07-23 - Through `d18a18c`
+
+- Inspected macOS commits `c85db15` through `d18a18c` after the previous
+  `648719f` checkpoint.
+- Found five Windows deltas: guarded foreground navigation to an unselected
+  task, configurable completed-state retention, colon-formatted HTTP failure
+  parsing, color-blind-safe symbols enabled by default, and a configurable
+  automatic-recovery circuit breaker.
+- Classified the remaining commits as design, merge, release, screenshot,
+  roadmap, project-status, or README-only changes.
+- Advanced the next incremental comparison point to commits after `d18a18c`.
