@@ -76,8 +76,8 @@ checkpoint, then update this section even when no Windows change is required.
 - **Configurable completed-state retention** (`c5d6667`): Settings offers a
   persisted `1-5 minute` picker for the `Just completed` state. It applies to
   primary tasks and Subagents, and changing it refreshes the baseline without
-  replaying completion notifications. Windows currently uses a fixed 60-second
-  retention and exposes no setting.
+  replaying completion notifications. Windows implementation is complete in
+  `a80fee8`.
 - **Colon-formatted HTTP failures** (`3cea937`): incident parsing and the
   read-only SQLite filter accept final errors such as `last status: 429`.
   Windows implementation is complete in `9f8b93a`, with a digit-constrained
@@ -212,3 +212,13 @@ reference advances.
   fail-closed, while retaining all target identity, changed-composer, empty,
   focus, and unique-send-button checks after navigation.
 - Windows completion commit: `a5b9019`.
+
+### 2026-07-23 - Completed-state retention completion
+
+- Added a persisted 1-5 minute completed-state duration with a one-minute
+  default and localized General settings UI.
+- Applied the selected duration to primary tasks, active child evaluation, and
+  expanded Subagent rows through an immutable per-refresh Core request.
+- Changing the value performs one baseline refresh without replaying completion
+  sounds or historical automatic-recovery events and preserves pause state.
+- Windows completion commit: `a80fee8`.
