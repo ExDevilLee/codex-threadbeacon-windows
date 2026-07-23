@@ -81,8 +81,8 @@ checkpoint, then update this section even when no Windows change is required.
   retention and exposes no setting.
 - **Colon-formatted HTTP failures** (`3cea937`): incident parsing and the
   read-only SQLite filter accept final errors such as `last status: 429`.
-  Windows currently accepts `status=429` and `status 429`, but its parser and
-  SQL prefilter both miss `status: 429`.
+  Windows implementation is complete in `9f8b93a`, with a digit-constrained
+  SQL prefilter that preserves the strict read-only event boundary.
 - **Accessible status symbols enabled by default** (`c227ac8`): new installs
   and settings files without an explicit value enable color-blind-safe status
   shapes; an explicitly saved disabled value remains disabled. Windows already
@@ -187,3 +187,9 @@ reference advances.
 - Classified the remaining commits as design, merge, release, screenshot,
   roadmap, project-status, or README-only changes.
 - Advanced the next incremental comparison point to commits after `d18a18c`.
+
+### 2026-07-23 - Colon-formatted HTTP completion
+
+- Added `status: NNN` parsing and strict read-only SQLite prefilter support.
+- Added positive parser/repository coverage and a negative SQL-boundary fixture.
+- Windows completion commit: `9f8b93a`.
