@@ -92,7 +92,7 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
-    public void AutoRecoveryTab_UsesWrappingCircuitLayoutAtMinimumWidth()
+    public void AutoRecoveryTab_KeepsCircuitControlsOnOneLine()
     {
         XDocument document = LoadDocument();
         XElement rules = Assert.Single(
@@ -103,15 +103,26 @@ public sealed class SettingsWindowXamlTests
             .First(element => element.Name.LocalName == "ColumnDefinition");
 
         Assert.Equal("180", (string?)labelColumn.Attribute("Width"));
-        XElement circuitGrid = Assert.Single(
+        XElement circuitRow = Assert.Single(
             rules.Descendants(),
-            element => element.Name.LocalName == "Grid"
-                && (string?)element.Attribute("IsEnabled") == "{Binding IsCircuitBreakerEnabled}");
+            element => element.Name.LocalName == "StackPanel"
+                && (string?)element.Attribute("Orientation") == "Horizontal"
+                && element.Descendants().Any(descendant =>
+                    (string?)descendant.Attribute("Content")
+                        == "{DynamicResource CircuitBreakerConsecutiveFailures}"));
+        Assert.Equal(
+            ["CheckBox", "ComboBox", "TextBlock"],
+            circuitRow.Elements().Select(element => element.Name.LocalName));
+        XElement attempts = circuitRow.Elements()
+            .Single(element => element.Name.LocalName == "ComboBox");
+        Assert.Equal(
+            "{Binding IsCircuitBreakerEnabled}",
+            (string?)attempts.Attribute("IsEnabled"));
         XElement suffix = Assert.Single(
-            circuitGrid.Descendants(),
+            circuitRow.Elements(),
             element => (string?)element.Attribute("Text")
                 == "{DynamicResource CircuitBreakerAttemptsSuffix}");
-        Assert.Equal("Wrap", (string?)suffix.Attribute("TextWrapping"));
+        Assert.Null((string?)suffix.Attribute("TextWrapping"));
         Assert.DoesNotContain(
             rules.Descendants(),
             element => element.Name.LocalName == "DockPanel");

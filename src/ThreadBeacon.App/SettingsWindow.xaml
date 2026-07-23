@@ -328,26 +328,21 @@
                                                      TextWrapping="Wrap"
                                                      VerticalScrollBarVisibility="Auto"
                                                      Text="{Binding Prompt, Mode=TwoWay}" />
-                                            <StackPanel Margin="0,7,0,0">
+                                            <StackPanel Margin="0,7,0,0"
+                                                        Orientation="Horizontal">
                                                 <CheckBox VerticalAlignment="Center"
                                                           Content="{DynamicResource CircuitBreakerConsecutiveFailures}"
                                                           IsChecked="{Binding IsCircuitBreakerEnabled, Mode=TwoWay}" />
-                                                <Grid Margin="20,5,0,0"
-                                                      IsEnabled="{Binding IsCircuitBreakerEnabled}">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="58" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <ComboBox Height="26"
-                                                              VerticalContentAlignment="Center"
-                                                              ItemsSource="{Binding MaximumAttemptOptions}"
-                                                              SelectedItem="{Binding MaximumConsecutiveAttempts, Mode=TwoWay}" />
-                                                    <TextBlock Grid.Column="1"
-                                                               Margin="6,0,0,0"
-                                                               VerticalAlignment="Center"
-                                                               TextWrapping="Wrap"
-                                                               Text="{DynamicResource CircuitBreakerAttemptsSuffix}" />
-                                                </Grid>
+                                                <ComboBox Width="58"
+                                                          Height="26"
+                                                          Margin="8,0,0,0"
+                                                          VerticalContentAlignment="Center"
+                                                          IsEnabled="{Binding IsCircuitBreakerEnabled}"
+                                                          ItemsSource="{Binding MaximumAttemptOptions}"
+                                                          SelectedItem="{Binding MaximumConsecutiveAttempts, Mode=TwoWay}" />
+                                                <TextBlock Margin="6,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Text="{DynamicResource CircuitBreakerAttemptsSuffix}" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
