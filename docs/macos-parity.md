@@ -71,9 +71,8 @@ checkpoint, then update this section even when no Windows change is required.
 
 - **Safe foreground navigation** (`c85db15`): when Codex is frontmost but the
   failed task is not currently selected, unattended recovery may deep-link to
-  it only if the single readable source composer is empty. Windows currently
-  rejects every frontmost, unconfirmed target before inspecting the empty
-  composer, so this guarded navigation path is still missing.
+  it only if the single readable source composer is empty. Windows
+  implementation is complete in `a5b9019`.
 - **Configurable completed-state retention** (`c5d6667`): Settings offers a
   persisted `1-5 minute` picker for the `Just completed` state. It applies to
   primary tasks and Subagents, and changing it refreshes the baseline without
@@ -204,3 +203,12 @@ reference advances.
 - Circuit storage excludes titles, prompts, rollout paths, composer content, UI
   trees, and raw errors, and degrades safely for duplicate or malformed state.
 - Windows completion commit: `ced5de6`.
+
+### 2026-07-23 - Safe foreground navigation completion
+
+- Allowed unattended deep-link navigation away from a frontmost, unconfirmed
+  Codex task only when its single readable source composer is empty.
+- Kept source drafts, missing or multiple composers, and unreadable values
+  fail-closed, while retaining all target identity, changed-composer, empty,
+  focus, and unique-send-button checks after navigation.
+- Windows completion commit: `a5b9019`.
