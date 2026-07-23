@@ -15,18 +15,18 @@
 **Files:**
 - Modify: `README.md`
 
-- [ ] Replace the chronological POC status narrative with the approved product-oriented section order.
-- [ ] Preserve Windows quick-start, installation, privacy, automation, Hook, and limitation facts.
-- [ ] Keep all six localized screenshots in a compact paired preview.
+- [x] Replace the chronological POC status narrative with the approved product-oriented section order.
+- [x] Preserve Windows quick-start, installation, privacy, automation, Hook, and limitation facts.
+- [x] Keep all six localized screenshots in a compact paired preview.
 
 ### Task 2: Restructure the English README
 
 **Files:**
 - Modify: `README-EN.md`
 
-- [ ] Mirror the Chinese heading order and feature group coverage.
-- [ ] Use natural English while preserving identical platform and privacy claims.
-- [ ] Keep all six English screenshots in the corresponding preview positions.
+- [x] Mirror the Chinese heading order and feature group coverage.
+- [x] Use natural English while preserving identical platform and privacy claims.
+- [x] Keep all six English screenshots in the corresponding preview positions.
 
 ### Task 3: Verify and publish the documentation
 
@@ -34,7 +34,7 @@
 - Verify: `README.md`
 - Verify: `README-EN.md`
 
-- [ ] Resolve every relative Markdown link and image target from the repository root.
-- [ ] Compare heading order and run the complete .NET test suite and Release build.
-- [ ] Scan the staged diff for secrets and machine-specific paths.
+- [x] Resolve every relative Markdown link and image target from the repository root.
+- [x] Compare heading order and run the complete .NET test suite and Release build.
+- [x] Scan the staged diff for secrets and machine-specific paths.
 - [ ] Commit the documentation change and push `main`.
