@@ -24,7 +24,7 @@ public sealed record DisplaySettings
         int version = 1,
         AppLanguage language = AppLanguage.System,
         AppTheme theme = AppTheme.System,
-        bool useColorBlindSafeStatusIndicators = false,
+        bool useColorBlindSafeStatusIndicators = true,
         int justCompletedRetentionMinutes = DefaultJustCompletedRetentionMinutes)
     {
         RefreshIntervalSeconds = RefreshIntervals.Contains(refreshIntervalSeconds)

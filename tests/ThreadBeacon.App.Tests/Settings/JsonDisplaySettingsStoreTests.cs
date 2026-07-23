@@ -35,7 +35,7 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(1, settings.JustCompletedRetentionMinutes);
         Assert.Equal(1, settings.Version);
         Assert.Equal(AppTheme.System, settings.Theme);
-        Assert.False(settings.UseColorBlindSafeStatusIndicators);
+        Assert.True(settings.UseColorBlindSafeStatusIndicators);
     }
 
     [Fact]
@@ -116,6 +116,19 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void SaveAndLoad_PreservesExplicitDisabledColorBlindSafeStatusPreference()
+    {
+        var store = Store();
+
+        Assert.True(store.Save(new DisplaySettings(
+            useColorBlindSafeStatusIndicators: false)));
+
+        Assert.False(store.Load().UseColorBlindSafeStatusIndicators);
+        Assert.Contains("\"useColorBlindSafeStatusIndicators\": false", File.ReadAllText(
+            Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Load_UnknownThemeFallsBackToSystem()
     {
         Directory.CreateDirectory(tempDirectory);
@@ -147,6 +160,7 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
         Assert.Equal(2, settings.RefreshIntervalSeconds);
         Assert.Equal(12, settings.MaximumTaskCount);
         Assert.Equal(1, settings.JustCompletedRetentionMinutes);
+        Assert.True(settings.UseColorBlindSafeStatusIndicators);
     }
 
     [Fact]

@@ -7,6 +7,15 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-07-23
+
+### Changed
+
+- Enable color-blind-safe task status shapes for new installations and older
+  settings files that do not contain an explicit preference.
+- Preserve an explicitly disabled status-shape preference across saves,
+  language or theme changes, and restarts.
+
 ## [0.24.0] - 2026-07-23
 
 ### Added

@@ -18,6 +18,7 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Equal(TimeSpan.FromSeconds(5), viewModel.RefreshInterval);
         Assert.Equal(12, viewModel.MaximumTaskCount);
         Assert.Equal(1, viewModel.JustCompletedRetentionMinutes);
+        Assert.True(viewModel.UseColorBlindSafeStatusIndicators);
         Assert.Equal([1, 2, 5, 10], viewModel.RefreshIntervalOptions.Select(option => option.Value));
         Assert.Equal(["1 秒", "2 秒", "5 秒", "10 秒"],
             viewModel.RefreshIntervalOptions.Select(option => option.DisplayName));
@@ -107,7 +108,9 @@ public sealed class DisplaySettingsViewModelTests
     public void ColorBlindSafeStatusPreference_SavesImmediatelyAndSurvivesOtherChanges()
     {
         var store = new MemoryDisplaySettingsStore(
-            new DisplaySettings(justCompletedRetentionMinutes: 4));
+            new DisplaySettings(
+                useColorBlindSafeStatusIndicators: false,
+                justCompletedRetentionMinutes: 4));
         var viewModel = new DisplaySettingsViewModel(store);
 
         viewModel.UseColorBlindSafeStatusIndicators = true;
@@ -124,7 +127,8 @@ public sealed class DisplaySettingsViewModelTests
     [Fact]
     public void ColorBlindSafeStatusPreference_PreservesActiveLanguageAndThemeStates()
     {
-        var store = new MemoryDisplaySettingsStore(new DisplaySettings());
+        var store = new MemoryDisplaySettingsStore(new DisplaySettings(
+            useColorBlindSafeStatusIndicators: false));
         var language = new AppLanguageState(
             AppLanguage.System,
             "zh-CN",
@@ -149,6 +153,7 @@ public sealed class DisplaySettingsViewModelTests
 
         viewModel.Language = AppLanguage.English;
         viewModel.Theme = AppTheme.Dark;
+        Assert.False(store.Current.UseColorBlindSafeStatusIndicators);
         viewModel.UseColorBlindSafeStatusIndicators = true;
 
         Assert.Equal(AppLanguage.English, store.Current.Language);

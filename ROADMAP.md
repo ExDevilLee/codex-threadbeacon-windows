@@ -202,6 +202,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Persist a 1-5 minute completed-state duration with a one-minute default.
 - [x] Apply the duration to primary tasks and expanded Subagents.
 - [x] Refresh the notification baseline after changes without replaying historical events.
+- [x] Enable color-blind-safe status shapes by default while preserving an explicit disabled choice.
 
 ## Deferred
 
