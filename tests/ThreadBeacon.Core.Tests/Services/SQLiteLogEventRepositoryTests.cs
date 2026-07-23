@@ -13,11 +13,11 @@ public sealed class SQLiteLogEventRepositoryTests
         var repository = new SQLiteLogEventRepository(database.Path);
 
         ServiceLogLoadResult result = repository.LoadLatestIncidents(
-            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e", "thread-f", "thread-g", "thread-h" });
+            new HashSet<string>(StringComparer.Ordinal) { "thread-a", "thread-b", "thread-d", "thread-e", "thread-f", "thread-g", "thread-h", "thread-i", "thread-j" });
         IReadOnlyDictionary<string, ServiceIncident> incidents = result.Incidents;
 
         Assert.Equal(ServiceLogSourceStatus.Healthy, result.Status);
-        Assert.Equal(7, incidents.Count);
+        Assert.Equal(8, incidents.Count);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-a"].Phase);
         Assert.Equal(503, incidents["thread-a"].HttpStatusCode);
         Assert.Equal(ServiceIncidentPhase.Retrying, incidents["thread-b"].Phase);
@@ -34,6 +34,9 @@ public sealed class SQLiteLogEventRepositoryTests
         Assert.Equal(ServiceIncidentKind.StreamDisconnected, incidents["thread-h"].Kind);
         Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-h"].Phase);
         Assert.Equal(5, incidents["thread-h"].RetryAttempt);
+        Assert.Equal(ServiceIncidentPhase.Failed, incidents["thread-i"].Phase);
+        Assert.Equal(ServiceIncidentKind.HttpRateLimit, incidents["thread-i"].Kind);
+        Assert.Equal(429, incidents["thread-i"].HttpStatusCode);
         Assert.DoesNotContain("thread-c", incidents.Keys);
     }
 
@@ -175,7 +178,11 @@ public sealed class SQLiteLogEventRepositoryTests
                 (800, 0, 'WARN', 'codex_http_client::transport',
                  'turn{turn.id=turn-h}: retrying sampling request (3/5 in 1s); nested retrying sampling request (5/5 in 3s)', 'thread-h'),
                 (801, 0, 'INFO', 'codex_core::stream_events_utils',
-                 'turn{turn.id=turn-h}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)', 'thread-h');
+                 'turn{turn.id=turn-h}: Turn error: stream disconnected before completion: error sending request for url (<redacted>)', 'thread-h'),
+                (900, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-i}: Turn error: exceeded retry limit, last status: 429 Too Many Requests, request id: redacted', 'thread-i'),
+                (1.0e100, 0, 'INFO', 'codex_core::session::turn',
+                 'turn{turn.id=turn-j}: Turn error: synchronization status: pending', 'thread-j');
             """;
     }
 }

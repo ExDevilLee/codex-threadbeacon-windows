@@ -173,7 +173,7 @@ public sealed partial class LogEventParser
     [GeneratedRegex(@"turn(?:\.id|_id)=([A-Za-z0-9-]+)", RegexOptions.CultureInvariant)]
     private static partial Regex TurnIdRegex();
 
-    [GeneratedRegex(@"status[= ]+(\d{3})\b", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"status[=: ]+(\d{3})\b", RegexOptions.CultureInvariant)]
     private static partial Regex StatusCodeRegex();
 
     [GeneratedRegex(@"\((\d+)/(\d+) in ", RegexOptions.CultureInvariant)]

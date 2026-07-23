@@ -54,6 +54,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Show active retries as warnings and exhausted retries as failures with HTTP/retry detail.
 - [x] Detect model-capacity failures and show a dedicated privacy-safe detail label.
 - [x] Detect terminal HTTP 400 failures and show the status code without retaining the log body.
+- [x] Recognize terminal HTTP failures using `status=`, `status `, or `status:` separators.
 - [x] Require same-turn exhausted retries before treating a final stream disconnect as terminal.
 - [x] Clear stale incidents after same-turn recovery or newer rollout lifecycle evidence.
 - [x] Suppress misleading completion sounds while an incident is active.

@@ -7,6 +7,19 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.22.1] - 2026-07-23
+
+### Fixed
+
+- Recognize terminal Codex HTTP failures that report the status with a colon,
+  such as `last status: 429`, in both the read-only SQLite prefilter and the
+  incident parser.
+
+### Privacy
+
+- The compatibility fix does not broaden the log target allowlist or retain
+  raw log bodies, request IDs, URLs, or response content.
+
 ## [0.22.0] - 2026-07-23
 
 ### Changed

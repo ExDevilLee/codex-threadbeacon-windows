@@ -169,6 +169,22 @@ public sealed class LogEventParserTests
     }
 
     [Fact]
+    public void LatestIncidents_RecognizesColonFormattedRetryLimitFailure()
+    {
+        LogEventRecord[] records =
+        [
+            Record(108, "codex_core::session::turn",
+                "turn{turn.id=turn-colon}: Turn error: exceeded retry limit, last status: 429 Too Many Requests, request id: redacted"),
+        ];
+
+        ServiceIncident incident = Assert.Single(new LogEventParser().LatestIncidents(records)).Value;
+
+        Assert.Equal(ServiceIncidentPhase.Failed, incident.Phase);
+        Assert.Equal(ServiceIncidentKind.HttpRateLimit, incident.Kind);
+        Assert.Equal(429, incident.HttpStatusCode);
+    }
+
+    [Fact]
     public void LatestIncidents_ClearsRetryAfterSameTurnRecovers()
     {
         LogEventRecord[] records =
