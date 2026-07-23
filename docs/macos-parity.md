@@ -84,8 +84,8 @@ checkpoint, then update this section even when no Windows change is required.
   SQL prefilter that preserves the strict read-only event boundary.
 - **Accessible status symbols enabled by default** (`c227ac8`): new installs
   and settings files without an explicit value enable color-blind-safe status
-  shapes; an explicitly saved disabled value remains disabled. Windows already
-  implements the setting and shapes, but still defaults the option to off.
+  shapes; an explicitly saved disabled value remains disabled. Windows
+  implementation is complete in `ca95ed2`.
 - **Configurable automatic-recovery circuit breaker** (`d713304`): each task
   and incident type tracks distinct recovery episodes, defaults to stopping
   after three attempts, supports a per-rule enabled flag and limit from 1 to
@@ -222,3 +222,23 @@ reference advances.
 - Changing the value performs one baseline refresh without replaying completion
   sounds or historical automatic-recovery events and preserves pause state.
 - Windows completion commit: `a80fee8`.
+
+### 2026-07-23 - Accessible status-symbol default completion
+
+- Enabled color-blind-safe task status shapes for new installations and older
+  settings files without an explicit preference.
+- Preserved explicit `false` and `true` choices through JSON persistence,
+  language and theme changes, other display-setting changes, and restarts.
+- Verified the installed UI retains color and text while showing distinct
+  running and idle shapes in fixed-width status slots.
+- Windows completion commit: `ca95ed2`.
+
+### 2026-07-23 - macOS `d18a18c` parity completion
+
+- All five runtime deltas identified after macOS `648719f` are implemented on
+  Windows: colon HTTP parsing, recovery circuit breaking, safe foreground
+  navigation, configurable completed-state retention, and accessible symbols
+  enabled by default.
+- No runtime feature difference remains pending through macOS `d18a18c`;
+  distribution, signing, notarization, and platform-native implementation
+  details remain intentionally platform-specific.
