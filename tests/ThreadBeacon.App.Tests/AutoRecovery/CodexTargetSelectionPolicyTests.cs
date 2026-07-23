@@ -21,7 +21,8 @@ public sealed class CodexTargetSelectionPolicyTests
     [Theory]
     [InlineData(0)]
     [InlineData(2)]
-    public void Evaluate_RejectsUnconfirmedForegroundTarget(int titleMatchCount)
+    public void Evaluate_NavigatesFromUnconfirmedForegroundTargetWithSingleEmptyComposer(
+        int titleMatchCount)
     {
         CodexTargetPreflightResult result = CodexTargetSelectionPolicy.Evaluate(
             CodexTargetSelectionMode.Unattended,
@@ -30,8 +31,29 @@ public sealed class CodexTargetSelectionPolicyTests
             sourceComposerCount: 1,
             CodexComposerValueState.Empty);
 
+        Assert.Equal(CodexTargetPreflightAction.Navigate, result.Action);
+        Assert.Null(result.Failure);
+    }
+
+    [Theory]
+    [InlineData(0, CodexComposerValueState.Unavailable)]
+    [InlineData(1, CodexComposerValueState.Unavailable)]
+    [InlineData(1, CodexComposerValueState.NotEmpty)]
+    [InlineData(2, CodexComposerValueState.Empty)]
+    public void Evaluate_RejectsUnsafeUnconfirmedForegroundSource(
+        int composerCount,
+        CodexComposerValueState valueState)
+    {
+        CodexTargetPreflightResult result = CodexTargetSelectionPolicy.Evaluate(
+            CodexTargetSelectionMode.Unattended,
+            isCodexForeground: true,
+            currentTitleMatchCount: 0,
+            sourceComposerCount: composerCount,
+            valueState);
+
         Assert.Equal(CodexTargetPreflightAction.Reject, result.Action);
         Assert.Equal(CodexTargetSelectionFailure.CodexForeground, result.Failure);
+        Assert.Equal("codex_frontmost", result.DiagnosticCode);
     }
 
     [Fact]

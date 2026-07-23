@@ -37,7 +37,10 @@ public static class CodexTargetSelectionPolicy
             && isCodexForeground
             && currentTitleMatchCount != 1)
         {
-            return Reject(CodexTargetSelectionFailure.CodexForeground);
+            return sourceComposerCount == 1
+                && sourceComposerValue is CodexComposerValueState.Empty
+                    ? new CodexTargetPreflightResult(CodexTargetPreflightAction.Navigate)
+                    : Reject(CodexTargetSelectionFailure.CodexForeground);
         }
 
         if (sourceComposerCount != 1)

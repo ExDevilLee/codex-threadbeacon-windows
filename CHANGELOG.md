@@ -7,6 +7,20 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-07-23
+
+### Changed
+
+- Automatic recovery may deep-link from a frontmost but unconfirmed Codex task
+  only when its single readable source composer is empty.
+
+### Security
+
+- Source drafts, missing or multiple composers, and unreadable composer values
+  still fail closed without navigation, typing, or sending.
+- Target title, changed-composer, empty-composer, focus, and unique-send-button
+  checks remain required after navigation.
+
 ## [0.23.0] - 2026-07-23
 
 ### Added

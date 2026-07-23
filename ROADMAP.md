@@ -175,6 +175,7 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Invoke Send once without retry and verify the exact user message plus `task_started` in the target rollout.
 - [x] Persist localized/custom prompts and bounded privacy-safe attempt history locally.
 - [x] Reuse a confirmed foreground target only when its exact Rename header and unique empty composer are verified.
+- [x] Navigate away from an unconfirmed foreground task only when its single readable source composer is empty.
 - [x] Keep foreground drafts and ambiguous or unreadable composer states fail-closed without navigation or input.
 - [x] Record only allowlisted, bounded diagnostic codes for failed recovery attempts.
 - [x] Stop repeated recovery after a configurable 1-20 distinct episodes per task and incident type, with a default limit of three.
