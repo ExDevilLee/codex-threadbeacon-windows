@@ -37,4 +37,4 @@
 - [x] Resolve every relative Markdown link and image target from the repository root.
 - [x] Compare heading order and run the complete .NET test suite and Release build.
 - [x] Scan the staged diff for secrets and machine-specific paths.
-- [ ] Commit the documentation change and push `main`.
+- [x] Commit the documentation change and push `main`.
