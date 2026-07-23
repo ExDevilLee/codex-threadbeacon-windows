@@ -197,6 +197,12 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] State that sponsorship is optional, unlocks no features, and provides no digital-content or service reward.
 - [x] Verify the support assets and policy wording in repository-readiness tests.
 
+## Phase 21: Display Parity Refinements
+
+- [x] Persist a 1-5 minute completed-state duration with a one-minute default.
+- [x] Apply the duration to primary tasks and expanded Subagents.
+- [x] Refresh the notification baseline after changes without replaying historical events.
+
 ## Deferred
 
 - Other failure, warning, and attention sounds.

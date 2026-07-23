@@ -7,6 +7,20 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-07-23
+
+### Added
+
+- Add a persisted General setting for keeping completed tasks marked as Done
+  for 1 to 5 minutes; the default remains one minute.
+
+### Changed
+
+- Apply the selected completed-state duration to primary tasks and expanded
+  Subagents.
+- Changing the duration performs one baseline refresh without replaying task
+  completion sounds or historical automatic-recovery events.
+
 ## [0.23.1] - 2026-07-23
 
 ### Changed

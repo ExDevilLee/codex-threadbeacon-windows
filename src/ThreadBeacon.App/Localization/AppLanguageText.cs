@@ -17,6 +17,11 @@ public static class AppLanguageText
         _ => $"{value} tasks",
     };
 
+    public static string JustCompletedRetentionMinutes(AppLanguage language, int value) =>
+        language is AppLanguage.SimplifiedChinese
+            ? $"{value} 分钟"
+            : $"{value} min";
+
     public static string LanguageName(AppLanguage language) => language switch
     {
         AppLanguage.SimplifiedChinese => "简体中文",

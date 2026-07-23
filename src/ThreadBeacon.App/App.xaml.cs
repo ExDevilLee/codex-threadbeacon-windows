@@ -26,7 +26,8 @@ public partial class App : Application
                     current.Version,
                     value,
                     current.Theme,
-                    current.UseColorBlindSafeStatusIndicators));
+                    current.UseColorBlindSafeStatusIndicators,
+                    current.JustCompletedRetentionMinutes));
             });
         LanguageState.ApplyResources(this);
         LanguageState.Changed += (_, _) => LanguageState.ApplyResources(this);
@@ -42,7 +43,8 @@ public partial class App : Application
                     current.Version,
                     current.Language,
                     value,
-                    current.UseColorBlindSafeStatusIndicators));
+                    current.UseColorBlindSafeStatusIndicators,
+                    current.JustCompletedRetentionMinutes));
             });
         ThemeState.ApplyResources(this);
         ThemeState.Changed += (_, _) => ThemeState.ApplyResources(this);

@@ -34,6 +34,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="16" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="16" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <StackPanel>
@@ -119,13 +121,33 @@
                     <StackPanel Grid.Row="10">
                         <TextBlock FontSize="14"
                                    FontWeight="SemiBold"
+                                   Text="{DynamicResource JustCompletedRetention}" />
+                        <TextBlock Margin="0,4,18,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource JustCompletedRetentionDescription}" />
+                    </StackPanel>
+                    <ComboBox Grid.Row="10"
+                              Grid.Column="1"
+                              Height="30"
+                              VerticalAlignment="Center"
+                              VerticalContentAlignment="Center"
+                              ItemsSource="{Binding Display.JustCompletedRetentionOptions}"
+                              DisplayMemberPath="DisplayName"
+                              SelectedValuePath="Value"
+                              SelectedValue="{Binding Display.JustCompletedRetentionMinutes, Mode=TwoWay}" />
+
+                    <StackPanel Grid.Row="12">
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
                                    Text="{DynamicResource MaximumTaskCount}" />
                         <TextBlock Margin="0,4,18,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource SecondaryTextBrush}"
                                    Text="{DynamicResource MaximumTaskCountDescription}" />
                     </StackPanel>
-                    <ComboBox Grid.Row="10"
+                    <ComboBox Grid.Row="12"
                               Grid.Column="1"
                               Height="30"
                               VerticalAlignment="Center"

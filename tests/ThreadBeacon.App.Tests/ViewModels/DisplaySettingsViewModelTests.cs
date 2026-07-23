@@ -17,12 +17,17 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Equal(5, viewModel.RefreshIntervalSeconds);
         Assert.Equal(TimeSpan.FromSeconds(5), viewModel.RefreshInterval);
         Assert.Equal(12, viewModel.MaximumTaskCount);
+        Assert.Equal(1, viewModel.JustCompletedRetentionMinutes);
         Assert.Equal([1, 2, 5, 10], viewModel.RefreshIntervalOptions.Select(option => option.Value));
         Assert.Equal(["1 秒", "2 秒", "5 秒", "10 秒"],
             viewModel.RefreshIntervalOptions.Select(option => option.DisplayName));
         Assert.Equal([4, 8, 12, 20], viewModel.MaximumTaskCountOptions.Select(option => option.Value));
         Assert.Equal(["4 个", "8 个", "12 个", "20 个"],
             viewModel.MaximumTaskCountOptions.Select(option => option.DisplayName));
+        Assert.Equal([1, 2, 3, 4, 5],
+            viewModel.JustCompletedRetentionOptions.Select(option => option.Value));
+        Assert.Equal(["1 分钟", "2 分钟", "3 分钟", "4 分钟", "5 分钟"],
+            viewModel.JustCompletedRetentionOptions.Select(option => option.DisplayName));
     }
 
     [Fact]
@@ -36,13 +41,16 @@ public sealed class DisplaySettingsViewModelTests
         viewModel.RefreshIntervalSeconds = 5;
         viewModel.MaximumTaskCount = 20;
         viewModel.MaximumTaskCount = 20;
+        viewModel.JustCompletedRetentionMinutes = 4;
 
-        Assert.Equal(2, store.SaveCount);
+        Assert.Equal(3, store.SaveCount);
         Assert.Equal(5, store.Current.RefreshIntervalSeconds);
         Assert.Equal(20, store.Current.MaximumTaskCount);
+        Assert.Equal(4, store.Current.JustCompletedRetentionMinutes);
         Assert.Contains(nameof(DisplaySettingsViewModel.RefreshIntervalSeconds), changed);
         Assert.Contains(nameof(DisplaySettingsViewModel.RefreshInterval), changed);
         Assert.Contains(nameof(DisplaySettingsViewModel.MaximumTaskCount), changed);
+        Assert.Contains(nameof(DisplaySettingsViewModel.JustCompletedRetentionMinutes), changed);
     }
 
     [Fact]
@@ -58,6 +66,7 @@ public sealed class DisplaySettingsViewModelTests
         Assert.Equal(AppLanguage.English, state.Preference);
         Assert.Equal("1 sec", viewModel.RefreshIntervalOptions[0].DisplayName);
         Assert.Equal("4 tasks", viewModel.MaximumTaskCountOptions[0].DisplayName);
+        Assert.Equal("1 min", viewModel.JustCompletedRetentionOptions[0].DisplayName);
     }
 
     [Fact]
@@ -82,19 +91,23 @@ public sealed class DisplaySettingsViewModelTests
     public void OtherDisplaySetters_PreserveThemePreference()
     {
         var store = new MemoryDisplaySettingsStore(
-            new DisplaySettings(theme: AppTheme.Dark));
+            new DisplaySettings(
+                theme: AppTheme.Dark,
+                justCompletedRetentionMinutes: 4));
         var viewModel = new DisplaySettingsViewModel(store);
 
         viewModel.RefreshIntervalSeconds = 5;
         viewModel.MaximumTaskCount = 20;
 
         Assert.Equal(AppTheme.Dark, store.Current.Theme);
+        Assert.Equal(4, store.Current.JustCompletedRetentionMinutes);
     }
 
     [Fact]
     public void ColorBlindSafeStatusPreference_SavesImmediatelyAndSurvivesOtherChanges()
     {
-        var store = new MemoryDisplaySettingsStore(new DisplaySettings());
+        var store = new MemoryDisplaySettingsStore(
+            new DisplaySettings(justCompletedRetentionMinutes: 4));
         var viewModel = new DisplaySettingsViewModel(store);
 
         viewModel.UseColorBlindSafeStatusIndicators = true;
@@ -105,6 +118,7 @@ public sealed class DisplaySettingsViewModelTests
 
         Assert.True(store.Current.UseColorBlindSafeStatusIndicators);
         Assert.True(viewModel.UseColorBlindSafeStatusIndicators);
+        Assert.Equal(4, store.Current.JustCompletedRetentionMinutes);
     }
 
     [Fact]

@@ -55,6 +55,32 @@ public sealed class MonitoringSettingsCoordinatorTests
     }
 
     [Fact]
+    public async Task JustCompletedRetentionChange_PerformsOneBaselineRefreshOnly()
+    {
+        var displaySettings = new DisplaySettingsViewModel();
+        var monitoring = new MonitoringState();
+        monitoring.ToggleCommand.Execute(null);
+        var refreshed = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        int refreshCount = 0;
+        using var coordinator = new MonitoringSettingsCoordinator(
+            displaySettings,
+            _ => { },
+            () =>
+            {
+                refreshCount++;
+                refreshed.TrySetResult();
+                return Task.CompletedTask;
+            });
+
+        displaySettings.JustCompletedRetentionMinutes = 3;
+        await refreshed.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(1, refreshCount);
+        Assert.True(monitoring.IsPaused);
+    }
+
+    [Fact]
     public void Dispose_StopsApplyingChanges()
     {
         var displaySettings = new DisplaySettingsViewModel();

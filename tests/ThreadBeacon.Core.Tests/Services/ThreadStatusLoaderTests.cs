@@ -382,6 +382,61 @@ public sealed class ThreadStatusLoaderTests
     }
 
     [Fact]
+    public void Load_RequestRetentionAppliesToPrimaryAndExpandedSubagent()
+    {
+        ThreadRecord parent = new("parent", "Parent", "parent", Now, 0, 1);
+        var child = new SubagentRecord(
+            "child",
+            "parent",
+            "Child",
+            "child",
+            Now.AddMinutes(-2),
+            0,
+            null,
+            null,
+            null,
+            null);
+        var repository = new TrackingThreadRepository(
+            new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [parent]),
+            new SubagentLoadResult(
+                ThreadRepositoryStatus.Healthy,
+                new Dictionary<string, IReadOnlyList<SubagentRecord>>(StringComparer.Ordinal)
+                {
+                    ["parent"] = [child],
+                }));
+        DateTimeOffset completedAt = Now.AddMinutes(-2);
+        var observations = new Dictionary<string, RolloutLoadResult>(StringComparer.Ordinal)
+        {
+            ["parent"] = HealthyObservation(
+                ThreadStatus.JustCompleted,
+                completedAt,
+                completedAt,
+                completionEventAt: completedAt),
+            ["child"] = HealthyObservation(
+                ThreadStatus.JustCompleted,
+                completedAt,
+                completedAt,
+                completionEventAt: completedAt),
+        };
+        var loader = new ThreadStatusLoader(
+            repository,
+            new StubTitleRepository(new TitleLoadResult(
+                SessionIndexStatus.Healthy,
+                new Dictionary<string, string>())),
+            new StubRolloutParser(observations),
+            new FixedTimeProvider(Now));
+
+        ThreadSnapshot snapshot = Assert.Single(loader.Load(new ThreadLoadRequest(
+            8,
+            new HashSet<string>(),
+            new HashSet<string> { "parent" },
+            CompletedRetention: TimeSpan.FromMinutes(3))).Threads);
+
+        Assert.Equal(ThreadStatus.JustCompleted, snapshot.Status);
+        Assert.Equal(ThreadStatus.JustCompleted, Assert.Single(snapshot.Subagents).Status);
+    }
+
+    [Fact]
     public void Load_SkipsSubagentSourceWhenNothingIsExpanded()
     {
         var repository = new TrackingThreadRepository(

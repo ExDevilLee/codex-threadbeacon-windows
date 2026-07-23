@@ -13,12 +13,14 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
     [Fact]
     public void DisplaySettings_NormalizesUnsupportedValuesIndependently()
     {
-        var settings = new DisplaySettings(3, 12);
+        var settings = new DisplaySettings(3, 12, justCompletedRetentionMinutes: 7);
 
         Assert.Equal(2, settings.RefreshIntervalSeconds);
         Assert.Equal(12, settings.MaximumTaskCount);
+        Assert.Equal(1, settings.JustCompletedRetentionMinutes);
         Assert.Equal([1, 2, 5, 10], DisplaySettings.SupportedRefreshIntervalSeconds);
         Assert.Equal([4, 8, 12, 20], DisplaySettings.SupportedMaximumTaskCounts);
+        Assert.Equal([1, 2, 3, 4, 5], DisplaySettings.SupportedJustCompletedRetentionMinutes);
     }
 
     [Fact]
@@ -30,9 +32,22 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
 
         Assert.Equal(2, settings.RefreshIntervalSeconds);
         Assert.Equal(8, settings.MaximumTaskCount);
+        Assert.Equal(1, settings.JustCompletedRetentionMinutes);
         Assert.Equal(1, settings.Version);
         Assert.Equal(AppTheme.System, settings.Theme);
         Assert.False(settings.UseColorBlindSafeStatusIndicators);
+    }
+
+    [Fact]
+    public void SaveAndLoad_RoundTripsJustCompletedRetention()
+    {
+        var store = Store();
+
+        Assert.True(store.Save(new DisplaySettings(justCompletedRetentionMinutes: 4)));
+
+        Assert.Equal(4, store.Load().JustCompletedRetentionMinutes);
+        Assert.Contains("\"justCompletedRetentionMinutes\": 4", File.ReadAllText(
+            Path.Combine(tempDirectory, "display-settings.json")), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,6 +146,7 @@ public sealed class JsonDisplaySettingsStoreTests : IDisposable
 
         Assert.Equal(2, settings.RefreshIntervalSeconds);
         Assert.Equal(12, settings.MaximumTaskCount);
+        Assert.Equal(1, settings.JustCompletedRetentionMinutes);
     }
 
     [Fact]

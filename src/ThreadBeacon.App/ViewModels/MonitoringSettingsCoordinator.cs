@@ -45,6 +45,7 @@ public sealed class MonitoringSettingsCoordinator : IDisposable
         }
 
         if (e.PropertyName is nameof(DisplaySettingsViewModel.MaximumTaskCount)
+            or nameof(DisplaySettingsViewModel.JustCompletedRetentionMinutes)
             or nameof(DisplaySettingsViewModel.Language))
         {
             try

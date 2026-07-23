@@ -4,4 +4,5 @@ public sealed record ThreadLoadRequest(
     int RecentLimit,
     IReadOnlySet<string> IncludedThreadIds,
     IReadOnlySet<string> ExpandedThreadIds,
-    IReadOnlySet<string>? FavoriteThreadIds = null);
+    IReadOnlySet<string>? FavoriteThreadIds = null,
+    TimeSpan? CompletedRetention = null);

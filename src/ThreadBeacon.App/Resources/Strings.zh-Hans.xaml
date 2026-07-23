@@ -8,6 +8,8 @@
     <sys:String x:Key="RefreshIntervalDescription">调整任务状态的自动刷新频率。</sys:String>
     <sys:String x:Key="MaximumTaskCount">显示任务数量</sys:String>
     <sys:String x:Key="MaximumTaskCountDescription">设置主窗口最多显示的任务数。</sys:String>
+    <sys:String x:Key="JustCompletedRetention">刚完成状态时长</sys:String>
+    <sys:String x:Key="JustCompletedRetentionDescription">设置任务完成后保持“刚完成”状态的时间。</sys:String>
     <sys:String x:Key="Language">界面语言</sys:String>
     <sys:String x:Key="Theme">主题</sys:String>
     <sys:String x:Key="ColorBlindSafeStatusIndicators">色盲安全状态标识</sys:String>

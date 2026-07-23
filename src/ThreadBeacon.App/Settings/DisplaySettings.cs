@@ -10,9 +10,12 @@ public sealed record DisplaySettings
         Array.AsReadOnly([1, 2, 5, 10]);
     private static readonly IReadOnlyList<int> MaximumTaskCounts =
         Array.AsReadOnly([4, 8, 12, 20]);
+    private static readonly IReadOnlyList<int> JustCompletedRetentionMinutesOptions =
+        Array.AsReadOnly([1, 2, 3, 4, 5]);
 
     public const int DefaultRefreshIntervalSeconds = 2;
     public const int DefaultMaximumTaskCount = 8;
+    public const int DefaultJustCompletedRetentionMinutes = 1;
 
     [JsonConstructor]
     public DisplaySettings(
@@ -21,7 +24,8 @@ public sealed record DisplaySettings
         int version = 1,
         AppLanguage language = AppLanguage.System,
         AppTheme theme = AppTheme.System,
-        bool useColorBlindSafeStatusIndicators = false)
+        bool useColorBlindSafeStatusIndicators = false,
+        int justCompletedRetentionMinutes = DefaultJustCompletedRetentionMinutes)
     {
         RefreshIntervalSeconds = RefreshIntervals.Contains(refreshIntervalSeconds)
             ? refreshIntervalSeconds
@@ -33,11 +37,18 @@ public sealed record DisplaySettings
         Language = language;
         Theme = theme;
         UseColorBlindSafeStatusIndicators = useColorBlindSafeStatusIndicators;
+        JustCompletedRetentionMinutes = JustCompletedRetentionMinutesOptions.Contains(
+            justCompletedRetentionMinutes)
+                ? justCompletedRetentionMinutes
+                : DefaultJustCompletedRetentionMinutes;
     }
 
     public static IReadOnlyList<int> SupportedRefreshIntervalSeconds => RefreshIntervals;
 
     public static IReadOnlyList<int> SupportedMaximumTaskCounts => MaximumTaskCounts;
+
+    public static IReadOnlyList<int> SupportedJustCompletedRetentionMinutes =>
+        JustCompletedRetentionMinutesOptions;
 
     public int Version { get; }
 
@@ -52,4 +63,6 @@ public sealed record DisplaySettings
     public AppTheme Theme { get; }
 
     public bool UseColorBlindSafeStatusIndicators { get; }
+
+    public int JustCompletedRetentionMinutes { get; }
 }

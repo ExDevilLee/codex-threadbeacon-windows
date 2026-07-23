@@ -8,6 +8,8 @@
     <sys:String x:Key="RefreshIntervalDescription">How often task status is refreshed automatically.</sys:String>
     <sys:String x:Key="MaximumTaskCount">Visible task count</sys:String>
     <sys:String x:Key="MaximumTaskCountDescription">Maximum number of tasks shown in the main window.</sys:String>
+    <sys:String x:Key="JustCompletedRetention">Completed-state duration</sys:String>
+    <sys:String x:Key="JustCompletedRetentionDescription">How long a completed task remains marked as Done.</sys:String>
     <sys:String x:Key="Language">Interface language</sys:String>
     <sys:String x:Key="Theme">Theme</sys:String>
     <sys:String x:Key="ColorBlindSafeStatusIndicators">Color-blind-safe status indicators</sys:String>

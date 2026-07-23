@@ -206,7 +206,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                     recentLimit,
                     includedIds,
                     requestedExpandedIds,
-                    favoriteIds)));
+                    favoriteIds,
+                    TimeSpan.FromMinutes(
+                        displaySettings.JustCompletedRetentionMinutes))));
             if (result.Health.OverallStatus is OverallDataSourceHealth.Unavailable)
             {
                 DataSourceHealth.Update(

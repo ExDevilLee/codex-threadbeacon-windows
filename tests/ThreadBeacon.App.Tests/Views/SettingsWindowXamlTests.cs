@@ -27,7 +27,7 @@ public sealed class SettingsWindowXamlTests
     }
 
     [Fact]
-    public void GeneralTab_BindsRefreshIntervalAndMaximumTaskCount()
+    public void GeneralTab_BindsRefreshIntervalRetentionAndMaximumTaskCount()
     {
         string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
 
@@ -35,6 +35,10 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("Display.RefreshIntervalSeconds", markup, StringComparison.Ordinal);
         Assert.Contains("Display.MaximumTaskCountOptions", markup, StringComparison.Ordinal);
         Assert.Contains("Display.MaximumTaskCount", markup, StringComparison.Ordinal);
+        Assert.Contains("Display.JustCompletedRetentionOptions", markup, StringComparison.Ordinal);
+        Assert.Contains("Display.JustCompletedRetentionMinutes", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource JustCompletedRetention}", markup, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource JustCompletedRetentionDescription}", markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -145,7 +149,7 @@ public sealed class SettingsWindowXamlTests
             .Where(element => element.Name.LocalName == "ComboBox")
             .ToArray();
 
-        Assert.Equal(7, comboBoxes.Length);
+        Assert.Equal(8, comboBoxes.Length);
         Assert.All(comboBoxes, comboBox =>
             Assert.Equal("Center", (string?)comboBox.Attribute("VerticalContentAlignment")));
     }
@@ -213,7 +217,7 @@ public sealed class SettingsWindowXamlTests
             generalGrid.Elements(),
             element => element.Name.LocalName == "Grid.RowDefinitions");
 
-        Assert.Equal(11, rowDefinitions.Elements().Count());
+        Assert.Equal(13, rowDefinitions.Elements().Count());
         XElement languageCombo = Assert.Single(
             generalGrid.Descendants(),
             element => element.Name.LocalName == "ComboBox"
@@ -247,6 +251,13 @@ public sealed class SettingsWindowXamlTests
             element => element.Name.LocalName == "ComboBox"
                 && (string?)element.Attribute("SelectedValue")
                     == "{Binding Display.MaximumTaskCount, Mode=TwoWay}");
-        Assert.Equal("10", (string?)maximumCountCombo.Attribute("Grid.Row"));
+        Assert.Equal("12", (string?)maximumCountCombo.Attribute("Grid.Row"));
+
+        XElement retentionCombo = Assert.Single(
+            generalGrid.Descendants(),
+            element => element.Name.LocalName == "ComboBox"
+                && (string?)element.Attribute("SelectedValue")
+                    == "{Binding Display.JustCompletedRetentionMinutes, Mode=TwoWay}");
+        Assert.Equal("10", (string?)retentionCombo.Attribute("Grid.Row"));
     }
 }

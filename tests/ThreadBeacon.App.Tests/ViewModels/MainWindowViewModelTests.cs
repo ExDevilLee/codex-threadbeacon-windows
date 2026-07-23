@@ -362,6 +362,36 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public async Task RefreshAsync_UsesConfiguredJustCompletedRetention()
+    {
+        ThreadRecord record = Record("completed");
+        DateTimeOffset completedAt = Now.AddMinutes(-2);
+        var displaySettings = new DisplaySettingsViewModel(
+            new MemoryDisplaySettingsStore(new DisplaySettings(
+                justCompletedRetentionMinutes: 3)));
+        var loader = new ThreadStatusLoader(
+            new PreferenceThreadRepository([record]),
+            new HealthyTitleRepository(),
+            new SingleRolloutParser(new RolloutObservation(
+                ThreadStatus.JustCompleted,
+                completedAt,
+                completedAt,
+                completedAt,
+                null,
+                null)),
+            new FixedTimeProvider(Now));
+        var viewModel = new MainWindowViewModel(
+            loader,
+            new WindowPinState(new MemorySettingsStore()),
+            new MonitoringState(),
+            displaySettings: displaySettings);
+
+        await viewModel.RefreshAsync();
+
+        Assert.Equal(ThreadStatus.JustCompleted, Assert.Single(viewModel.Threads).Status);
+    }
+
+    [Fact]
     public async Task IgnoreAndRestore_UpdateRowsAndPersistImmediately()
     {
         ThreadRecord[] records = [Record("task")];
@@ -803,6 +833,12 @@ public sealed class MainWindowViewModelTests
                 RolloutSourceStatus.Healthy,
                 new RolloutObservation(status, Now, Now, null, null, null));
         }
+    }
+
+    private sealed class SingleRolloutParser(RolloutObservation observation) : IRolloutTailParser
+    {
+        public RolloutLoadResult Parse(string filePath) =>
+            new(RolloutSourceStatus.Healthy, observation);
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider

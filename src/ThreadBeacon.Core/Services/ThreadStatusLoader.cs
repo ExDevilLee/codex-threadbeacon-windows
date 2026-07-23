@@ -8,7 +8,7 @@ public sealed class ThreadStatusLoader
     private readonly ISessionIndexTitleRepository titleRepository;
     private readonly IRolloutTailParser rolloutParser;
     private readonly TimeProvider timeProvider;
-    private readonly TimeSpan completedRetention;
+    private readonly TimeSpan defaultCompletedRetention;
     private readonly TimeSpan runningFreshness;
     private readonly ILogEventRepository? logEventRepository;
     private readonly CompactionActivityRepository compactionActivityRepository;
@@ -27,7 +27,7 @@ public sealed class ThreadStatusLoader
         this.titleRepository = titleRepository ?? throw new ArgumentNullException(nameof(titleRepository));
         this.rolloutParser = rolloutParser ?? throw new ArgumentNullException(nameof(rolloutParser));
         this.timeProvider = timeProvider ?? TimeProvider.System;
-        this.completedRetention = completedRetention ?? TimeSpan.FromSeconds(60);
+        defaultCompletedRetention = completedRetention ?? TimeSpan.FromSeconds(60);
         this.runningFreshness = runningFreshness ?? TimeSpan.FromSeconds(120);
         this.logEventRepository = logEventRepository;
         this.compactionActivityRepository = compactionActivityRepository ?? new CompactionActivityRepository();
@@ -48,6 +48,10 @@ public sealed class ThreadStatusLoader
         ArgumentNullException.ThrowIfNull(request);
         ArgumentOutOfRangeException.ThrowIfLessThan(request.RecentLimit, 1);
         DateTimeOffset now = timeProvider.GetUtcNow();
+        TimeSpan completedRetention = request.CompletedRetention is { } configuredRetention
+            && configuredRetention > TimeSpan.Zero
+                ? configuredRetention
+                : defaultCompletedRetention;
         ThreadLoadResult recentResult = threadRepository.LoadRecent(request.RecentLimit);
         ThreadLoadResult includedResult = request.IncludedThreadIds.Count == 0
             ? new ThreadLoadResult(ThreadRepositoryStatus.Healthy, [])
@@ -144,7 +148,8 @@ public sealed class ThreadStatusLoader
                     ? subagentResult.Status
                     : ThreadRepositoryStatus.Healthy,
                 activeSubagentCounts.GetValueOrDefault(record.Id),
-                activityRollouts))
+                activityRollouts,
+                completedRetention))
             .OrderBy(snapshot => ThreadStatusPriority.Get(snapshot.Status))
             .ThenByDescending(snapshot => snapshot.LatestEventAt ?? DateTimeOffset.MinValue)
             .ThenBy(snapshot => snapshot.Id, StringComparer.Ordinal)
@@ -183,7 +188,8 @@ public sealed class ThreadStatusLoader
         IReadOnlyList<SubagentRecord>? subagentRecords,
         ThreadRepositoryStatus subagentSourceStatus,
         int activeSubagentCount,
-        IReadOnlyDictionary<string, RolloutLoadResult> activityRollouts)
+        IReadOnlyDictionary<string, RolloutLoadResult> activityRollouts,
+        TimeSpan completedRetention)
     {
         RolloutLoadResult rollout = rolloutParser.Parse(record.RolloutPath);
         incident = record.IsArchived
@@ -241,7 +247,8 @@ public sealed class ThreadStatusLoader
                 child,
                 titleOverrides,
                 now,
-                activityRollouts.GetValueOrDefault(child.Id)))
+                activityRollouts.GetValueOrDefault(child.Id),
+                completedRetention))
             .OrderBy(child => ThreadStatusPriority.Get(child.Status))
             .ThenByDescending(child => child.LatestEventAt ?? DateTimeOffset.MinValue)
             .ThenBy(child => child.Id, StringComparer.Ordinal)
@@ -453,7 +460,8 @@ public sealed class ThreadStatusLoader
         SubagentRecord record,
         IReadOnlyDictionary<string, string> titleOverrides,
         DateTimeOffset now,
-        RolloutLoadResult? cachedRollout = null)
+        RolloutLoadResult? cachedRollout,
+        TimeSpan completedRetention)
     {
         RolloutLoadResult rollout = cachedRollout ?? rolloutParser.Parse(record.RolloutPath);
         ThreadDisplayState displayState = ThreadStatusPolicy.Evaluate(
