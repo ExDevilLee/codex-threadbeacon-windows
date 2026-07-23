@@ -8,6 +8,7 @@ public enum AutoRecoveryHistoryStatus
     Sending,
     Sent,
     Failed,
+    CircuitOpen,
 }
 
 public sealed record AutoRecoveryHistoryEntry(

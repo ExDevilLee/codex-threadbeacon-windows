@@ -14,14 +14,37 @@ public sealed class WindowsCodexRecoverySenderTests
                 CodexTargetSelectionFailure.CodexForeground),
         };
         var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
+        int automationStartCount = 0;
 
-        AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
+        AutoRecoverySendResult result = await sender.SendAsync(
+            Request(),
+            () => automationStartCount++,
+            default);
 
         Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
         Assert.Equal("codex_frontmost", result.DiagnosticCode);
         Assert.Equal(CodexTargetSelectionMode.Unattended, automation.SelectionMode);
+        Assert.Equal(0, automationStartCount);
         Assert.Equal(0, automation.TypeCount);
         Assert.Equal(0, automation.InvokeCount);
+    }
+
+    [Fact]
+    public async Task SendAsync_DoesNotStartAutomationWhenComposerCannotBeFocused()
+    {
+        var automation = new FakeCodexComposerAutomation { CanFocus = false };
+        var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
+        int automationStartCount = 0;
+
+        AutoRecoverySendResult result = await sender.SendAsync(
+            Request(),
+            () => automationStartCount++,
+            default);
+
+        Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
+        Assert.Equal("composer_focus_failed", result.DiagnosticCode);
+        Assert.Equal(0, automationStartCount);
+        Assert.Equal(0, automation.TypeCount);
     }
 
     [Fact]
@@ -30,7 +53,7 @@ public sealed class WindowsCodexRecoverySenderTests
         var automation = new FakeCodexComposerAutomation { CanInvoke = false };
         var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
 
-        AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
+        AutoRecoverySendResult result = await sender.SendAsync(Request(), () => { }, default);
 
         Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
         Assert.Equal(1, automation.ClearCount);
@@ -43,7 +66,7 @@ public sealed class WindowsCodexRecoverySenderTests
         var automation = new FakeCodexComposerAutomation { Readback = "user draft" };
         var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
 
-        AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
+        AutoRecoverySendResult result = await sender.SendAsync(Request(), () => { }, default);
 
         Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
         Assert.Equal(0, automation.ClearCount);
@@ -56,10 +79,15 @@ public sealed class WindowsCodexRecoverySenderTests
         var automation = new FakeCodexComposerAutomation();
         var evidence = new FakeEvidenceMonitor { IsVerified = true };
         var sender = new WindowsCodexRecoverySender(automation, evidence);
+        int automationStartCount = 0;
 
-        AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
+        AutoRecoverySendResult result = await sender.SendAsync(
+            Request(),
+            () => automationStartCount++,
+            default);
 
         Assert.Equal(AutoRecoverySendStatus.Sent, result.Status);
+        Assert.Equal(1, automationStartCount);
         Assert.Equal(1, automation.InvokeCount);
         Assert.Equal(1, evidence.WaitCount);
     }
@@ -70,7 +98,7 @@ public sealed class WindowsCodexRecoverySenderTests
         var automation = new FakeCodexComposerAutomation();
         var sender = new WindowsCodexRecoverySender(automation, new FakeEvidenceMonitor());
 
-        AutoRecoverySendResult result = await sender.SendAsync(Request(), default);
+        AutoRecoverySendResult result = await sender.SendAsync(Request(), () => { }, default);
 
         Assert.Equal(AutoRecoverySendStatus.Failed, result.Status);
         Assert.Equal(1, automation.InvokeCount);
@@ -88,7 +116,7 @@ public sealed class WindowsCodexRecoverySenderTests
             new FakeEvidenceMonitor { IsVerified = verified },
             foreground);
 
-        await sender.SendAsync(Request(), default);
+        await sender.SendAsync(Request(), () => { }, default);
 
         Assert.Equal(1, foreground.CaptureCount);
         Assert.Equal(1, foreground.Session.RestoreCount);
@@ -106,7 +134,7 @@ public sealed class WindowsCodexRecoverySenderTests
             foreground);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            sender.SendAsync(Request(), cancellation.Token));
+            sender.SendAsync(Request(), () => { }, cancellation.Token));
 
         Assert.Equal(1, foreground.Session.RestoreCount);
     }
@@ -127,6 +155,7 @@ internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
     public CodexTargetSelectionResult Selection { get; init; } =
         CodexTargetSelectionResult.Selected(new CodexComposerSession("session-1"));
     public bool CanInvoke { get; init; } = true;
+    public bool CanFocus { get; init; } = true;
     public string? Readback { get; init; }
     public int TypeCount { get; private set; }
     public int ClearCount { get; private set; }
@@ -145,7 +174,7 @@ internal sealed class FakeCodexComposerAutomation : ICodexComposerAutomation
     }
 
     public Task<bool> FocusAsync(CodexComposerSession session, CancellationToken cancellationToken) =>
-        Task.FromResult(true);
+        Task.FromResult(CanFocus);
 
     public Task TypeAsync(CodexComposerSession session, string text, CancellationToken cancellationToken)
     {

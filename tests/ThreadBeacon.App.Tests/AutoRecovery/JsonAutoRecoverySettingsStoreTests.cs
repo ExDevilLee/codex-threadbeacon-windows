@@ -30,7 +30,12 @@ public sealed class JsonAutoRecoverySettingsStoreTests
             settings.IsEnabled = true;
             settings.SetRule(
                 AutoRecoveryIncidentType.Http503,
-                new AutoRecoveryRule(true, "Continue this task.", AutoRecoveryPromptSource.Custom));
+                new AutoRecoveryRule(
+                    true,
+                    "Continue this task.",
+                    AutoRecoveryPromptSource.Custom,
+                    IsCircuitBreakerEnabled: false,
+                    MaximumConsecutiveAttempts: 12));
 
             Assert.True(store.Save(settings));
             AutoRecoverySettings loaded = store.Load(AutoRecoveryPromptLanguage.SimplifiedChinese);
@@ -38,6 +43,8 @@ public sealed class JsonAutoRecoverySettingsStoreTests
             Assert.True(loaded.IsEnabled);
             Assert.Equal("Continue this task.", loaded.RuleFor(AutoRecoveryIncidentType.Http503).Prompt);
             Assert.Equal(AutoRecoveryPromptSource.Custom, loaded.RuleFor(AutoRecoveryIncidentType.Http503).PromptSource);
+            Assert.False(loaded.RuleFor(AutoRecoveryIncidentType.Http503).IsCircuitBreakerEnabled);
+            Assert.Equal(12, loaded.RuleFor(AutoRecoveryIncidentType.Http503).MaximumConsecutiveAttempts);
         }
         finally
         {

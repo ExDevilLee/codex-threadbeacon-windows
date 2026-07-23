@@ -25,7 +25,27 @@ public enum AutoRecoveryIncidentType
 public sealed record AutoRecoveryRule(
     bool IsEnabled,
     string Prompt,
-    AutoRecoveryPromptSource PromptSource = AutoRecoveryPromptSource.Custom);
+    AutoRecoveryPromptSource PromptSource = AutoRecoveryPromptSource.Custom,
+    bool IsCircuitBreakerEnabled = true,
+    int MaximumConsecutiveAttempts = AutoRecoveryRule.DefaultMaximumConsecutiveAttempts)
+{
+    public const int DefaultMaximumConsecutiveAttempts = 3;
+    public const int MinimumConsecutiveAttempts = 1;
+    public const int MaximumAllowedConsecutiveAttempts = 20;
+
+    public int MaximumConsecutiveAttempts { get; init; } = NormalizeMaximum(
+        MaximumConsecutiveAttempts);
+
+    public static int NormalizeMaximum(int value) =>
+        value is >= MinimumConsecutiveAttempts and <= MaximumAllowedConsecutiveAttempts
+            ? value
+            : DefaultMaximumConsecutiveAttempts;
+
+    public static int ClampMaximum(int value) => Math.Clamp(
+        value,
+        MinimumConsecutiveAttempts,
+        MaximumAllowedConsecutiveAttempts);
+}
 
 public sealed class AutoRecoverySettings
 {
@@ -80,7 +100,12 @@ public sealed class AutoRecoverySettings
             if (current.PromptSource is AutoRecoveryPromptSource.DefaultValue)
             {
                 AutoRecoveryRule localized = DefaultRule(type, language);
-                rules[type] = localized with { IsEnabled = current.IsEnabled };
+                rules[type] = localized with
+                {
+                    IsEnabled = current.IsEnabled,
+                    IsCircuitBreakerEnabled = current.IsCircuitBreakerEnabled,
+                    MaximumConsecutiveAttempts = current.MaximumConsecutiveAttempts,
+                };
             }
         }
     }

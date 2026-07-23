@@ -7,6 +7,27 @@ ThreadBeacon for Windows 的重要用户可见变更记录在此文件中。
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-07-23
+
+### Added
+
+- Add an optional per-rule automatic-recovery circuit breaker with a configurable
+  limit from 1 to 20 consecutive distinct incidents; the default limit is three.
+- List currently open task/incident circuits in Settings and allow each one to
+  be reset manually.
+
+### Changed
+
+- A newer confirmed task completion resets the matching task's recovery circuit.
+- Circuit-open recovery attempts are recorded with a stable local history state
+  and do not invoke Codex UI Automation.
+
+### Privacy
+
+- Circuit state stores only task ID, incident type, episode ID, attempt count,
+  and timestamp. It excludes titles, prompts, rollout paths, composer content,
+  UI trees, and raw errors.
+
 ## [0.22.1] - 2026-07-23
 
 ### Fixed

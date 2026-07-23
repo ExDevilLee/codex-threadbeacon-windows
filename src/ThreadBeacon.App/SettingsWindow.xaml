@@ -298,14 +298,72 @@
                                                   FontWeight="SemiBold"
                                                   Content="{Binding DisplayName}"
                                                   IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
-                                        <TextBox Grid.Column="1"
-                                                 MinHeight="48"
-                                                 MaxLength="500"
-                                                 Padding="6,4"
-                                                 AcceptsReturn="True"
-                                                 TextWrapping="Wrap"
-                                                 VerticalScrollBarVisibility="Auto"
-                                                 Text="{Binding Prompt, Mode=TwoWay}" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBox MinHeight="48"
+                                                     MaxLength="500"
+                                                     Padding="6,4"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     Text="{Binding Prompt, Mode=TwoWay}" />
+                                            <StackPanel Margin="0,7,0,0">
+                                                <CheckBox VerticalAlignment="Center"
+                                                          Content="{DynamicResource CircuitBreakerConsecutiveFailures}"
+                                                          IsChecked="{Binding IsCircuitBreakerEnabled, Mode=TwoWay}" />
+                                                <Grid Margin="20,5,0,0"
+                                                      IsEnabled="{Binding IsCircuitBreakerEnabled}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="58" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ComboBox Height="26"
+                                                              VerticalContentAlignment="Center"
+                                                              ItemsSource="{Binding MaximumAttemptOptions}"
+                                                              SelectedItem="{Binding MaximumConsecutiveAttempts, Mode=TwoWay}" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Margin="6,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               TextWrapping="Wrap"
+                                                               Text="{DynamicResource CircuitBreakerAttemptsSuffix}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Separator Margin="0,4,0,12" />
+                        <TextBlock FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Text="{DynamicResource OpenCircuits}" />
+                        <TextBlock Margin="0,4,0,8"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource OpenCircuitsDescription}" />
+                        <ItemsControl ItemsSource="{Binding AutoRecovery.OpenCircuits}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="55" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   Text="{Binding ThreadId}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="1"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding Incident}" />
+                                        <TextBlock Grid.Column="2"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding Attempts}" />
+                                        <Button Grid.Column="3"
+                                                Padding="10,3"
+                                                Command="{Binding ResetCommand}"
+                                                Content="{DynamicResource ResetCircuit}" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

@@ -23,9 +23,11 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
 
     public async Task<AutoRecoverySendResult> SendAsync(
         AutoRecoveryRequest request,
+        Action automationStarted,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(automationStarted);
         await sendGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         IRecoveryForegroundSession foregroundSession;
         try
@@ -39,7 +41,10 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
 
         try
         {
-            return await SendCoreAsync(request, cancellationToken).ConfigureAwait(false);
+            return await SendCoreAsync(
+                request,
+                automationStarted,
+                cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -67,6 +72,7 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
 
     private async Task<AutoRecoverySendResult> SendCoreAsync(
         AutoRecoveryRequest request,
+        Action automationStarted,
         CancellationToken cancellationToken)
     {
         RolloutRecoveryCheckpoint checkpoint = evidenceMonitor.Capture(
@@ -87,6 +93,7 @@ public sealed class WindowsCodexRecoverySender : IAutoRecoverySender
             return AutoRecoverySendResult.Failed("composer_focus_failed");
         }
 
+        automationStarted();
         await automation.TypeAsync(session, request.Prompt, cancellationToken).ConfigureAwait(false);
         string readback = await automation.ReadTextAsync(session, cancellationToken).ConfigureAwait(false);
         if (!MatchesPrompt(readback, request.Prompt))

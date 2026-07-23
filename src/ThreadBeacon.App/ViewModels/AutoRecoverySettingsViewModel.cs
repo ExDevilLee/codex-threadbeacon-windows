@@ -14,6 +14,8 @@ public sealed class AutoRecoveryRuleViewModel : INotifyPropertyChanged
     private bool isEnabled;
     private string prompt;
     private string displayName;
+    private bool isCircuitBreakerEnabled;
+    private int maximumConsecutiveAttempts;
 
     internal AutoRecoveryRuleViewModel(
         AutoRecoveryIncidentType type,
@@ -24,6 +26,8 @@ public sealed class AutoRecoveryRuleViewModel : INotifyPropertyChanged
         Type = type;
         isEnabled = rule.IsEnabled;
         prompt = rule.Prompt;
+        isCircuitBreakerEnabled = rule.IsCircuitBreakerEnabled;
+        maximumConsecutiveAttempts = rule.MaximumConsecutiveAttempts;
         this.displayName = displayName;
         this.changed = changed;
     }
@@ -62,13 +66,46 @@ public sealed class AutoRecoveryRuleViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsCircuitBreakerEnabled
+    {
+        get => isCircuitBreakerEnabled;
+        set
+        {
+            if (SetField(ref isCircuitBreakerEnabled, value))
+            {
+                changed(this);
+            }
+        }
+    }
+
+    public int MaximumConsecutiveAttempts
+    {
+        get => maximumConsecutiveAttempts;
+        set
+        {
+            int normalized = AutoRecoveryRule.ClampMaximum(value);
+            if (SetField(ref maximumConsecutiveAttempts, normalized))
+            {
+                changed(this);
+            }
+        }
+    }
+
+    public IReadOnlyList<int> MaximumAttemptOptions { get; } = Enumerable.Range(
+        AutoRecoveryRule.MinimumConsecutiveAttempts,
+        AutoRecoveryRule.MaximumAllowedConsecutiveAttempts).ToArray();
+
     internal void Refresh(AutoRecoveryRule rule, string name)
     {
         isEnabled = rule.IsEnabled;
         prompt = rule.Prompt;
+        isCircuitBreakerEnabled = rule.IsCircuitBreakerEnabled;
+        maximumConsecutiveAttempts = rule.MaximumConsecutiveAttempts;
         DisplayName = name;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Prompt)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCircuitBreakerEnabled)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MaximumConsecutiveAttempts)));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? name = null)
@@ -90,22 +127,32 @@ public sealed record AutoRecoveryHistoryRowViewModel(
     string Status,
     string UpdatedAt);
 
+public sealed record AutoRecoveryCircuitRowViewModel(
+    string ThreadId,
+    string Incident,
+    string Attempts,
+    RelayCommand ResetCommand);
+
 public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
 {
     private readonly IAutoRecoverySettingsStore settingsStore;
     private readonly IAutoRecoveryHistoryStore historyStore;
     private readonly DisplaySettingsViewModel displaySettings;
+    private readonly IAutoRecoveryCircuitStore? circuitStore;
     private readonly ObservableCollection<AutoRecoveryHistoryRowViewModel> history = [];
+    private readonly ObservableCollection<AutoRecoveryCircuitRowViewModel> openCircuits = [];
     private AutoRecoverySettings settings;
 
     public AutoRecoverySettingsViewModel(
         IAutoRecoverySettingsStore settingsStore,
         IAutoRecoveryHistoryStore historyStore,
-        DisplaySettingsViewModel displaySettings)
+        DisplaySettingsViewModel displaySettings,
+        IAutoRecoveryCircuitStore? circuitStore = null)
     {
         this.settingsStore = settingsStore ?? throw new ArgumentNullException(nameof(settingsStore));
         this.historyStore = historyStore ?? throw new ArgumentNullException(nameof(historyStore));
         this.displaySettings = displaySettings ?? throw new ArgumentNullException(nameof(displaySettings));
+        this.circuitStore = circuitStore;
         settings = settingsStore.Load(PromptLanguage);
         Rules = Enum.GetValues<AutoRecoveryIncidentType>()
             .Select(type => new AutoRecoveryRuleViewModel(
@@ -127,6 +174,8 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
 
     public ObservableCollection<AutoRecoveryHistoryRowViewModel> History => history;
 
+    public ObservableCollection<AutoRecoveryCircuitRowViewModel> OpenCircuits => openCircuits;
+
     public RelayCommand RefreshHistoryCommand { get; }
 
     public bool IsEnabled
@@ -147,6 +196,7 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
 
     public void RefreshHistory()
     {
+        RefreshCircuits();
         history.Clear();
         foreach (AutoRecoveryHistoryEntry entry in historyStore.Load().Take(20))
         {
@@ -176,7 +226,9 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
             new AutoRecoveryRule(
                 rule.IsEnabled,
                 rule.Prompt,
-                source),
+                source,
+                rule.IsCircuitBreakerEnabled,
+                rule.MaximumConsecutiveAttempts),
             PromptLanguage);
         AutoRecoveryRule normalized = settings.RuleFor(rule.Type);
         if (normalized.Prompt != rule.Prompt)
@@ -185,6 +237,7 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
         }
 
         settingsStore.Save(settings);
+        RefreshCircuits();
     }
 
     private void OnDisplaySettingsChanged(object? sender, PropertyChangedEventArgs e)
@@ -227,10 +280,41 @@ public sealed class AutoRecoverySettingsViewModel : INotifyPropertyChanged
             (AppLanguage.English, AutoRecoveryHistoryStatus.NotSent) => "Not sent",
             (AppLanguage.English, AutoRecoveryHistoryStatus.Sending) => "Sending",
             (AppLanguage.English, AutoRecoveryHistoryStatus.Sent) => "Sent",
+            (AppLanguage.English, AutoRecoveryHistoryStatus.CircuitOpen) => "Circuit open",
             (AppLanguage.English, _) => "Failed",
             (_, AutoRecoveryHistoryStatus.NotSent) => "未发送",
             (_, AutoRecoveryHistoryStatus.Sending) => "发送中",
             (_, AutoRecoveryHistoryStatus.Sent) => "已发送",
+            (_, AutoRecoveryHistoryStatus.CircuitOpen) => "已熔断",
             _ => "失败",
         };
+
+    private void RefreshCircuits()
+    {
+        openCircuits.Clear();
+        if (circuitStore is null)
+        {
+            return;
+        }
+
+        foreach (AutoRecoveryCircuitState state in circuitStore.Load())
+        {
+            AutoRecoveryRule rule = settings.RuleFor(state.IncidentType);
+            if (!rule.IsCircuitBreakerEnabled
+                || state.AttemptCount < rule.MaximumConsecutiveAttempts)
+            {
+                continue;
+            }
+
+            openCircuits.Add(new AutoRecoveryCircuitRowViewModel(
+                state.ThreadId,
+                IncidentName(state.IncidentType),
+                $"{state.AttemptCount}/{rule.MaximumConsecutiveAttempts}",
+                new RelayCommand(() =>
+                {
+                    circuitStore.Reset(state.ThreadId, state.IncidentType);
+                    RefreshCircuits();
+                })));
+        }
+    }
 }

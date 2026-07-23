@@ -63,10 +63,12 @@ public partial class MainWindow : Window
             soundPlayer);
         var autoRecoverySettingsStore = JsonAutoRecoverySettingsStore.CreateDefault();
         var autoRecoveryHistoryStore = JsonAutoRecoveryHistoryStore.CreateDefault();
+        var autoRecoveryCircuitStore = JsonAutoRecoveryCircuitStore.CreateDefault();
         var autoRecoverySettings = new AutoRecoverySettingsViewModel(
             autoRecoverySettingsStore,
             autoRecoveryHistoryStore,
-            displaySettings);
+            displaySettings,
+            autoRecoveryCircuitStore);
         var codexAutomation = new WindowsCodexComposerAutomation();
         threadOpener = new WindowsCodexThreadOpener(codexAutomation);
         var autoRecoveryCoordinator = new AutoRecoveryCoordinator(
@@ -75,7 +77,8 @@ public partial class MainWindow : Window
                 codexAutomation,
                 new RolloutRecoveryEvidenceMonitor(),
                 new WindowsRecoveryForegroundSessionFactory()),
-            autoRecoveryHistoryStore);
+            autoRecoveryHistoryStore,
+            circuitStore: autoRecoveryCircuitStore);
         loginStartupService = new WindowsLoginStartupService();
         string localSupportPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -211,6 +214,7 @@ public partial class MainWindow : Window
 
     private void OnSettingsButtonClick(object sender, RoutedEventArgs e)
     {
+        settingsViewModel.AutoRecovery?.RefreshHistory();
         if (settingsWindow is not null)
         {
             if (settingsWindow.WindowState is WindowState.Minimized)

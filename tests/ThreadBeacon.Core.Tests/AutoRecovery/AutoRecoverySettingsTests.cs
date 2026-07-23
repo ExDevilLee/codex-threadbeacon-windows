@@ -119,4 +119,46 @@ public sealed class AutoRecoverySettingsTests
             settings.RuleFor(AutoRecoveryIncidentType.Http400) with { IsEnabled = false });
         Assert.Equal(AutoRecoveryDecision.Disabled, AutoRecoveryPolicy.Evaluate(candidate, settings));
     }
+
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(1, 1)]
+    [InlineData(20, 20)]
+    [InlineData(21, 3)]
+    public void Rule_NormalizesCircuitBreakerLimit(int value, int expected)
+    {
+        var rule = new AutoRecoveryRule(
+            true,
+            "Continue.",
+            AutoRecoveryPromptSource.Custom,
+            IsCircuitBreakerEnabled: true,
+            MaximumConsecutiveAttempts: value);
+
+        Assert.True(rule.IsCircuitBreakerEnabled);
+        Assert.Equal(expected, rule.MaximumConsecutiveAttempts);
+    }
+
+    [Fact]
+    public void Policy_StopsWhenConfiguredCircuitLimitIsReached()
+    {
+        AutoRecoverySettings settings = AutoRecoverySettings.CreateDefault(
+            AutoRecoveryPromptLanguage.English);
+        settings.IsEnabled = true;
+        var candidate = new AutoRecoveryCandidate(
+            "thread-1",
+            "episode-4",
+            AutoRecoveryIncidentType.Http400,
+            "Title",
+            @"C:\Codex\rollout.jsonl",
+            DateTimeOffset.UnixEpoch);
+
+        AutoRecoveryDecision decision = AutoRecoveryPolicy.Evaluate(
+            candidate,
+            settings,
+            consecutiveAttempts: 3);
+
+        Assert.Equal(AutoRecoveryDecisionKind.CircuitOpen, decision.Kind);
+        Assert.Equal(3, decision.AttemptCount);
+        Assert.Equal(3, decision.AttemptLimit);
+    }
 }

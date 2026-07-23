@@ -22,6 +22,7 @@ public static class AutoRecoveryDiagnosticCodes
             "send_button_unavailable",
             "composer_changed_before_send",
             "rollout_evidence_missing",
+            "circuit_open",
             UnexpectedError,
         ],
         StringComparer.Ordinal);

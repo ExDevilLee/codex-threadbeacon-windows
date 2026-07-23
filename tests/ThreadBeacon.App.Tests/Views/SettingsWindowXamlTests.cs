@@ -80,11 +80,15 @@ public sealed class SettingsWindowXamlTests
         Assert.Contains("AutoRecovery.Rules", markup, StringComparison.Ordinal);
         Assert.Contains("AutoRecovery.History", markup, StringComparison.Ordinal);
         Assert.Contains("AutoRecovery.RefreshHistoryCommand", markup, StringComparison.Ordinal);
+        Assert.Contains("IsCircuitBreakerEnabled", markup, StringComparison.Ordinal);
+        Assert.Contains("MaximumConsecutiveAttempts", markup, StringComparison.Ordinal);
+        Assert.Contains("AutoRecovery.OpenCircuits", markup, StringComparison.Ordinal);
+        Assert.Contains("ResetCommand", markup, StringComparison.Ordinal);
         Assert.Contains("MaxLength=\"500\"", markup, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void AutoRecoveryTab_ReservesEnoughWidthForEnglishRuleNames()
+    public void AutoRecoveryTab_UsesWrappingCircuitLayoutAtMinimumWidth()
     {
         XDocument document = LoadDocument();
         XElement rules = Assert.Single(
@@ -95,6 +99,18 @@ public sealed class SettingsWindowXamlTests
             .First(element => element.Name.LocalName == "ColumnDefinition");
 
         Assert.Equal("180", (string?)labelColumn.Attribute("Width"));
+        XElement circuitGrid = Assert.Single(
+            rules.Descendants(),
+            element => element.Name.LocalName == "Grid"
+                && (string?)element.Attribute("IsEnabled") == "{Binding IsCircuitBreakerEnabled}");
+        XElement suffix = Assert.Single(
+            circuitGrid.Descendants(),
+            element => (string?)element.Attribute("Text")
+                == "{DynamicResource CircuitBreakerAttemptsSuffix}");
+        Assert.Equal("Wrap", (string?)suffix.Attribute("TextWrapping"));
+        Assert.DoesNotContain(
+            rules.Descendants(),
+            element => element.Name.LocalName == "DockPanel");
     }
 
     [Fact]
@@ -129,7 +145,7 @@ public sealed class SettingsWindowXamlTests
             .Where(element => element.Name.LocalName == "ComboBox")
             .ToArray();
 
-        Assert.Equal(6, comboBoxes.Length);
+        Assert.Equal(7, comboBoxes.Length);
         Assert.All(comboBoxes, comboBox =>
             Assert.Equal("Center", (string?)comboBox.Attribute("VerticalContentAlignment")));
     }

@@ -187,6 +187,117 @@ public sealed class AutoRecoveryCoordinatorTests
         Assert.Equal("unexpected_error", history.Writes[^1].DiagnosticCode);
     }
 
+    [Fact]
+    public async Task ObserveAsync_OpensCircuitAfterConfiguredDistinctEpisodes()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"circuit-{Guid.NewGuid():N}.json");
+        try
+        {
+            var sender = new RecordingRecoverySender();
+            var history = new RecordingRecoveryHistoryStore();
+            var circuits = new JsonAutoRecoveryCircuitStore(path);
+            AutoRecoverySettings settings = AutoRecoverySettings.CreateDefault(
+                AutoRecoveryPromptLanguage.English);
+            settings.IsEnabled = true;
+            var coordinator = new AutoRecoveryCoordinator(
+                () => settings,
+                sender,
+                history,
+                circuitStore: circuits);
+
+            await coordinator.ObserveAsync([FailedSnapshot(episode: "episode-1")], RefreshNotificationPolicy.Notify);
+            await coordinator.ObserveAsync([FailedSnapshot(episode: "episode-2")], RefreshNotificationPolicy.Notify);
+            await coordinator.ObserveAsync([FailedSnapshot(episode: "episode-3")], RefreshNotificationPolicy.Notify);
+            await coordinator.ObserveAsync([FailedSnapshot(episode: "episode-4")], RefreshNotificationPolicy.Notify);
+
+            Assert.Equal(3, sender.Requests.Count);
+            Assert.Equal(3, Assert.Single(circuits.Load()).AttemptCount);
+            Assert.Equal(AutoRecoveryHistoryStatus.CircuitOpen, history.Writes[^1].Status);
+            Assert.Equal("circuit_open", history.Writes[^1].DiagnosticCode);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task ObserveAsync_PreflightRejectionDoesNotCountTowardCircuit()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"circuit-{Guid.NewGuid():N}.json");
+        try
+        {
+            var sender = new RecordingRecoverySender
+            {
+                StartsAutomation = false,
+                Result = AutoRecoverySendResult.Failed("codex_frontmost"),
+            };
+            var circuits = new JsonAutoRecoveryCircuitStore(path);
+            AutoRecoverySettings settings = AutoRecoverySettings.CreateDefault(
+                AutoRecoveryPromptLanguage.English);
+            settings.IsEnabled = true;
+            var coordinator = new AutoRecoveryCoordinator(
+                () => settings,
+                sender,
+                circuitStore: circuits);
+
+            await coordinator.ObserveAsync(
+                [FailedSnapshot(episode: "episode-1")],
+                RefreshNotificationPolicy.Notify);
+
+            Assert.Empty(circuits.Load());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task ObserveAsync_NewerCompletionResetsCircuit()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"circuit-{Guid.NewGuid():N}.json");
+        try
+        {
+            var circuits = new JsonAutoRecoveryCircuitStore(path);
+            circuits.RecordAttempt(
+                new AutoRecoveryCandidate(
+                    "thread-1",
+                    "episode-1",
+                    AutoRecoveryIncidentType.Http400,
+                    "Title",
+                    @"C:\Codex\thread-1.jsonl",
+                    DateTimeOffset.FromUnixTimeSeconds(10)),
+                DateTimeOffset.FromUnixTimeSeconds(10));
+            var coordinator = new AutoRecoveryCoordinator(
+                () => AutoRecoverySettings.CreateDefault(AutoRecoveryPromptLanguage.English),
+                new RecordingRecoverySender(),
+                circuitStore: circuits);
+            ThreadSnapshot failed = FailedSnapshot();
+            var completed = new ThreadSnapshot(
+                failed.Id,
+                failed.Title,
+                ThreadStatus.JustCompleted,
+                DateTimeOffset.FromUnixTimeSeconds(11),
+                DateTimeOffset.FromUnixTimeSeconds(11),
+                DateTimeOffset.FromUnixTimeSeconds(11),
+                DateTimeOffset.FromUnixTimeSeconds(10),
+                DateTimeOffset.FromUnixTimeSeconds(11),
+                null,
+                0,
+                RolloutSourceStatus.Healthy,
+                rolloutPath: failed.RolloutPath);
+
+            await coordinator.ObserveAsync([completed], RefreshNotificationPolicy.Baseline);
+
+            Assert.Empty(circuits.Load());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static AutoRecoveryCoordinator Coordinator(
         RecordingRecoverySender sender,
         bool enabled)
@@ -234,10 +345,13 @@ internal sealed class RecordingRecoverySender : IAutoRecoverySender
 
     public AutoRecoverySendResult Result { get; init; } = AutoRecoverySendResult.Sent;
 
+    public bool StartsAutomation { get; init; } = true;
+
     public int MaximumConcurrency { get; private set; }
 
     public async Task<AutoRecoverySendResult> SendAsync(
         AutoRecoveryRequest request,
+        Action automationStarted,
         CancellationToken cancellationToken)
     {
         Requests.Add(request);
@@ -253,6 +367,11 @@ internal sealed class RecordingRecoverySender : IAutoRecoverySender
             if (ThrowOnSend)
             {
                 throw new InvalidOperationException("Synthetic sender failure.");
+            }
+
+            if (StartsAutomation)
+            {
+                automationStarted();
             }
 
             return Result;

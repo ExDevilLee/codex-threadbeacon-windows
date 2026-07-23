@@ -177,6 +177,8 @@ Result: completed on Win11 with 900 samples, no probe failures, no source degrad
 - [x] Reuse a confirmed foreground target only when its exact Rename header and unique empty composer are verified.
 - [x] Keep foreground drafts and ambiguous or unreadable composer states fail-closed without navigation or input.
 - [x] Record only allowlisted, bounded diagnostic codes for failed recovery attempts.
+- [x] Stop repeated recovery after a configurable 1-20 distinct episodes per task and incident type, with a default limit of three.
+- [x] List open circuits, support manual reset, and reset automatically after a newer confirmed completion.
 - [x] Keep Core independent from WPF and cover policy, tracking, rollout evidence, persistence, coordination, and sender behavior with tests.
 
 ## Phase 19: Open Codex Task

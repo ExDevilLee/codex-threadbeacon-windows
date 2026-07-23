@@ -75,7 +75,7 @@ public sealed class JsonAutoRecoverySettingsStore : IAutoRecoverySettingsStore
             }
 
             var document = new SettingsDocument(
-                1,
+                2,
                 settings.IsEnabled,
                 settings.Rules.ToDictionary(pair => pair.Key, pair => pair.Value));
             string json = JsonSerializer.Serialize(document, SerializerOptions);

@@ -73,6 +73,11 @@
     <sys:String x:Key="AutoRecoveryTab">自动恢复</sys:String>
     <sys:String x:Key="EnableAutoRecovery">启用自动恢复</sys:String>
     <sys:String x:Key="AutoRecoveryDescription">Codex 任务因已启用的服务异常而终止时，ThreadBeacon 可安全地重新打开任务并发送续接提示。启动前的历史异常不会补发。</sys:String>
+    <sys:String x:Key="CircuitBreakerConsecutiveFailures">连续失败</sys:String>
+    <sys:String x:Key="CircuitBreakerAttemptsSuffix">次后停止</sys:String>
+    <sys:String x:Key="OpenCircuits">当前熔断</sys:String>
+    <sys:String x:Key="OpenCircuitsDescription">达到上限的任务不会继续自动发送；正常完成任务或手动解除后恢复。</sys:String>
+    <sys:String x:Key="ResetCircuit">解除</sys:String>
     <sys:String x:Key="RecoveryHistory">最近恢复记录</sys:String>
     <sys:String x:Key="RecoveryTaskId">任务 ID</sys:String>
     <sys:String x:Key="RecoveryIncident">异常</sys:String>

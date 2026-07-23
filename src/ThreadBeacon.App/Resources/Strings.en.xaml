@@ -73,6 +73,11 @@
     <sys:String x:Key="AutoRecoveryTab">Auto recovery</sys:String>
     <sys:String x:Key="EnableAutoRecovery">Enable automatic recovery</sys:String>
     <sys:String x:Key="AutoRecoveryDescription">When a Codex task terminates with an enabled service error, ThreadBeacon can safely reopen it and send the configured continuation prompt. Historical errors are never replayed.</sys:String>
+    <sys:String x:Key="CircuitBreakerConsecutiveFailures">Consecutive failures</sys:String>
+    <sys:String x:Key="CircuitBreakerAttemptsSuffix">attempts before stopping</sys:String>
+    <sys:String x:Key="OpenCircuits">Open circuits</sys:String>
+    <sys:String x:Key="OpenCircuitsDescription">Tasks at the limit stop automatic sending until a newer completion or manual reset.</sys:String>
+    <sys:String x:Key="ResetCircuit">Reset</sys:String>
     <sys:String x:Key="RecoveryHistory">Recent recovery attempts</sys:String>
     <sys:String x:Key="RecoveryTaskId">Task ID</sys:String>
     <sys:String x:Key="RecoveryIncident">Incident</sys:String>

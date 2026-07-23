@@ -10,6 +10,7 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
     private readonly IAutoRecoverySender sender;
     private readonly IAutoRecoveryHistoryStore? historyStore;
     private readonly TimeProvider timeProvider;
+    private readonly IAutoRecoveryCircuitStore? circuitStore;
     private readonly AutoRecoveryTracker tracker = new();
     private readonly SemaphoreSlim observationGate = new(1, 1);
 
@@ -17,13 +18,15 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
         Func<AutoRecoverySettings> settingsProvider,
         IAutoRecoverySender sender,
         IAutoRecoveryHistoryStore? historyStore = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        IAutoRecoveryCircuitStore? circuitStore = null)
     {
         this.settingsProvider = settingsProvider
             ?? throw new ArgumentNullException(nameof(settingsProvider));
         this.sender = sender ?? throw new ArgumentNullException(nameof(sender));
         this.historyStore = historyStore;
         this.timeProvider = timeProvider ?? TimeProvider.System;
+        this.circuitStore = circuitStore;
     }
 
     public async Task ObserveAsync(
@@ -34,12 +37,30 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
         await observationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            ObserveCompletions(snapshots);
             IReadOnlyList<AutoRecoveryCandidate> candidates = tracker.Observe(snapshots, policy);
             foreach (AutoRecoveryCandidate candidate in candidates)
             {
+                AutoRecoveryCircuitState? circuit = TryGetCircuit(candidate);
                 AutoRecoveryDecision decision = AutoRecoveryPolicy.Evaluate(
                     candidate,
-                    settingsProvider());
+                    settingsProvider(),
+                    circuit?.AttemptCount ?? 0);
+                if (decision.Kind is AutoRecoveryDecisionKind.CircuitOpen)
+                {
+                    DateTimeOffset occurredAt = timeProvider.GetUtcNow();
+                    TryWriteHistory(new AutoRecoveryHistoryEntry(
+                        Guid.NewGuid().ToString("N"),
+                        candidate.ThreadId,
+                        candidate.EpisodeId,
+                        candidate.IncidentType,
+                        AutoRecoveryHistoryStatus.CircuitOpen,
+                        occurredAt,
+                        occurredAt,
+                        "circuit_open"));
+                    continue;
+                }
+
                 if (decision is not { Kind: AutoRecoveryDecisionKind.Send, Prompt: not null })
                 {
                     continue;
@@ -59,6 +80,7 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
                 {
                     AutoRecoverySendResult result = await sender.SendAsync(
                         new AutoRecoveryRequest(candidate, decision.Prompt),
+                        () => TryRecordAttempt(candidate, timeProvider.GetUtcNow()),
                         cancellationToken).ConfigureAwait(false);
                     TryWriteHistory(history with
                     {
@@ -102,6 +124,53 @@ public sealed class AutoRecoveryCoordinator : IAutoRecoveryObserver
         catch
         {
             // History persistence must not affect monitoring or recovery.
+        }
+    }
+
+    private void ObserveCompletions(IReadOnlyList<ThreadSnapshot> snapshots)
+    {
+        if (circuitStore is null)
+        {
+            return;
+        }
+
+        foreach (ThreadSnapshot snapshot in snapshots)
+        {
+            if (snapshot.CompletionEventAt is DateTimeOffset completedAt)
+            {
+                try
+                {
+                    circuitStore.ObserveCompletion(snapshot.Id, completedAt);
+                }
+                catch
+                {
+                    // Circuit state is best effort and never breaks monitoring.
+                }
+            }
+        }
+    }
+
+    private AutoRecoveryCircuitState? TryGetCircuit(AutoRecoveryCandidate candidate)
+    {
+        try
+        {
+            return circuitStore?.StateFor(candidate.ThreadId, candidate.IncidentType);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void TryRecordAttempt(AutoRecoveryCandidate candidate, DateTimeOffset attemptedAt)
+    {
+        try
+        {
+            circuitStore?.RecordAttempt(candidate, attemptedAt);
+        }
+        catch
+        {
+            // Circuit state is best effort and never blocks a configured recovery.
         }
     }
 }

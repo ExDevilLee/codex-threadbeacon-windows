@@ -12,6 +12,16 @@ public sealed class MainWindowXamlTests
         Path.Combine(AppContext.BaseDirectory, "Fixtures", "MainWindow.xaml.cs.txt"));
 
     [Fact]
+    public void AutoRecovery_WiresSharedCircuitStoreAndRefreshesSettingsOnOpen()
+    {
+        string code = LoadCodeBehind();
+
+        Assert.Contains("JsonAutoRecoveryCircuitStore.CreateDefault()", code, StringComparison.Ordinal);
+        Assert.True(Count(code, "autoRecoveryCircuitStore") >= 3);
+        Assert.Contains("settingsViewModel.AutoRecovery?.RefreshHistory();", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TaskAndSubagentRows_BindColorBlindSafeStatusGlyphsInFixedSlots()
     {
         string markup = LoadDocument().ToString(SaveOptions.DisableFormatting);
